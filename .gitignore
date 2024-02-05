@@ -1,0 +1,15 @@
+__pycache__/
+dist/
+build/
+.vscode/
+Output/
+pyinstaller-5.13.2/
+.DS_Store
+signtool/
+
+*.h5
+*.iss
+*.onnx
+*.log
+*.egg-info
+version.txt
