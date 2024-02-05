@@ -136,8 +136,9 @@ class DetectionModel(object):
                                        "bbox": bbox})
             bbox_dict_pred.sort(key=lambda x:float(x['confidence']), reverse=True)
 
-            merge = det2merge(org_img, bbox_dict_pred)
-            cv2.imwrite(f"debug_data/test{image_id}.png", merge)
+            # merge = det2merge(org_img, bbox_dict_pred)
+            # save_path = os.path.join(self.config.log_dir, "test_d", f"{image_id}.png")
+            # cv2.imwrite(f"debug_data/test{image_id}.png", merge)
 
 
             # count True Positive and False Positive
@@ -199,54 +200,45 @@ class DetectionModel(object):
         return result
     
     def predict_by_id(self, image_id, thresh=0.5):
-        src_img = self.dataset.load_image(image_id)
-        gt_mask_data = self.dataset.load_masks(image_id)
-        img = np.array(src_img, dtype=np.float32) / 255.0
-        img = np.expand_dims(img, axis=0)
-        pred = self.model.predict(img, batch_size=1, verbose=0)[0]
-        merge = src_img.astype(float)
-        gt_merge = src_img.astype(float)
-        for c in range(pred.shape[2] - 1):
-            m = pred[:, :, c + 1]
-            gt_m = gt_mask_data[:, :, c + 1]
-            color = LABEL_COLORMAP[c + 2]
-            color = color[::-1]
-            indexes = np.where(m >= thresh)
-            mask = np.zeros_like(src_img)
-            gt_mask = np.zeros_like(src_img)
-            for x in range(3):
-                binary = np.zeros_like(m, dtype=float)
-                binary[indexes] = float(color[x])
-                mask[..., x] = binary
-                gt_mask[..., x] = gt_m * float(color[x])
-            merge += mask.astype(float)
-            gt_merge += gt_mask.astype(float)
+        # load image and annotation
+        org_img = self.dataset.load_image(image_id, is_resize=False)
+        anno_gt = self.dataset.get_yolo_bboxes(image_id)
+        if len(anno_gt) == 0:
+            bboxes_gt = []
+            classes_gt = []
+        else:
+            bboxes_gt, classes_gt = anno_gt[:, :4], anno_gt[:, 4]
 
-        fontsize = 2
-        fontcolor = (255, 255, 255) if np.mean(src_img[:, :100, :]) < 128 else (0, 0, 0)  # select color depending on background
-        fontweight = 2
+        # ground truths
+        # bbox_dict_gt = []
+        # for i in range(len(bboxes_gt)):
+        #     class_id = classes_gt[i]
+        #     class_name = self.dataset.class_names[class_id]
+        #     bbox = list(map(float, bboxes_gt[i]))
+        #     bbox_dict_gt.append({"class_name": class_name,
+        #                             "bbox": bbox,
+        #                             "used": False})
+        #     gt_count_per_class[class_id] += 1
 
-        cv2.putText(src_img, "original", (0, 50), cv2.FONT_HERSHEY_PLAIN, fontsize, fontcolor, fontweight, cv2.LINE_AA)
+        # prediction
+        pred_bboxes = self.model.predict(org_img)
+        
+        bbox_dict_pred = []
+        for bbox_pred in pred_bboxes:
+            # xmin, ymin, xmax, ymax = list(map(str, map(int, bbox[:4])))
+            bbox = list(map(float, bbox_pred[:4]))
+            score = bbox_pred[4]
+            class_id = int(bbox_pred[5])
+            class_name = self.dataset.class_names[class_id]
+            score = '%.4f' % score
+            bbox_dict_pred.append({"class_id": class_id,
+                                    "class_name": class_name,
+                                    "confidence": score,
+                                    "bbox": bbox})
+        bbox_dict_pred.sort(key=lambda x:float(x['confidence']), reverse=True)
 
-        merge[merge > 255] = 255.0
-        merge = merge.astype(np.uint8)
-        cv2.putText(merge, "AI", (0, 50), cv2.FONT_HERSHEY_PLAIN, fontsize, fontcolor, fontweight, cv2.LINE_AA)
-
-        gt_merge[gt_merge > 255] = 255.0
-        gt_merge = gt_merge.astype(np.uint8)
-        cv2.putText(gt_merge, "human", (0, 50), cv2.FONT_HERSHEY_PLAIN, fontsize, fontcolor, fontweight, cv2.LINE_AA)
-
-        concat = np.concatenate([src_img, merge, gt_merge], axis=1)
-        label_box = np.zeros((50 ,concat.shape[1], 3), np.uint8)
-        cv2.rectangle(label_box, (0, 0), (label_box.shape[1], label_box.shape[0]), color=(255, 255, 255), thickness=-1, lineType=cv2.LINE_4, shift=0)
-        for c in range(pred.shape[2] - 1):
-            color = LABEL_COLORMAP[c + 2][::-1]
-            label = self.dataset.class_names[c]
-            cv2.putText(label_box, "*", (100*c + 50*c, 40), cv2.FONT_HERSHEY_PLAIN, fontsize, color, fontweight, cv2.LINE_AA)
-            cv2.putText(label_box, label, (20 + 100*c + 50*c, 40), cv2.FONT_HERSHEY_PLAIN, fontsize, color, fontweight, cv2.LINE_AA)
-        concat = np.concatenate([concat, label_box], axis=0)
-
-        return concat
+        merge = det2merge(org_img, bbox_dict_pred)
+        return merge
     
     def convert2onnx(self):
         saved_model_path = os.path.join(self.config.log_dir, 'saved_model')

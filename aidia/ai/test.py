@@ -8,17 +8,14 @@ class TestModel():
         self.config = config
         self.dataset = None
         self.model = None
-
     
     def set_config(self, config):
         self.config = config
-
 
     def build_dataset(self, mode=None):
         fashion_mnist = tf.keras.datasets.fashion_mnist
         (train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
         self.dataset = [(train_images, train_labels), (test_images, test_labels)]
-
 
     def build_model(self, mode=None):
         self.model = tf.keras.Sequential([
@@ -32,7 +29,6 @@ class TestModel():
             optimizer=optim,
             loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
             metrics=['accuracy'])
-
 
     def train(self, custom_callbacks=None):
         callbacks = []
@@ -51,3 +47,6 @@ class TestModel():
 
     def save(self):
         pass
+
+    def stop_training(self):
+        self.model.stop_training = True

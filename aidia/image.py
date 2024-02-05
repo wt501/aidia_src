@@ -324,4 +324,5 @@ def det2merge(src_img, pred, gt=None):
         color = LABEL_COLORMAP[class_id + 2][::-1]
 
         cv2.rectangle(merge, (xmin, ymin), (xmax, ymax), color, 2, cv2.LINE_AA)
+    merge = cv2.cvtColor(merge, cv2.COLOR_BGR2RGB)
     return merge

@@ -42,7 +42,7 @@ if ADD_AI:
     from aidia.widgets.ai_test_widget import AITestWidget
 
 
-WEB_URL = "https://github.com/wt501/Aidia"
+WEB_URL = "https://kottonhome.sakura.ne.jp/index.html"
 
 NO_DATA, EDIT = 0, 1
 

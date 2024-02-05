@@ -265,6 +265,15 @@ class Dataset(object):
     #############################
     def load_image(self, image_id, is_resize=True):
         img_path = self.image_info[image_id]["path"]
+
+        # if img_path was not found, get relative path
+        if not os.path.exists(img_path):
+            filename = os.path.basename(img_path)
+            img_path = os.path.join(self.config.dataset_dir, filename)
+        
+        if not os.path.exists(img_path):
+            raise FileNotFoundError("Failed to load image.")
+
         if dicom.is_dicom(img_path) or utils.extract_ext(img_path) == ".dcm":
             dicom_data = dicom.DICOM(img_path)
             img = dicom_data.load_image()
@@ -278,6 +287,7 @@ class Dataset(object):
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         else:
             img = image.imread(img_path)
+        
             
         if is_resize:
             img = cv2.resize(img, self.config.image_size)

@@ -367,6 +367,7 @@ class AIEvalDialog(QtWidgets.QDialog):
     def update_results(self, value):
         if self.task == DET:
             self.precision = value["precision"]
+            self.recall = value["recall"]
         else:
             loss = value[0]
             acc = value[1]
@@ -477,7 +478,8 @@ class AIEvalDialog(QtWidgets.QDialog):
         #     return
         
         if self.task == DET:
-            text = f"AP50: {self.precision}"
+            text = f"Precision (AP50): {self.precision}"
+            text += f"Recall: {self.recall}"
             self.text_results.setText(text)
         else:
             text = f"Loss: {self.loss:.6f}\n"
@@ -587,6 +589,10 @@ class AIEvalDialog(QtWidgets.QDialog):
         if error > 0:
             self.text_status.setText(self.tr("Please check parameters."))
             return
+
+        if self.task not in [SEG]:
+            self.text_status.setText(self.tr("Not implemented function."))
+            return
         
         config_path = os.path.join(self.log_dir, "config.json")
         if not os.path.exists(config_path):
@@ -693,29 +699,30 @@ class AIEvalThread(QtCore.QThread):
 
         self.notifyMessage.emit(self.tr("Generate test result images..."))
 
-        # save_dir = os.path.join(self.config.log_dir, "test_preds")
-        # if not os.path.exists(save_dir):
-        #     os.mkdir(save_dir)
-        # n = model.dataset.num_test
-        # predicts = []
-        # for i in range(n):
-        #     image_id = model.dataset.test_ids[i]
-        #     img_path = model.dataset.image_info[image_id]["path"]
-        #     name = os.path.splitext(os.path.basename(img_path))[0]
-        #     result_img = model.predict_by_id(image_id)
-        #     save_path = os.path.join(save_dir, f"{name}.png")
-        #     image.imwrite(result_img, save_path)
-        #     # update latest 5 images to the widget
-        #     if len(predicts) <= 5:
-        #         w = self.config.image_size[1]
-        #         result_img = result_img[:, w:w*2]
-        #         predicts.append(result_img)
-        #     else:
-        #         self.predictList.emit(predicts)
-        #         predicts = []
-        #     # update progress bar
-        #     self.progressValue.emit(int(i / n * 100))
-        # self.progressValue.emit(0)
+        save_dir = os.path.join(self.config.log_dir, "test_preds")
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
+        n = model.dataset.num_test
+        predicts = []
+        for i in range(n):
+            image_id = model.dataset.test_ids[i]
+            img_path = model.dataset.image_info[image_id]["path"]
+            name = os.path.splitext(os.path.basename(img_path))[0]
+            result_img = model.predict_by_id(image_id)
+            save_path = os.path.join(save_dir, f"{name}.png")
+            image.imwrite(result_img, save_path)
+            # update latest 5 images to the widget
+            if len(predicts) <= 5:
+                w = self.config.image_size[1]
+                if self.config.TASK in [SEG]:
+                    result_img = result_img[:, w:w*2]
+                predicts.append(result_img)
+            else:
+                self.predictList.emit(predicts)
+                predicts = []
+            # update progress bar
+            self.progressValue.emit(int(i / n * 100))
+        self.progressValue.emit(0)
 
         self.notifyMessage.emit(self.tr("Convert model to ONNX..."))
         model.convert2onnx()
