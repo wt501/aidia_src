@@ -1,5 +1,4 @@
 import subprocess
-import os
 from aidia import __version__
 
 fname = f"dist/aidia-{__version__}-py3-none-any.whl"

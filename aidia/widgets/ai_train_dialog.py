@@ -482,6 +482,11 @@ class AITrainDialog(QtWidgets.QDialog):
             self.unit_blur.setStyleSheet(self.disabled_style)
             self.input_noise.setEnabled(False)
             self.unit_noise.setStyleSheet(self.disabled_style)
+            if self.config.gpu_num < 2:
+                self.input_is_multi.setEnabled(False)
+            else:
+                self.input_is_multi.setEnabled(True)
+
 
         elif task == SEG:
             self.input_model.clear()
@@ -490,6 +495,10 @@ class AITrainDialog(QtWidgets.QDialog):
                 x.setEnabled(True)
             for x in self.unit_list:
                 x.setStyleSheet(self.default_style)
+            if self.config.gpu_num < 2:
+                self.input_is_multi.setEnabled(False)
+            else:
+                self.input_is_multi.setEnabled(True)
 
         elif task == MNIST:
             self.input_model.clear()
@@ -501,7 +510,10 @@ class AITrainDialog(QtWidgets.QDialog):
             self.input_epochs.setEnabled(True)
             self.input_batchsize.setEnabled(True)
             self.input_lr.setEnabled(True)
-            self.input_is_multi.setEnabled(True)
+            if self.config.gpu_num < 2:
+                self.input_is_multi.setEnabled(False)
+            else:
+                self.input_is_multi.setEnabled(True)
          
         else:
             raise ValueError
@@ -529,9 +541,9 @@ class AITrainDialog(QtWidgets.QDialog):
         self.input_lr.setText(str(self.config.LEARNING_RATE))
 
         self.input_labels.setText("\n".join(self.config.LABELS))
-        self.input_is_multi.setChecked(self.config.USE_MULTI_GPUS)
         if self.config.gpu_num < 2:
             self.input_is_multi.setEnabled(False)
+        self.input_is_multi.setChecked(self.config.USE_MULTI_GPUS)
         self.input_is_savebest.setChecked(self.config.SAVE_BEST)
 
         # augment params
@@ -816,6 +828,7 @@ class AITrainThread(QtCore.QThread):
         if self.cb.is_fitting:
             super().quit()
             self.model.stop_training()
+            self.notifyMessage.emit(self.tr("Interrupt training."))
             return
         else:
             self.notifyMessage.emit(self.tr("Fitting process has not started yet."))
