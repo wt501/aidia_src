@@ -12,9 +12,8 @@ from aidia.ai.config import AIConfig
 class AITestWidget(QtWidgets.QWidget):
     def __init__(self, parent):
         super().__init__(parent)
-        
      
-    def generate_shapes(self, img, log_dir):
+    def generate_shapes(self, img, log_dir, epsilon=None):
         h, w = img.shape[:2]
         if img.dtype == np.uint16:
             img = convert_dtype(img)
@@ -37,7 +36,7 @@ class AITestWidget(QtWidgets.QWidget):
             masks = np.where(result[0] >= 0.5, 255, 0)
             masks = masks.astype(np.uint8)
             masks = cv2.resize(masks, (w, h), cv2.INTER_NEAREST)
-            shapes = mask2polygon(masks, config.LABELS)
+            shapes = mask2polygon(masks, config.LABELS, epsilon)
             return shapes
         else:
             raise NotImplementedError

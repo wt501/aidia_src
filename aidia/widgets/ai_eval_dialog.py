@@ -312,6 +312,7 @@ class AIEvalDialog(QtWidgets.QDialog):
         return np.frombuffer(data, dtype=np.uint8).reshape(h, w, c)
 
     def update_dataset(self, value):
+        dataset_num = value["dataset_num"]
         num_images = value["num_images"]
         num_shapes = value["num_shapes"]
         num_classes = value["num_classes"]
@@ -337,6 +338,7 @@ class AIEvalDialog(QtWidgets.QDialog):
         labels_info = "\n".join(labels_info)
 
         text = []
+        text.append(self.tr("Dataset Number: {}").format(dataset_num))
         text.append(self.tr("Number of Data: {}").format(num_images))
         text.append(self.tr("Number of Train: {}").format(num_train))
         text.append(self.tr("Number of Validation: {}").format(num_val))
@@ -677,6 +679,7 @@ class AIEvalThread(QtCore.QThread):
         
         if isinstance(model.dataset, Dataset):
             _info_dict = {
+                "dataset_num": model.dataset.dataset_num,
                 "num_images": model.dataset.num_images,
                 "num_shapes": model.dataset.num_shapes,
                 "num_classes": model.dataset.num_classes,

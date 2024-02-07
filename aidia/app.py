@@ -2312,7 +2312,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         try:
             shapes = self.ai_test_widget.generate_shapes(
-                self.canvas.img_array, self.model_dir)
+                self.canvas.img_array, self.model_dir, self.approx_epsilon)
         except Exception as e:
             self.reset_cursor()
             self.error_message(e)

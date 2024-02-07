@@ -17,6 +17,8 @@ class Dataset(object):
         self.config = config
         np.random.seed(self.config.SEED)
 
+        self.dataset_num = config.DATASET_NUM
+
         if self.config.TASK == CLS:
             self.target_shape = [
                 "polygon",
@@ -208,7 +210,7 @@ class Dataset(object):
 
     def split_data(self):
         """Get ids of data splited to train, validation, and test."""
-        i = self.config.DATASET_IDX
+        i = self.dataset_num
 
         if self.config.SUBMODE:
             subdir_ids = np.copy(self.subdir_ids)

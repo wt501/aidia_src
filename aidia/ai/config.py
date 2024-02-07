@@ -33,10 +33,11 @@ class AIConfig(object):
         self.USE_MULTI_GPUS = False
         self.NAME = 'test'
         self.TASK = "Segmentation"
-        self.DATASET_IDX = 1
+        self.DATASET_NUM = 1
         self.SEED = 12345
 
         self.SUBMODE = False
+        self.EARLY_STOPPING = False
 
         # training setting
         self.INPUT_SIZE = 224

@@ -114,6 +114,18 @@ class AITrainDialog(QtWidgets.QDialog):
         self.input_name.textChanged.connect(_validate)
         self._add_basic_params(self.tag_name, self.input_name)
 
+        # dataset idx
+        self.tag_dataset_num = QtWidgets.QLabel(self.tr("Dataset Number"))
+        self.input_dataset_num = self.create_input_field(50)
+        def _validate(text):
+            if text.isdigit() and 0 < int(text) <= self.config.N_SPLITS:
+                self._set_ok(self.tag_dataset_num)
+                self.config.DATASET_NUM = int(text)
+            else:
+                self._set_error(self.tag_dataset_num)
+        self.input_dataset_num.textChanged.connect(_validate)
+        self._add_basic_params(self.tag_dataset_num, self.input_dataset_num)
+
         # input size
         self.tag_size = QtWidgets.QLabel(self.tr("Input Size"))
         self.tag_size.setToolTip(self.tr(
@@ -203,6 +215,17 @@ class AITrainDialog(QtWidgets.QDialog):
                 self.config.SAVE_BEST = False
         self.input_is_savebest.stateChanged.connect(_validate)
         self._add_basic_params(self.tag_is_savebest, self.input_is_savebest, right=True, reverse=True)
+
+        # early stopping
+        self.tag_is_earlystop = QtWidgets.QLabel(self.tr("Early Stopping"))
+        self.input_is_earlystop = QtWidgets.QCheckBox()
+        def _validate(state): # check:2, empty:0
+            if state == 2:
+                self.config.EARLY_STOPPING = True
+            else:
+                self.config.EARLY_STOPPING = False
+        self.input_is_earlystop.stateChanged.connect(_validate)
+        self._add_basic_params(self.tag_is_earlystop, self.input_is_earlystop, right=True, reverse=True)
 
         # use multiple gpu
         self.tag_is_multi = QtWidgets.QLabel(self.tr("Use Multiple GPUs"))
@@ -535,6 +558,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.switch_inputs_by_task(self.config.TASK)
         self.input_model.setCurrentText(self.config.MODEL)
         self.input_name.setText(self.config.NAME)
+        self.input_dataset_num.setText(str(self.config.DATASET_NUM))
         self.input_size.setText(str(self.config.INPUT_SIZE))
         self.input_epochs.setText(str(self.config.EPOCHS))
         self.input_batchsize.setText(str(self.config.BATCH_SIZE))
@@ -545,6 +569,7 @@ class AITrainDialog(QtWidgets.QDialog):
             self.input_is_multi.setEnabled(False)
         self.input_is_multi.setChecked(self.config.USE_MULTI_GPUS)
         self.input_is_savebest.setChecked(self.config.SAVE_BEST)
+        self.input_is_earlystop.setChecked(self.config.EARLY_STOPPING)
 
         # augment params
         self.input_is_vflip.setChecked(self.config.RANDOM_VFLIP)
@@ -696,6 +721,7 @@ class AITrainDialog(QtWidgets.QDialog):
         return np.frombuffer(data, dtype=np.uint8).reshape(h, w, c)
 
     def update_dataset(self, value):
+        dataset_num = value["dataset_num"]
         num_images = value["num_images"]
         num_shapes = value["num_shapes"]
         num_classes = value["num_classes"]
@@ -721,6 +747,7 @@ class AITrainDialog(QtWidgets.QDialog):
         labels_info = "\n".join(labels_info)
 
         text = []
+        text.append(self.tr("Dataset Number: {}").format(dataset_num))
         text.append(self.tr("Number of Data: {}").format(num_images))
         text.append(self.tr("Number of Train: {}").format(num_train))
         text.append(self.tr("Number of Validation: {}").format(num_val))
@@ -819,13 +846,13 @@ class AITrainThread(QtCore.QThread):
         super().__init__(parent)
         self.config = None
         self.model = None
-        self.cb = None
+        self.cb_getprocess = None
 
     def set_config(self, config: AIConfig):
         self.config = config
 
     def quit(self):
-        if self.cb.is_fitting:
+        if self.cb_getprocess.is_fitting:
             super().quit()
             self.model.stop_training()
             self.notifyMessage.emit(self.tr("Interrupt training."))
@@ -861,6 +888,7 @@ class AITrainThread(QtCore.QThread):
         
         if isinstance(model.dataset, Dataset):
             _info_dict = {
+                "dataset_num": model.dataset.dataset_num,
                 "num_images": model.dataset.num_images,
                 "num_shapes": model.dataset.num_shapes,
                 "num_classes": model.dataset.num_classes,
@@ -910,10 +938,16 @@ class AITrainThread(QtCore.QThread):
             model.build_model(mode="train")
         
         self.notifyMessage.emit(self.tr("Preparing..."))
-        cb = GetProgress(self)
-        self.cb = cb
+
+        cb_getprocess = GetProgress(self)
+        self.cb_getprocess = cb_getprocess
+
+        if self.config.EARLY_STOPPING:
+            cb = [cb_getprocess, tf.keras.callbacks.EarlyStopping(patience=10)]
+        else:
+            cb = [cb_getprocess]
         try:
-            model.train([cb])
+            model.train(cb)
         except Exception as e:
             self.notifyMessage.emit(self.tr("Failed to train."))
             aidia_logger.error(e, exc_info=True)
