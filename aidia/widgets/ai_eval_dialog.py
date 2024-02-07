@@ -368,8 +368,10 @@ class AIEvalDialog(QtWidgets.QDialog):
 
     def update_results(self, value):
         if self.task == DET:
-            self.precision = value["precision"]
-            self.recall = value["recall"]
+            # self.precision = value["precision"]
+            self.precision = value[0]
+            # self.recall = value["recall"]
+            self.recall = value[1]
         else:
             loss = value[0]
             acc = value[1]
@@ -642,8 +644,8 @@ class AIEvalDialog(QtWidgets.QDialog):
     
 class AIEvalThread(QtCore.QThread):
 
-    resultsList = QtCore.Signal(dict)
-    # resultsList = QtCore.Signal(list)
+    # resultsList = QtCore.Signal(dict)
+    resultsList = QtCore.Signal(list)
     batchLogList = QtCore.Signal(dict)
     notifyMessage = QtCore.Signal(str)
     datasetInfo = QtCore.Signal(dict)

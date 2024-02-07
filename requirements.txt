@@ -10,6 +10,7 @@ pyinstaller-versionfile
 PyYAML
 # for AI utils
 matplotlib
+scikit-learn
 openpyxl
 tensorflow==2.10.1
 onnxruntime
