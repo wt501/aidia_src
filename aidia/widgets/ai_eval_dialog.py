@@ -700,39 +700,39 @@ class AIEvalThread(QtCore.QThread):
         self.notifyMessage.emit(self.tr("Model building..."))
         model.build_model(mode="test")
 
-        # self.notifyMessage.emit(self.tr("Generate test result images..."))
+        self.notifyMessage.emit(self.tr("Generate test result images..."))
 
-        # save_dir = os.path.join(self.config.log_dir, "test_preds")
-        # if not os.path.exists(save_dir):
-        #     os.mkdir(save_dir)
-        # n = model.dataset.num_test
-        # predicts = []
-        # for i in range(n):
-        #     image_id = model.dataset.test_ids[i]
-        #     img_path = model.dataset.image_info[image_id]["path"]
-        #     name = os.path.splitext(os.path.basename(img_path))[0]
-        #     try:
-        #         result_img = model.predict_by_id(image_id)
-        #     except FileNotFoundError as e:
-        #         self.notifyMessage.emit(self.tr("Error: {} was not found.").format(img_path))
-        #         return
-        #     save_path = os.path.join(save_dir, f"{name}.png")
-        #     image.imwrite(result_img, save_path)
-        #     # update latest 5 images to the widget
-        #     if len(predicts) <= 5:
-        #         w = self.config.image_size[1]
-        #         if self.config.TASK in [SEG]:
-        #             result_img = result_img[:, w:w*2]
-        #         predicts.append(result_img)
-        #     else:
-        #         self.predictList.emit(predicts)
-        #         predicts = []
-        #     # update progress bar
-        #     self.progressValue.emit(int(i / n * 100))
-        # self.progressValue.emit(0)
+        save_dir = os.path.join(self.config.log_dir, "test_preds")
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
+        n = model.dataset.num_test
+        predicts = []
+        for i in range(n):
+            image_id = model.dataset.test_ids[i]
+            img_path = model.dataset.image_info[image_id]["path"]
+            name = os.path.splitext(os.path.basename(img_path))[0]
+            try:
+                result_img = model.predict_by_id(image_id)
+            except FileNotFoundError as e:
+                self.notifyMessage.emit(self.tr("Error: {} was not found.").format(img_path))
+                return
+            save_path = os.path.join(save_dir, f"{name}.png")
+            image.imwrite(result_img, save_path)
+            # update latest 5 images to the widget
+            if len(predicts) <= 5:
+                w = self.config.image_size[1]
+                if self.config.TASK in [SEG]:
+                    result_img = result_img[:, w:w*2]
+                predicts.append(result_img)
+            else:
+                self.predictList.emit(predicts)
+                predicts = []
+            # update progress bar
+            self.progressValue.emit(int(i / n * 100))
+        self.progressValue.emit(0)
 
-        # self.notifyMessage.emit(self.tr("Convert model to ONNX..."))
-        # model.convert2onnx()
+        self.notifyMessage.emit(self.tr("Convert model to ONNX..."))
+        model.convert2onnx()
     
         self.notifyMessage.emit(self.tr("Evaluating..."))
         cb = GetProgress(self)
