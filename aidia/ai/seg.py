@@ -121,18 +121,22 @@ class SegmentationModel(object):
             output_shapes=(input_shape, output_shape)
         )
 
-        callbacks = []
-        if custom_callbacks:
-            for c in custom_callbacks:
-                callbacks.append(c)
+        preds = self.model.predict(test_generator)
+        print(preds)
+        raise ValueError
 
-        results = self.model.evaluate(
-            test_generator,
-            batch_size=1,
-            verbose=0,
-            steps=self.dataset.num_test,
-            callbacks=custom_callbacks,
-            )
+        # callbacks = []
+        # if custom_callbacks:
+        #     for c in custom_callbacks:
+        #         callbacks.append(c)
+
+        # results = self.model.evaluate(
+        #     test_generator,
+        #     batch_size=1,
+        #     verbose=0,
+        #     steps=self.dataset.num_test,
+        #     callbacks=custom_callbacks,
+        #     )
 
         return results
 

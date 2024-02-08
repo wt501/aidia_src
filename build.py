@@ -1,8 +1,6 @@
 import subprocess
 import pyinstaller_versionfile
-from aidia import __appname__, __version__, ADD_AI
-
-ADD_AI = False
+from aidia import __appname__, __version__
 
 pyinstaller_versionfile.create_versionfile(
     output_file="version.txt",

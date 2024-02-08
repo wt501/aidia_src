@@ -368,10 +368,7 @@ class AIEvalDialog(QtWidgets.QDialog):
 
     def update_results(self, value):
         if self.task == DET:
-            # self.precision = value["precision"]
-            self.precision = value[0]
-            # self.recall = value["recall"]
-            self.recall = value[1]
+            self.result_values = value
         else:
             loss = value[0]
             acc = value[1]
@@ -478,17 +475,18 @@ class AIEvalDialog(QtWidgets.QDialog):
                 utils.save_dict_to_excel(metrics_dict2, os.path.join(self.log_dir, f"results_{name}_curve_plot.xlsx"))
         
     def update_class_choice(self, index):
-        # if not len(self.general_results):
-        #     return
         
         if self.task == DET:
-            text = f"Precision (AP50): {self.precision}"
-            text += f"Recall: {self.recall}"
+            # mAP = self.result_values["mAP50"]
+            mAP = self.result_values[0]
+            text = f"mAP50: {mAP}"
             self.text_results.setText(text)
         else:
             text = f"Loss: {self.loss:.6f}\n"
             text += f"Accuracy: {self.acc:.6f}\n"
 
+            if not len(self.general_results):
+                return
             r = self.general_results[index]
             text += f"\n[Class: {self.class_names[index]}]\n"
             text += f"Precision: {r[0]:.6f}\n"
@@ -702,35 +700,39 @@ class AIEvalThread(QtCore.QThread):
         self.notifyMessage.emit(self.tr("Model building..."))
         model.build_model(mode="test")
 
-        self.notifyMessage.emit(self.tr("Generate test result images..."))
+        # self.notifyMessage.emit(self.tr("Generate test result images..."))
 
-        save_dir = os.path.join(self.config.log_dir, "test_preds")
-        if not os.path.exists(save_dir):
-            os.mkdir(save_dir)
-        n = model.dataset.num_test
-        predicts = []
-        for i in range(n):
-            image_id = model.dataset.test_ids[i]
-            img_path = model.dataset.image_info[image_id]["path"]
-            name = os.path.splitext(os.path.basename(img_path))[0]
-            result_img = model.predict_by_id(image_id)
-            save_path = os.path.join(save_dir, f"{name}.png")
-            image.imwrite(result_img, save_path)
-            # update latest 5 images to the widget
-            if len(predicts) <= 5:
-                w = self.config.image_size[1]
-                if self.config.TASK in [SEG]:
-                    result_img = result_img[:, w:w*2]
-                predicts.append(result_img)
-            else:
-                self.predictList.emit(predicts)
-                predicts = []
-            # update progress bar
-            self.progressValue.emit(int(i / n * 100))
-        self.progressValue.emit(0)
+        # save_dir = os.path.join(self.config.log_dir, "test_preds")
+        # if not os.path.exists(save_dir):
+        #     os.mkdir(save_dir)
+        # n = model.dataset.num_test
+        # predicts = []
+        # for i in range(n):
+        #     image_id = model.dataset.test_ids[i]
+        #     img_path = model.dataset.image_info[image_id]["path"]
+        #     name = os.path.splitext(os.path.basename(img_path))[0]
+        #     try:
+        #         result_img = model.predict_by_id(image_id)
+        #     except FileNotFoundError as e:
+        #         self.notifyMessage.emit(self.tr("Error: {} was not found.").format(img_path))
+        #         return
+        #     save_path = os.path.join(save_dir, f"{name}.png")
+        #     image.imwrite(result_img, save_path)
+        #     # update latest 5 images to the widget
+        #     if len(predicts) <= 5:
+        #         w = self.config.image_size[1]
+        #         if self.config.TASK in [SEG]:
+        #             result_img = result_img[:, w:w*2]
+        #         predicts.append(result_img)
+        #     else:
+        #         self.predictList.emit(predicts)
+        #         predicts = []
+        #     # update progress bar
+        #     self.progressValue.emit(int(i / n * 100))
+        # self.progressValue.emit(0)
 
-        self.notifyMessage.emit(self.tr("Convert model to ONNX..."))
-        model.convert2onnx()
+        # self.notifyMessage.emit(self.tr("Convert model to ONNX..."))
+        # model.convert2onnx()
     
         self.notifyMessage.emit(self.tr("Evaluating..."))
         cb = GetProgress(self)

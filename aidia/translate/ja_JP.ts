@@ -1010,7 +1010,7 @@ If you set 256, resizes input images to 256x256.</source>
     <message>
         <location filename="aidia/widgets/ai_train_dialog.py" line="219"/>
         <source>Early Stopping</source>
-        <translation></translation>
+        <translation>Early Stopping</translation>
     </message>
     <message>
         <location filename="aidia/widgets/ai_train_dialog.py" line="749"/>

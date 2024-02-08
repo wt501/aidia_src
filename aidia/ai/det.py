@@ -6,6 +6,8 @@ import subprocess
 import glob
 import random
 
+from sklearn import metrics
+
 from aidia.ai.dataset import Dataset
 from aidia.ai.config import AIConfig
 from aidia.ai import metrics
@@ -93,110 +95,122 @@ class DetectionModel(object):
         self.model.stop_training = True
 
     def evaluate(self, custom_callbacks=None):
-        gt_count_per_class = np.array([0.0] * self.dataset.num_classes, dtype=float)
-        tp_per_class = np.array([0.0] * self.dataset.num_classes, dtype=float)
-        fp_per_class = np.array([0.0] * self.dataset.num_classes, dtype=float)
         sum_AP = 0.0
-        ap_dictionary = {}
-        for image_id in self.dataset.test_ids:
-            # load image and annotation
-            org_img = self.dataset.load_image(image_id, is_resize=False)
-            anno_gt = self.dataset.get_yolo_bboxes(image_id)
-            if len(anno_gt) == 0:
-                bboxes_gt = []
-                classes_gt = []
-            else:
-                bboxes_gt, classes_gt = anno_gt[:, :4], anno_gt[:, 4]
-
-            # ground truths
-            bbox_dict_gt = []
-            for i in range(len(bboxes_gt)):
-                class_id = classes_gt[i]
-                class_name = self.dataset.class_names[class_id]
-                bbox = list(map(float, bboxes_gt[i]))
-                bbox_dict_gt.append({"class_name": class_name,
-                                     "bbox": bbox,
-                                     "used": False})
-                gt_count_per_class[class_id] += 1
-
-            # prediction
-            pred_bboxes = self.model.predict(org_img)
-            
-            bbox_dict_pred = []
-            for bbox_pred in pred_bboxes:
-                # xmin, ymin, xmax, ymax = list(map(str, map(int, bbox[:4])))
-                bbox = list(map(float, bbox_pred[:4]))
-                score = bbox_pred[4]
-                class_id = int(bbox_pred[5])
-                class_name = self.dataset.class_names[class_id]
-                score = '%.4f' % score
-                bbox_dict_pred.append({"class_id": class_id,
-                                       "class_name": class_name,
-                                       "confidence": score,
-                                       "bbox": bbox})
-            bbox_dict_pred.sort(key=lambda x:float(x['confidence']), reverse=True)
-
-            # merge = det2merge(org_img, bbox_dict_pred)
-            # save_path = os.path.join(self.config.log_dir, "test_d", f"{image_id}.png")
-            # cv2.imwrite(f"debug_data/test{image_id}.png", merge)
-
-
-            # count True Positive and False Positive
-            for pred in bbox_dict_pred:
-                overlap_max = -1
-                gt_match = -1
-
-                cls_id = pred["class_id"]
-                cls_pred = pred["class_name"]
-                bb_pred = pred["bbox"]
-
-                for gt in bbox_dict_gt:
-                    cls_gt = gt["class_name"]
-                    if cls_gt != cls_pred:
-                        continue
-                    bb_gt = gt["bbox"]
-                    bi = [max(bb_pred[0], bb_gt[0]),
-                          max(bb_pred[1], bb_gt[1]),
-                          min(bb_pred[2], bb_gt[2]),
-                          min(bb_pred[3], bb_gt[3])]
-                    iw = bi[2] - bi[0] + 1
-                    ih = bi[3] - bi[1] + 1
-                    if iw > 0 and ih > 0:
-                        # compute overlap (IoU) = area of intersection / area of union
-                        area_pred = (bb_pred[2] - bb_pred[0] + 1) * (bb_pred[3] - bb_pred[1] + 1)
-                        area_gt = (bb_gt[2] - bb_gt[0] + 1) * (bb_gt[3] - bb_gt[1] + 1)
-                        ua = area_pred + area_gt - iw * ih
-                        ov = (iw * ih) / ua
-                        if ov > overlap_max:
-                            overlap_max = ov
-                            gt_match = gt
-            
-                # set minimum overlap (AP50)
-                iou_threshold = 0.5  # TODO:user configuration param
-                if overlap_max >= iou_threshold:
-                    if not bool(gt_match["used"]):
-                        gt_match["used"] = True
-                        tp_per_class[cls_id] += 1.0
-                    else:
-                        fp_per_class[cls_id] += 1.0
+        nc = self.dataset.num_classes
+        # calculate AP each class
+        for class_id in range(nc):
+            gt_count = 0.0
+            tp_list = []
+            fp_list = []
+            for image_id in self.dataset.test_ids:
+                # load image and annotation
+                org_img = self.dataset.load_image(image_id, is_resize=False)
+                anno_gt = self.dataset.get_yolo_bboxes(image_id)
+                if len(anno_gt) == 0:
+                    bboxes_gt = []
+                    classes_gt = []
                 else:
-                    fp_per_class[cls_id] += 1.0
+                    bboxes_gt, classes_gt = anno_gt[:, :4], anno_gt[:, 4]
 
-        # compute precision/recall
-        total_gt = np.sum(gt_count_per_class)
-        total_tp = np.sum(tp_per_class)
-        total_fp = np.sum(fp_per_class)
+                # ground truths
+                bbox_dict_gt = []
+                for i in range(len(bboxes_gt)):
+                    class_id = classes_gt[i]
+                    class_name = self.dataset.class_names[class_id]
+                    bbox = list(map(float, bboxes_gt[i]))
+                    bbox_dict_gt.append({"class_name": class_name,
+                                        "bbox": bbox,
+                                        "used": False})
+                    gt_count += 1
 
-        precision_per_class = tp_per_class / (fp_per_class + tp_per_class)
-        recall_per_class = tp_per_class / gt_count_per_class
+                # prediction
+                pred_bboxes = self.model.predict(org_img)
+                
+                bbox_dict_pred = []
+                for bbox_pred in pred_bboxes:
+                    # xmin, ymin, xmax, ymax = list(map(str, map(int, bbox[:4])))
+                    bbox = list(map(float, bbox_pred[:4]))
+                    score = bbox_pred[4]
+                    class_id = int(bbox_pred[5])
+                    class_name = self.dataset.class_names[class_id]
+                    score = '%.4f' % score
+                    bbox_dict_pred.append({"class_id": class_id,
+                                        "class_name": class_name,
+                                        "confidence": score,
+                                        "bbox": bbox})
+                bbox_dict_pred.sort(key=lambda x:float(x['confidence']), reverse=True)
 
-        precision = total_tp / (total_fp + total_tp)
-        recall = total_tp / total_gt
+                # count True Positive and False Positive
+                for pred in bbox_dict_pred:
+                    overlap_max = -1
+                    gt_match = -1
 
-        result = {
-            "precision": precision,
-            "recall": recall
-        }
+                    cls_id = pred["class_id"]
+                    cls_pred = pred["class_name"]
+                    bb_pred = pred["bbox"]
+
+                    for gt in bbox_dict_gt:
+                        cls_gt = gt["class_name"]
+                        if cls_gt != cls_pred:
+                            continue
+                        bb_gt = gt["bbox"]
+                        bi = [max(bb_pred[0], bb_gt[0]),
+                            max(bb_pred[1], bb_gt[1]),
+                            min(bb_pred[2], bb_gt[2]),
+                            min(bb_pred[3], bb_gt[3])]
+                        iw = bi[2] - bi[0] + 1
+                        ih = bi[3] - bi[1] + 1
+                        if iw > 0 and ih > 0:
+                            # compute overlap (IoU) = area of intersection / area of union
+                            area_pred = (bb_pred[2] - bb_pred[0] + 1) * (bb_pred[3] - bb_pred[1] + 1)
+                            area_gt = (bb_gt[2] - bb_gt[0] + 1) * (bb_gt[3] - bb_gt[1] + 1)
+                            ua = area_pred + area_gt - iw * ih
+                            ov = (iw * ih) / ua
+                            if ov > overlap_max:
+                                overlap_max = ov
+                                gt_match = gt
+                
+                    # set minimum overlap (AP50)
+                    iou_threshold = 0.5  # TODO:user configuration param
+                    if overlap_max >= iou_threshold:
+                        if not bool(gt_match["used"]):
+                            gt_match["used"] = True
+                            tp_list.append(1.0)
+                            fp_list.append(0.0)
+                        else:
+                            tp_list.append(0.0)
+                            fp_list.append(1.0)
+                    else:
+                        tp_list.append(0.0)
+                        fp_list.append(1.0)
+            
+            cumsum = 0
+            for idx, val in enumerate(fp_list):
+                fp_list[idx] += cumsum
+                cumsum += val
+
+            cumsum = 0
+            for idx, val in enumerate(tp_list):
+                tp_list[idx] += cumsum
+                cumsum += val
+
+            recall = tp_list[:]
+            for idx, val in enumerate(tp_list):
+                recall[idx] = tp_list[idx] / gt_count
+
+            precision = tp_list[:]
+            for idx, val in enumerate(tp_list):
+                precision[idx] = tp_list[idx] / (fp_list[idx] + tp_list[idx])
+
+            ap, mrec, mprec = self.voc_ap(recall, precision)
+            sum_AP += ap
+
+        mAP = sum_AP / nc
+
+        # result = {
+        #     "mAP50": mAP,
+        # }
+        result = [mAP]
         return result
     
     def predict_by_id(self, image_id, thresh=0.5):
@@ -251,3 +265,50 @@ class DetectionModel(object):
                         '--output', onnx_path,
                         '--opset', '11'])
 
+    @staticmethod
+    def voc_ap(rec, prec):
+        """
+        --- Official matlab code VOC2012---
+        mrec=[0 ; rec ; 1];
+        mpre=[0 ; prec ; 0];
+        for i=numel(mpre)-1:-1:1
+            mpre(i)=max(mpre(i),mpre(i+1));
+        end
+        i=find(mrec(2:end)~=mrec(1:end-1))+1;
+        ap=sum((mrec(i)-mrec(i-1)).*mpre(i));
+        """
+        rec.insert(0, 0.0) # insert 0.0 at begining of list
+        rec.append(1.0) # insert 1.0 at end of list
+        mrec = rec[:]
+        prec.insert(0, 0.0) # insert 0.0 at begining of list
+        prec.append(0.0) # insert 0.0 at end of list
+        mpre = prec[:]
+        """
+        This part makes the precision monotonically decreasing
+            (goes from the end to the beginning)
+            matlab:  for i=numel(mpre)-1:-1:1
+                        mpre(i)=max(mpre(i),mpre(i+1));
+        """
+        # matlab indexes start in 1 but python in 0, so I have to do:
+        #   range(start=(len(mpre) - 2), end=0, step=-1)
+        # also the python function range excludes the end, resulting in:
+        #   range(start=(len(mpre) - 2), end=-1, step=-1)
+        for i in range(len(mpre)-2, -1, -1):
+            mpre[i] = max(mpre[i], mpre[i+1])
+        """
+        This part creates a list of indexes where the recall changes
+            matlab:  i=find(mrec(2:end)~=mrec(1:end-1))+1;
+        """
+        i_list = []
+        for i in range(1, len(mrec)):
+            if mrec[i] != mrec[i-1]:
+                i_list.append(i) # if it was matlab would be i + 1
+        """
+        The Average Precision (AP) is the area under the curve
+            (numerical integration)
+            matlab: ap=sum((mrec(i)-mrec(i-1)).*mpre(i));
+        """
+        ap = 0.0
+        for i in i_list:
+            ap += ((mrec[i]-mrec[i-1])*mpre[i])
+        return ap, mrec, mpre
