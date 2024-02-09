@@ -25,7 +25,7 @@ def update_dict(target_dict, new_dict, validate_item=None):
 
 def get_default_config():
     config_file = utils.join(CFG_DIR, 'default_config.yaml')
-    with open(config_file) as f:
+    with open(config_file, encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
     # save default config to ~/.aidiarc
@@ -65,7 +65,7 @@ def get_config(config_file_or_yaml=None, config_from_args=None):
     if config_file_or_yaml is not None:
         config_from_yaml = yaml.safe_load(config_file_or_yaml)
         if not isinstance(config_from_yaml, dict):
-            with open(config_from_yaml) as f:
+            with open(config_from_yaml, encoding="utf-8") as f:
                 config_from_yaml = yaml.safe_load(f)
         update_dict(config, config_from_yaml,
                     validate_item=validate_config_item)
@@ -80,5 +80,5 @@ def get_config(config_file_or_yaml=None, config_from_args=None):
 
 def save_config(data):
     user_config_file = osp.join(HOME_DIR, '.aidiarc')
-    with open(user_config_file, "w") as f:
+    with open(user_config_file, mode="w", encoding="utf-8") as f:
         yaml.dump(data, f)

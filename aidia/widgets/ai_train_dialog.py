@@ -238,6 +238,17 @@ class AITrainDialog(QtWidgets.QDialog):
         self.input_is_multi.stateChanged.connect(_validate)
         self._add_basic_params(self.tag_is_multi, self.input_is_multi, right=True, reverse=True)
 
+        # train target select
+        self.tag_is_dir_split = QtWidgets.QLabel(self.tr("Build Dataset with Directories"))
+        self.input_is_dir_split = QtWidgets.QCheckBox()
+        def _validate(state): # check:2, empty:0
+            if state == 2:
+                self.config.DIR_SPLIT = True
+            else:
+                self.config.DIR_SPLIT = False
+        self.input_is_multi.stateChanged.connect(_validate)
+        self._add_basic_params(self.tag_is_dir_split, self.input_is_dir_split, right=True, reverse=True)
+
 
         ### add augment params ###
         # title
@@ -570,6 +581,9 @@ class AITrainDialog(QtWidgets.QDialog):
         self.input_is_multi.setChecked(self.config.USE_MULTI_GPUS)
         self.input_is_savebest.setChecked(self.config.SAVE_BEST)
         self.input_is_earlystop.setChecked(self.config.EARLY_STOPPING)
+        if not self.config.SUBMODE:
+            self.input_is_dir_split.setChecked(False)
+        self.input_is_dir_split.setChecked(self.config.DIR_SPLIT)
 
         # augment params
         self.input_is_vflip.setChecked(self.config.RANDOM_VFLIP)
@@ -736,7 +750,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.train_steps = value["train_steps"]
         self.val_steps = value["val_steps"]
 
-        labels_info = []
+        labels_info = [self.tr("[*] labels (all|train|val|test)")]
         for i in range(num_classes):
             name = class_names[i]
             n = num_per_class[i]

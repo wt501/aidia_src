@@ -207,11 +207,11 @@ class DetectionModel(object):
 
         mAP = sum_AP / nc
 
-        # result = {
-        #     "mAP50": mAP,
-        # }
-        result = [mAP]
-        return result
+        res = {
+            "mAP50": mAP,
+        }
+        # result = [mAP]
+        return res
     
     def predict_by_id(self, image_id, thresh=0.5):
         # load image and annotation

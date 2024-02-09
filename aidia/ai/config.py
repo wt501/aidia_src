@@ -37,6 +37,7 @@ class AIConfig(object):
         self.SEED = 12345
 
         self.SUBMODE = False
+        self.DIR_SPLIT = True
         self.EARLY_STOPPING = False
 
         # training setting
@@ -59,13 +60,13 @@ class AIConfig(object):
         # image augmentatin
         self.EXPAND_X = 20
         self.EXPAND_Y = 20
-        self.RANDOM_ROTATE = 20
+        self.RANDOM_ROTATE = 30
         self.RANDOM_HFLIP = True
         self.RANDOM_VFLIP = True
-        self.RANDOM_SHIFT = 0.05
-        self.RANDOM_BRIGHTNESS = 0.2
-        self.RANDOM_CONTRAST = 0.2
-        self.RANDOM_SCALE = 0.1
+        self.RANDOM_SHIFT = 0.2
+        self.RANDOM_BRIGHTNESS = 0.1
+        self.RANDOM_CONTRAST = 0.1
+        self.RANDOM_SCALE = 0.2
         self.RANDOM_BLUR = 3.0  # 0 to n
         self.RANDOM_NOISE = 15
         self.RANDOM_SHEAR = 4
@@ -86,14 +87,17 @@ class AIConfig(object):
     def load(self, json_path):
         if not os.path.exists(json_path):
             raise FileNotFoundError(f"{json_path} is not found.")
-        with open(json_path, 'r') as f:
-            dic = json.load(f)
-            for key, value in dic.items():
-                if key == "dataset_dir":
-                    continue
-                setattr(self, key, value)
+        try:
+            with open(json_path, encoding="utf-8") as f:
+                dic = json.load(f)
+                for key, value in dic.items():
+                    if key == "dataset_dir":
+                        continue
+                    setattr(self, key, value)
+        except Exception as e:
+            raise ValueError(f"Failed to load dataset.json: {e}")
         self.build_params()
 
     def save(self, json_path):
-        with open(json_path, 'w') as f:
+        with open(json_path, mode='w', encoding="utf-8") as f:
             json.dump(self.__dict__, f, indent=2, ensure_ascii=False)

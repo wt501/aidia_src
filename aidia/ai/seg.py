@@ -6,13 +6,13 @@ import glob
 import random
 import imgaug
 import imgaug.augmenters as iaa
+from sklearn import metrics
 
 from aidia.ai.dataset import Dataset
 from aidia.ai.config import AIConfig
 from aidia.ai.models.unet import UNet
-from aidia.ai import metrics
+# from aidia.ai import metrics
 
-from aidia import THRESH_LIST
 from aidia import image
 
 
@@ -46,14 +46,14 @@ class SegmentationModel(object):
 
         custom_metrics = ["binary_accuracy"]
 
-        if mode == "test":
-            custom_metrics.append(metrics.MultiMetrics())
-            for thresh in THRESH_LIST:
-                custom_metrics.append(metrics.MultiMetrics(thresh, name=f"MM_{thresh}"))
-            for class_id in range(self.config.num_classes + 1):
-                custom_metrics.append(metrics.MultiMetrics(class_id=class_id, name=f"MM_{class_id}"))
-                for thresh in THRESH_LIST:
-                    custom_metrics.append(metrics.MultiMetrics(thresh, class_id, name=f"MM_{class_id}_{thresh}"))
+        # if mode == "test":
+        #     custom_metrics.append(metrics.MultiMetrics())
+        #     for thresh in THRESH_LIST:
+        #         custom_metrics.append(metrics.MultiMetrics(thresh, name=f"MM_{thresh}"))
+        #     for class_id in range(self.config.num_classes + 1):
+        #         custom_metrics.append(metrics.MultiMetrics(class_id=class_id, name=f"MM_{class_id}"))
+        #         for thresh in THRESH_LIST:
+        #             custom_metrics.append(metrics.MultiMetrics(thresh, class_id, name=f"MM_{class_id}_{thresh}"))
 
         optim = tf.keras.optimizers.Adam(learning_rate=self.config.LEARNING_RATE)
         self.model.compile(
@@ -112,33 +112,59 @@ class SegmentationModel(object):
     def stop_training(self):
         self.model.stop_training = True
 
-    def evaluate(self, custom_callbacks=None):
-        test_generator = SegDataGenerator(self.dataset, self.config, mode="test")
-        input_shape = (None, self.config.INPUT_SIZE, self.config.INPUT_SIZE, 3)
-        output_shape = (None, self.config.INPUT_SIZE, self.config.INPUT_SIZE, self.config.num_classes + 1)
-        test_generator = tf.data.Dataset.from_generator(
-            test_generator.flow, (tf.float32, tf.float32),
-            output_shapes=(input_shape, output_shape)
-        )
+    def evaluate(self, cb_widget=None):
+        res = {}
+        y_true = []
+        y_pred = []
+        s = (self.dataset.num_test * self.config.image_size[0] * self.config.image_size[1],
+             self.config.num_classes)
+        for i, image_id in enumerate(self.dataset.test_ids):
+            if cb_widget is not None:
+                cb_widget.notifyMessage.emit(f"{i+1} / {self.dataset.num_test}")
+                cb_widget.progressValue.emit(int((i+1) / self.dataset.num_test * 100))
+            img = self.dataset.load_image(image_id)
+            mask = self.dataset.load_masks(image_id)
+            inputs = image.preprocessing(img, is_tensor=True)
+            p = self.model.predict(inputs, verbose=0)[0]
+            mask = mask[..., 1:] # exclude background
+            p = p[..., 1:]
+            y_true.append(mask)
+            y_pred.append(p)
+        y_true = np.array(y_true).reshape(s)
+        y_pred = np.array(y_pred).reshape(s)
 
-        preds = self.model.predict(test_generator)
-        print(preds)
-        raise ValueError
+        # if cb_widget is not None:
+        #     cb_widget.notifyMessage.emit("Calculating precision recall curve per class...")
+        # pr_list = []
+        # ap_list = []
+        # for class_id in range(self.config.num_classes + 1):
+        #     yt = y_true[..., class_id]
+        #     yp = y_pred[..., class_id]
+        #     pr = metrics.precision_recall_curve(yt, yp)
+        #     ap = metrics.average_precision_score(yt, yp)
+        #     pr_list.append(pr)
+        #     ap_list.append(ap)
 
-        # callbacks = []
-        # if custom_callbacks:
-        #     for c in custom_callbacks:
-        #         callbacks.append(c)
-
-        # results = self.model.evaluate(
-        #     test_generator,
-        #     batch_size=1,
-        #     verbose=0,
-        #     steps=self.dataset.num_test,
-        #     callbacks=custom_callbacks,
-        #     )
-
-        return results
+        if cb_widget is not None:
+            cb_widget.notifyMessage.emit("Calculating confusion matrix...")
+        yt = np.argmax(y_true, axis=1)
+        yp = np.argmax(y_pred, axis=1)
+        cm = metrics.confusion_matrix(yt, yp)
+        cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm,
+                                                 display_labels=self.config.LABELS)
+        acc = metrics.accuracy_score(yt, yp)
+        precision = metrics.precision_score(yt, yp, average="macro")
+        recall = metrics.recall_score(yt, yp, average="macro")
+        f1 = metrics.f1_score(yt, yp, average="macro")
+        res = {
+            "Accuracy": acc,
+            "Precision": precision,
+            "Recall": recall,
+            "F1": f1,
+            "ConfusionMatrix": cm,
+            "ConfusionMatrixPlot": cm_disp,
+        }
+        return res
 
     def predict_by_id(self, image_id, thresh=0.5):
         src_img = self.dataset.load_image(image_id)

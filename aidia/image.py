@@ -1,7 +1,13 @@
 import numpy as np
 import cv2
+import os
 
 from aidia import LABEL_COLORMAP
+from aidia import dicom
+from aidia import utils
+from qtpy import QtGui
+
+EXTS = [".{}".format(fmt.data().decode("ascii").lower()) for fmt in QtGui.QImageReader.supportedImageFormats()]
 
 def imread(filename, flags=cv2.IMREAD_COLOR, dtype=np.uint8):
     """Load a RGB image with OpenCV.
@@ -28,6 +34,33 @@ def imwrite(img, filename):
         im_buf_arr.tofile(filename)
     return is_success
 
+def read_image(img_path):
+    if not os.path.exists(img_path):
+        raise FileNotFoundError(f"Failed to load {img_path}")
+
+    if dicom.is_dicom(img_path) or utils.extract_ext(img_path) == ".dcm":
+        dicom_data = dicom.DICOM(img_path)
+        img = dicom_data.load_image()
+        img = dicom_transform(
+            img,
+            dicom_data.wc,
+            dicom_data.ww,
+            dicom_data.bits
+        )
+        img = convert_dtype(img)
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    elif EXTS:
+        img = imread(img_path)
+    else:
+        img = None
+    return img
+
+def preprocessing(img, is_tensor=False):
+    img = np.array(img, dtype=np.float32)
+    img = img / 255
+    if is_tensor:
+        img = np.expand_dims(img, axis=0)
+    return img
 
 def convert_dtype(img: np.ndarray):
     if img.dtype == np.uint8:

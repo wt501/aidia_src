@@ -116,10 +116,13 @@ class Dataset(object):
 
     def load(self, json_path):
         # p = os.path.join(self.config.log_dir, "dataset.json")
-        with open(json_path, 'r') as f:
-            dic = json.load(f)
-            for key, value in dic.items():
-                setattr(self, key, value)
+        try:
+            with open(json_path, encoding="utf-8") as f:
+                dic = json.load(f)
+                for key, value in dic.items():
+                    setattr(self, key, value)
+        except Exception as e:
+            raise ValueError(f"Failed to load dataset.json: {e}")
 
     def save(self, json_path):
         # p = os.path.join(self.config.log_dir, "dataset.json")
@@ -128,7 +131,7 @@ class Dataset(object):
         for k, v in save_dict.items():
             if isinstance(v, np.ndarray):
                 save_dict[k] = v.tolist()
-        with open(json_path, 'w') as f:
+        with open(json_path, mode='w', encoding="utf-8") as f:
             json.dump(save_dict, f, indent=2, ensure_ascii=False)
         
         #TODO: add functions of saving only dataset information
@@ -157,7 +160,7 @@ class Dataset(object):
 
         image_id = 0
         for json_path in json_paths:
-            with open(json_path) as f:
+            with open(json_path, encoding="utf-8") as f:
                 data = json.load(f)
             if data.get("shapes") is None:
                 continue
@@ -212,7 +215,7 @@ class Dataset(object):
         """Get ids of data splited to train, validation, and test."""
         i = self.dataset_num
 
-        if self.config.SUBMODE:
+        if self.config.SUBMODE and self.config.DIR_SPLIT:
             subdir_ids = np.copy(self.subdir_ids)
             np.random.shuffle(subdir_ids)
             train_subdir_ids = np.array_split(subdir_ids, self.config.N_SPLITS)
@@ -270,27 +273,33 @@ class Dataset(object):
 
         # if img_path was not found, get relative path
         if not os.path.exists(img_path):
-            filename = os.path.basename(img_path)
-            img_path = os.path.join(self.config.dataset_dir, filename)
-        
-        if not os.path.exists(img_path):
-            raise FileNotFoundError("Failed to load image.")
+            if self.config.SUBMODE:
+                filename = os.path.basename(img_path)
+                dirname = os.path.basename(os.path.dirname(img_path))
+                img_path = os.path.join(self.config.dataset_dir, dirname, filename)
+            else:
+                filename = os.path.basename(img_path)
+                img_path = os.path.join(self.config.dataset_dir, filename)
 
-        if dicom.is_dicom(img_path) or utils.extract_ext(img_path) == ".dcm":
-            dicom_data = dicom.DICOM(img_path)
-            img = dicom_data.load_image()
-            img = image.dicom_transform(
-                img,
-                dicom_data.wc,
-                dicom_data.ww,
-                dicom_data.bits
-            )
-            img = image.convert_dtype(img)
-            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        else:
-            img = image.imread(img_path)
+        if not os.path.exists(img_path):
+            raise FileNotFoundError(f"Failed to load {img_path}")
         
-            
+        img = image.read_image(img_path)
+
+        # if dicom.is_dicom(img_path) or utils.extract_ext(img_path) == ".dcm":
+        #     dicom_data = dicom.DICOM(img_path)
+        #     img = dicom_data.load_image()
+        #     img = image.dicom_transform(
+        #         img,
+        #         dicom_data.wc,
+        #         dicom_data.ww,
+        #         dicom_data.bits
+        #     )
+        #     img = image.convert_dtype(img)
+        #     img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        # else:
+        #     img = image.imread(img_path)
+        
         if is_resize:
             img = cv2.resize(img, self.config.image_size)
         return img

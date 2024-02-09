@@ -10,7 +10,7 @@ ADD_AI = True
 
 
 __appname__ = "Aidia" if ADD_AI is True else "Aidia (without AI)"
-__version__ = "1.2.2.2"
+__version__ = "1.2.3.0"
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 HOME_DIR = os.path.expanduser("~")
@@ -29,9 +29,6 @@ stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 aidia_logger.addHandler(file_handler)
 aidia_logger.addHandler(stream_handler)
-
-THRESH_INTERVAL = 0.02
-THRESH_LIST = np.arange(0.0, 1.0 + THRESH_INTERVAL * 1.5, THRESH_INTERVAL)
 
 # task name definition
 CLS = "Classification"

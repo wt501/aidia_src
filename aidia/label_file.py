@@ -117,7 +117,7 @@ class LabelFile(object):
             shapes=shapes,
         )
         try:
-            with open(lf_path, 'w', encoding='utf-8') as f:
+            with open(lf_path, mode='w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except Exception as e:
             raise LabelFileError(e)
