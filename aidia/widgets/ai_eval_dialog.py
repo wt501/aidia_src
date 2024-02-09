@@ -309,6 +309,10 @@ class AIEvalDialog(QtWidgets.QDialog):
         text.append(self.tr("Class Information:\n{}").format(labels_info))
         text = "\n".join(text)
         self.text_dataset.setText(text)
+
+        # write dataset information
+        with open(os.path.join(self.log_dir, "dataset_info.txt"), mode="w", encoding="utf-8") as f:
+            f.write(text)
     
     def update_progress(self, value):
         self.progress.setValue(value)
