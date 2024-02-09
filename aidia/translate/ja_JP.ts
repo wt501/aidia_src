@@ -498,7 +498,7 @@
         <translation>AI評価</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="77"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="75"/>
         <source>Name</source>
         <translation>名前</translation>
     </message>
@@ -508,22 +508,22 @@
         <translation type="obsolete">クラスを選択</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="101"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="100"/>
         <source>Results</source>
         <translation>結果</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="111"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="110"/>
         <source>Evaluate</source>
         <translation>評価</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="145"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="144"/>
         <source>Dataset Information</source>
         <translation>データセット情報</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="194"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="193"/>
         <source>Ready</source>
         <translation>準備完了</translation>
     </message>
@@ -558,162 +558,177 @@
         <translation type="obsolete">適合率</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="298"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="297"/>
         <source>Number of Data: {}</source>
         <translation>データ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="299"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="298"/>
         <source>Number of Train: {}</source>
         <translation>学習データ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="300"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="299"/>
         <source>Number of Validation: {}</source>
         <translation>検証データ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="301"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="300"/>
         <source>Number of Test: {}</source>
         <translation>テストデータ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="302"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="305"/>
         <source>Train Steps: {}</source>
         <translation>学習ステップ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="303"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="306"/>
         <source>Validation Steps: {}</source>
         <translation>検証ステップ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="304"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="307"/>
         <source>Number of Shapes: {}</source>
         <translation>図形の数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="305"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="308"/>
         <source>Class Information:
 {}</source>
         <translation>クラス情報:
 {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="441"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="448"/>
         <source>Please check parameters.</source>
         <translation>パラメータを確認してください。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="450"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="457"/>
         <source>Config file was not found.</source>
         <translation>設定ファイルが見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="419"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="426"/>
         <source>Dataset file was not found.</source>
         <translation>データセットファイルが見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="118"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="117"/>
         <source>Predict</source>
         <translation>予測</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="121"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="120"/>
         <source>Predict images in your directory.</source>
         <translation>フォルダ内の画像に対して予測を行う。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="198"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="197"/>
         <source>AI Evaluation - {}</source>
         <translation>AI評価 - {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="455"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="462"/>
         <source>The ONNX model was not found.</source>
         <translation>ONNXモデルが見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="464"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="471"/>
         <source>{} - Open Directory</source>
         <translation>{} - フォルダを開く</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="473"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="480"/>
         <source>The Directory is empty.</source>
         <translation>フォルダは空です。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="476"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="483"/>
         <source>Processing...</source>
         <translation>処理中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="297"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="296"/>
         <source>Dataset Number: {}</source>
         <translation>データセット番号: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="445"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="452"/>
         <source>Not implemented function.</source>
         <translation>実装されていない機能です。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="287"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="286"/>
         <source>[*] labels (all|train|val|test)</source>
         <translation>[*] ラベル (すべて|学習|検証|テスト)</translation>
+    </message>
+    <message>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="302"/>
+        <source>Number of Train Directories: {}</source>
+        <translation>学習用フォルダ数: {}</translation>
+    </message>
+    <message>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="303"/>
+        <source>Number of Validation Directories: {}</source>
+        <translation>検証用フォルダ数: {}</translation>
+    </message>
+    <message>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="304"/>
+        <source>Number of Test Directories: {}</source>
+        <translation>テスト用フォルダ数: {}</translation>
     </message>
 </context>
 <context>
     <name>AIEvalThread</name>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="517"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="524"/>
         <source>Model error. Terminated.</source>
         <translation>モデルエラー。強制終了。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="520"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="527"/>
         <source>Data loading...</source>
         <translation>データ読み込み中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="548"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="560"/>
         <source>Model building...</source>
         <translation>モデルを構築中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="551"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="563"/>
         <source>Generate test result images...</source>
         <translation>テスト結果の画像を生成中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="582"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="594"/>
         <source>Convert model to ONNX...</source>
         <translation>モデルをONNXに変換中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="585"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="597"/>
         <source>Evaluating...</source>
         <translation>評価中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="595"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="607"/>
         <source>Done.</source>
         <translation>完了。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="524"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="531"/>
         <source>Failed to load dataset.</source>
         <translation>データセットの読み込みに失敗しました。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="589"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="601"/>
         <source>Failed to evaluate.</source>
         <translation>評価に失敗しました。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="565"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="577"/>
         <source>Error: {} was not found.</source>
         <translation>エラー: {}が見つかりませんでした。</translation>
     </message>
@@ -721,7 +736,7 @@
 <context>
     <name>AIPredThread</name>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="656"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="668"/>
         <source>Saved result images to {}</source>
         <translation>結果画像を {} に保存しました</translation>
     </message>
@@ -936,59 +951,59 @@ If you set 256, resizes input images to 256x256.</source>
         <translation>準備完了</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="557"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="554"/>
         <source>AI Training - {}</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="624"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="621"/>
         <source>Done. Elapsed time: {}h {}m {}s</source>
         <translation>完了。経過時間: {}時間 {}分 {}秒</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="764"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="763"/>
         <source>Number of Data: {}</source>
         <translation>データ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="765"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="764"/>
         <source>Number of Train: {}</source>
         <translation>学習データ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="766"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="765"/>
         <source>Number of Validation: {}</source>
         <translation>検証データ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="767"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="766"/>
         <source>Number of Test: {}</source>
         <translation>テストデータ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="772"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="771"/>
         <source>Train Steps: {}</source>
         <translation>学習ステップ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="773"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="772"/>
         <source>Validation Steps: {}</source>
         <translation>検証ステップ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="774"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="773"/>
         <source>Number of Shapes: {}</source>
         <translation>図形の数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="775"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="774"/>
         <source>Class Information:
 {}</source>
         <translation>クラス情報:
 {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="825"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="824"/>
         <source>Please check parameters.</source>
         <translation>パラメータを確認してください。</translation>
     </message>
@@ -998,17 +1013,17 @@ If you set 256, resizes input images to 256x256.</source>
         <translation>強制終了</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="769"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="768"/>
         <source>Number of Train Directories: {}</source>
         <translation>学習用フォルダ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="770"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="769"/>
         <source>Number of Validation Directories: {}</source>
         <translation>検証用フォルダ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="771"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="770"/>
         <source>Number of Test Directories: {}</source>
         <translation>テスト用フォルダ数: {}</translation>
     </message>
@@ -1023,7 +1038,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation>Early Stopping</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="763"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="762"/>
         <source>Dataset Number: {}</source>
         <translation>データセット番号: {}</translation>
     </message>
@@ -1033,7 +1048,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation>フォルダを対象にデータセットを構築する</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="753"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="752"/>
         <source>[*] labels (all|train|val|test)</source>
         <translation>[*] ラベル (すべて|学習|検証|テスト)</translation>
     </message>
@@ -1041,42 +1056,42 @@ If you set 256, resizes input images to 256x256.</source>
 <context>
     <name>AITrainThread</name>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="879"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="878"/>
         <source>Not configured. Terminated.</source>
         <translation>設定が未完了です。強制終了。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="890"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="889"/>
         <source>Model error. Terminated.</source>
         <translation>モデルエラー。強制終了。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="894"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="893"/>
         <source>Data loading...</source>
         <translation>データ読み込み中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="945"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="944"/>
         <source>Model building...</source>
         <translation>モデルを構築中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="953"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="952"/>
         <source>Preparing...</source>
         <translation>準備中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="965"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="964"/>
         <source>Failed to train.</source>
         <translation>学習に失敗しました。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="898"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="897"/>
         <source>Failed to build dataset.</source>
         <translation>データセットの構築に失敗しました。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="874"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="873"/>
         <source>Fitting process has not started yet.</source>
         <translation>まだ学習の準備中です。</translation>
     </message>
@@ -1086,7 +1101,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">学習を強制終了しました。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_train_dialog.py" line="871"/>
+        <location filename="aidia/widgets/ai_train_dialog.py" line="870"/>
         <source>Interrupt training.</source>
         <translation>学習を中断しました。</translation>
     </message>

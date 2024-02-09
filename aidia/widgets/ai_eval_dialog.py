@@ -290,7 +290,7 @@ class AIEvalDialog(QtWidgets.QDialog):
             n_train = train_per_class[i]
             n_val = val_per_class[i]
             n_test = test_per_class[i]
-            labels_info.append(f"[{i}] {name} ({n}|{n_train}|{n_val}|{n_test})")
+            labels_info.append(f"[{i}] {name} ({n} | {n_train} | {n_val} | {n_test})")
         labels_info = "\n".join(labels_info)
 
         text = []
