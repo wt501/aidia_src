@@ -72,11 +72,10 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.left_row = 0
         self.right_row = 0
 
-        self.ontest = False
-
         # name
         self.tag_name = QtWidgets.QLabel(self.tr("Name"))
         self.input_name = QtWidgets.QComboBox()
+        self.input_name.setMinimumWidth(200)
         def _validate(text):
             logdir = os.path.join(self.dataset_dir, "data", text)
             config_path = os.path.join(logdir, "config.json")
@@ -300,6 +299,10 @@ class AIEvalDialog(QtWidgets.QDialog):
         text.append(self.tr("Number of Train: {}").format(num_train))
         text.append(self.tr("Number of Validation: {}").format(num_val))
         text.append(self.tr("Number of Test: {}").format(num_test))
+        if value.get("num_train_subdir") is not None:
+            text.append(self.tr("Number of Train Directories: {}").format(value["num_train_subdir"]))
+            text.append(self.tr("Number of Validation Directories: {}").format(value["num_val_subdir"]))
+            text.append(self.tr("Number of Test Directories: {}").format(value["num_test_subdir"]))
         text.append(self.tr("Train Steps: {}").format(self.train_steps))
         text.append(self.tr("Validation Steps: {}").format(self.val_steps))
         text.append(self.tr("Number of Shapes: {}").format(num_shapes))
@@ -502,7 +505,7 @@ class AIEvalThread(QtCore.QThread):
     def __init__(self, parent):
         super().__init__(parent)
 
-    def set_config(self, config):
+    def set_config(self, config:AIConfig):
         self.config = config
     
     def run(self):
@@ -544,6 +547,11 @@ class AIEvalThread(QtCore.QThread):
                 "train_steps": model.dataset.train_steps,
                 "val_steps": model.dataset.val_steps
             }
+            if self.config.SUBMODE and self.config.DIR_SPLIT:
+                _info_dict["num_subdir"] = model.dataset.num_subdir
+                _info_dict["num_train_subdir"] = model.dataset.num_train_subdir
+                _info_dict["num_val_subdir"] = model.dataset.num_val_subdir
+                _info_dict["num_test_subdir"] = model.dataset.num_test_subdir
             self.datasetInfo.emit(_info_dict)
 
         self.notifyMessage.emit(self.tr("Model building..."))

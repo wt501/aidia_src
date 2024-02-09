@@ -96,7 +96,7 @@ class AITrainDialog(QtWidgets.QDialog):
 
         # name
         self.tag_name = QtWidgets.QLabel(self.tr("Name"))
-        self.input_name = self.create_input_field(150)
+        self.input_name = self.create_input_field(200)
         self.input_name.setAlignment(QtCore.Qt.AlignCenter)
         def _validate(text):
             # check trained data in log directory
@@ -131,9 +131,9 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_size.setToolTip(self.tr(
             "Set size of an input image on a side. Example: If you set 256, resizes input images to 256x256."""
         ))
-        self.input_size = self.create_input_field(50)
+        self.input_size = self.create_input_field(100)
         def _validate(text):
-            if text.isdigit() and 16 < int(text):
+            if text.isdigit() and 16 <= int(text) <= 2048:
                 if "YOLO" in self.input_model.currentText():
                     if int(text) % 32 == 0:
                         self._set_ok(self.tag_size)
@@ -150,7 +150,7 @@ class AITrainDialog(QtWidgets.QDialog):
 
         # epochs
         self.tag_epochs = QtWidgets.QLabel(self.tr("Epochs"))
-        self.input_epochs = self.create_input_field(50)
+        self.input_epochs = self.create_input_field(100)
         def _validate(text):
             if text.isdigit() and 0 < int(text):
                 self._set_ok(self.tag_epochs)
@@ -162,7 +162,7 @@ class AITrainDialog(QtWidgets.QDialog):
 
         # batch size
         self.tag_batchsize = QtWidgets.QLabel(self.tr("Batch Size"))
-        self.input_batchsize = self.create_input_field(50)
+        self.input_batchsize = self.create_input_field(100)
         def _validate(text):
             if text.isdigit() and 0 < int(text) <= 128:
                 self._set_ok(self.tag_batchsize)
@@ -174,7 +174,7 @@ class AITrainDialog(QtWidgets.QDialog):
 
         # learning rate
         self.tag_lr = QtWidgets.QLabel(self.tr("Learning Rate"))
-        self.input_lr = self.create_input_field(70)
+        self.input_lr = self.create_input_field(100)
         def _validate(text):
             if text.replace(".", "", 1).isdigit() and 0.0 < float(text) < 1.0:
                 self._set_ok(self.tag_lr)
@@ -246,7 +246,7 @@ class AITrainDialog(QtWidgets.QDialog):
                 self.config.DIR_SPLIT = True
             else:
                 self.config.DIR_SPLIT = False
-        self.input_is_multi.stateChanged.connect(_validate)
+        self.input_is_dir_split.stateChanged.connect(_validate)
         self._add_basic_params(self.tag_is_dir_split, self.input_is_dir_split, right=True, reverse=True)
 
 
@@ -516,12 +516,7 @@ class AITrainDialog(QtWidgets.QDialog):
             self.unit_blur.setStyleSheet(self.disabled_style)
             self.input_noise.setEnabled(False)
             self.unit_noise.setStyleSheet(self.disabled_style)
-            if self.config.gpu_num < 2:
-                self.input_is_multi.setEnabled(False)
-            else:
-                self.input_is_multi.setEnabled(True)
-
-
+            
         elif task == SEG:
             self.input_model.clear()
             self.input_model.addItems(SEG_MODEL)
@@ -529,10 +524,6 @@ class AITrainDialog(QtWidgets.QDialog):
                 x.setEnabled(True)
             for x in self.unit_list:
                 x.setStyleSheet(self.default_style)
-            if self.config.gpu_num < 2:
-                self.input_is_multi.setEnabled(False)
-            else:
-                self.input_is_multi.setEnabled(True)
 
         elif task == MNIST:
             self.input_model.clear()
@@ -544,13 +535,19 @@ class AITrainDialog(QtWidgets.QDialog):
             self.input_epochs.setEnabled(True)
             self.input_batchsize.setEnabled(True)
             self.input_lr.setEnabled(True)
-            if self.config.gpu_num < 2:
-                self.input_is_multi.setEnabled(False)
-            else:
-                self.input_is_multi.setEnabled(True)
          
         else:
             raise ValueError
+
+        # global setting
+        if self.config.gpu_num < 2:
+            self.input_is_multi.setEnabled(False)
+        else:
+            self.input_is_multi.setEnabled(True)
+        if not self.config.SUBMODE:
+            self.input_is_dir_split.setEnabled(False)
+        else:
+            self.input_is_dir_split.setEnabled(True)
 
     def popup(self, dataset_dir, is_submode=False):
         """Popup train window and set config parameters to input fields."""
@@ -582,7 +579,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.input_is_savebest.setChecked(self.config.SAVE_BEST)
         self.input_is_earlystop.setChecked(self.config.EARLY_STOPPING)
         if not self.config.SUBMODE:
-            self.input_is_dir_split.setChecked(False)
+            self.input_is_dir_split.setEnabled(False)
         self.input_is_dir_split.setChecked(self.config.DIR_SPLIT)
 
         # augment params
@@ -646,8 +643,10 @@ class AITrainDialog(QtWidgets.QDialog):
         self.switch_inputs_by_task(self.config.TASK)
         self.button_train.setEnabled(True)
         self.button_stop.setEnabled(False)
-        if self.config.gpu_num < 2:
-            self.input_is_multi.setEnabled(False)
+        # if self.config.gpu_num < 2:
+        #     self.input_is_multi.setEnabled(False)
+        # if not self.config.SUBMODE:
+        #     self.input_is_dir_split.setEnabled(False)
     
     def disable_all(self):
         for x in self.input_fields:
@@ -766,7 +765,7 @@ class AITrainDialog(QtWidgets.QDialog):
         text.append(self.tr("Number of Train: {}").format(num_train))
         text.append(self.tr("Number of Validation: {}").format(num_val))
         text.append(self.tr("Number of Test: {}").format(num_test))
-        if self.config.SUBMODE:
+        if self.config.SUBMODE and self.config.DIR_SPLIT:
             text.append(self.tr("Number of Train Directories: {}").format(value["num_train_subdir"]))
             text.append(self.tr("Number of Validation Directories: {}").format(value["num_val_subdir"]))
             text.append(self.tr("Number of Test Directories: {}").format(value["num_test_subdir"]))
@@ -918,7 +917,7 @@ class AITrainThread(QtCore.QThread):
                 "train_steps": model.dataset.train_steps,
                 "val_steps": model.dataset.val_steps
             }
-            if self.config.SUBMODE:
+            if self.config.SUBMODE and self.config.DIR_SPLIT:
                 _info_dict["num_subdir"] = model.dataset.num_subdir
                 _info_dict["num_train_subdir"] = model.dataset.num_train_subdir
                 _info_dict["num_val_subdir"] = model.dataset.num_val_subdir
