@@ -493,12 +493,12 @@
 <context>
     <name>AIEvalDialog</name>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="44"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="45"/>
         <source>AI Evaluation</source>
         <translation>AI評価</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="75"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="76"/>
         <source>Name</source>
         <translation>名前</translation>
     </message>
@@ -508,22 +508,22 @@
         <translation type="obsolete">クラスを選択</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="100"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="109"/>
         <source>Results</source>
         <translation>結果</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="110"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="119"/>
         <source>Evaluate</source>
         <translation>評価</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="144"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="171"/>
         <source>Dataset Information</source>
         <translation>データセット情報</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="193"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="220"/>
         <source>Ready</source>
         <translation>準備完了</translation>
     </message>
@@ -558,177 +558,207 @@
         <translation type="obsolete">適合率</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="297"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="317"/>
         <source>Number of Data: {}</source>
         <translation>データ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="298"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="318"/>
         <source>Number of Train: {}</source>
         <translation>学習データ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="299"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="319"/>
         <source>Number of Validation: {}</source>
         <translation>検証データ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="300"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="320"/>
         <source>Number of Test: {}</source>
         <translation>テストデータ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="305"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="325"/>
         <source>Train Steps: {}</source>
         <translation>学習ステップ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="306"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="326"/>
         <source>Validation Steps: {}</source>
         <translation>検証ステップ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="307"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="327"/>
         <source>Number of Shapes: {}</source>
         <translation>図形の数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="308"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="328"/>
         <source>Class Information:
 {}</source>
         <translation>クラス情報:
 {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="448"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="455"/>
         <source>Please check parameters.</source>
         <translation>パラメータを確認してください。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="457"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="464"/>
         <source>Config file was not found.</source>
         <translation>設定ファイルが見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="426"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="433"/>
         <source>Dataset file was not found.</source>
         <translation>データセットファイルが見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="117"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="126"/>
         <source>Predict</source>
         <translation>予測</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="120"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="129"/>
         <source>Predict images in your directory.</source>
         <translation>フォルダ内の画像に対して予測を行う。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="197"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="224"/>
         <source>AI Evaluation - {}</source>
         <translation>AI評価 - {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="462"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="469"/>
         <source>The ONNX model was not found.</source>
         <translation>ONNXモデルが見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="471"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="478"/>
         <source>{} - Open Directory</source>
         <translation>{} - フォルダを開く</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="480"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="487"/>
         <source>The Directory is empty.</source>
         <translation>フォルダは空です。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="483"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="490"/>
         <source>Processing...</source>
         <translation>処理中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="296"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="316"/>
         <source>Dataset Number: {}</source>
         <translation>データセット番号: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="452"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="459"/>
         <source>Not implemented function.</source>
         <translation>実装されていない機能です。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="286"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="306"/>
         <source>[*] labels (all|train|val|test)</source>
         <translation>[*] ラベル (すべて|学習|検証|テスト)</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="302"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="322"/>
         <source>Number of Train Directories: {}</source>
         <translation>学習用フォルダ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="303"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="323"/>
         <source>Number of Validation Directories: {}</source>
         <translation>検証用フォルダ数: {}</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="304"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="324"/>
         <source>Number of Test Directories: {}</source>
         <translation>テスト用フォルダ数: {}</translation>
+    </message>
+    <message>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="135"/>
+        <source>Export Data</source>
+        <translation>データのエクスポート</translation>
+    </message>
+    <message>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="138"/>
+        <source>Export data.</source>
+        <translation>データをエクスポートします。</translation>
+    </message>
+    <message>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="144"/>
+        <source>Export Model</source>
+        <translation>モデルのエクスポート</translation>
+    </message>
+    <message>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="147"/>
+        <source>Export model data.</source>
+        <translation>学習済みモデルのデータをエクスポートします。</translation>
+    </message>
+    <message>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="526"/>
+        <source>Select Directory</source>
+        <translation>フォルダの選択</translation>
+    </message>
+    <message>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="537"/>
+        <source>Export data to {}</source>
+        <translation>データを{}にエクスポートしました</translation>
     </message>
 </context>
 <context>
     <name>AIEvalThread</name>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="524"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="565"/>
         <source>Model error. Terminated.</source>
         <translation>モデルエラー。強制終了。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="527"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="568"/>
         <source>Data loading...</source>
         <translation>データ読み込み中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="560"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="601"/>
         <source>Model building...</source>
         <translation>モデルを構築中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="563"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="604"/>
         <source>Generate test result images...</source>
         <translation>テスト結果の画像を生成中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="594"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="641"/>
         <source>Convert model to ONNX...</source>
         <translation>モデルをONNXに変換中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="597"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="644"/>
         <source>Evaluating...</source>
         <translation>評価中...</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="607"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="654"/>
         <source>Done.</source>
         <translation>完了。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="531"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="572"/>
         <source>Failed to load dataset.</source>
         <translation>データセットの読み込みに失敗しました。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="601"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="648"/>
         <source>Failed to evaluate.</source>
         <translation>評価に失敗しました。</translation>
     </message>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="577"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="625"/>
         <source>Error: {} was not found.</source>
         <translation>エラー: {}が見つかりませんでした。</translation>
     </message>
@@ -736,7 +766,7 @@
 <context>
     <name>AIPredThread</name>
     <message>
-        <location filename="aidia/widgets/ai_eval_dialog.py" line="668"/>
+        <location filename="aidia/widgets/ai_eval_dialog.py" line="715"/>
         <source>Saved result images to {}</source>
         <translation>結果画像を {} に保存しました</translation>
     </message>
@@ -1647,7 +1677,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">&quot;前のアノテーションを保持&quot;モードを切り替えます</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="476"/>
+        <location filename="aidia/app.py" line="489"/>
         <source>Create Polygons</source>
         <translation>ポリゴン</translation>
     </message>
@@ -1657,7 +1687,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">ポリゴンの描画を開始します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="485"/>
+        <location filename="aidia/app.py" line="498"/>
         <source>Create Rectangle</source>
         <translation>矩形</translation>
     </message>
@@ -1677,7 +1707,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">円の描画を開始します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="503"/>
+        <location filename="aidia/app.py" line="516"/>
         <source>Create Line</source>
         <translation>線</translation>
     </message>
@@ -1687,7 +1717,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">線の描画を開始します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="512"/>
+        <location filename="aidia/app.py" line="525"/>
         <source>Create Point</source>
         <translation>点</translation>
     </message>
@@ -1702,7 +1732,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">折れ線の作成</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="521"/>
+        <location filename="aidia/app.py" line="534"/>
         <source>Edit Polygons</source>
         <translation>編集</translation>
     </message>
@@ -1712,7 +1742,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">選択したポリゴンを移動および編集します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="530"/>
+        <location filename="aidia/app.py" line="543"/>
         <source>Delete Polygons</source>
         <translation>ポリゴン
 削除</translation>
@@ -1723,7 +1753,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">選択したポリゴンを削除します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="538"/>
+        <location filename="aidia/app.py" line="551"/>
         <source>Duplicate Polygons</source>
         <translation>ポリゴン
 複製</translation>
@@ -1734,7 +1764,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">選択したポリゴンの複製を作成します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="546"/>
+        <location filename="aidia/app.py" line="559"/>
         <source>Undo last point</source>
         <translation>最後の点を取り消し</translation>
     </message>
@@ -1744,7 +1774,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">最後の点の描画を取り消します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="554"/>
+        <location filename="aidia/app.py" line="567"/>
         <source>Add Point to Edge</source>
         <translation>点の追加</translation>
     </message>
@@ -1754,7 +1784,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">最も近いエッジに点を追加します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="569"/>
+        <location filename="aidia/app.py" line="582"/>
         <source>Undo</source>
         <translation>取り消し</translation>
     </message>
@@ -1764,7 +1794,7 @@ If you set 256, resizes input images to 256x256.</source>
         <translation type="obsolete">点の追加および形の変形を取り消します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="577"/>
+        <location filename="aidia/app.py" line="590"/>
         <source>&amp;Hide
 Polygons</source>
         <translation>&amp;全ポリゴンの非表示</translation>
@@ -1775,7 +1805,7 @@ Polygons</source>
         <translation type="obsolete">すべてのポリゴンを非表示にします</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="585"/>
+        <location filename="aidia/app.py" line="598"/>
         <source>&amp;Show
 Polygons</source>
         <translation>&amp;全ポリゴンの表示</translation>
@@ -1796,12 +1826,12 @@ Polygons</source>
         <translation type="obsolete">チュートリアルページを見ます</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="636"/>
+        <location filename="aidia/app.py" line="649"/>
         <source>Ctrl+Wheel</source>
         <translation>Ctrl+Wheel</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="642"/>
+        <location filename="aidia/app.py" line="655"/>
         <source>Zoom &amp;In</source>
         <translation>&amp;拡大</translation>
     </message>
@@ -1811,7 +1841,7 @@ Polygons</source>
         <translation type="obsolete">拡大します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="647"/>
+        <location filename="aidia/app.py" line="660"/>
         <source>&amp;Zoom Out</source>
         <translation>&amp;縮小</translation>
     </message>
@@ -1821,7 +1851,7 @@ Polygons</source>
         <translation type="obsolete">縮小します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="652"/>
+        <location filename="aidia/app.py" line="665"/>
         <source>&amp;Original size</source>
         <translation>&amp;元のサイズ</translation>
     </message>
@@ -1831,7 +1861,7 @@ Polygons</source>
         <translation type="obsolete">元のサイズに戻します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="657"/>
+        <location filename="aidia/app.py" line="670"/>
         <source>&amp;Fit Window</source>
         <translation>&amp;画面に
 合わせる</translation>
@@ -1853,7 +1883,7 @@ Polygons</source>
         <translation type="obsolete">ウィンドウ幅に合わせます</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="674"/>
+        <location filename="aidia/app.py" line="687"/>
         <source>&amp;Edit Label</source>
         <translation>&amp;ラベルの編集</translation>
     </message>
@@ -1873,27 +1903,27 @@ Polygons</source>
         <translation type="obsolete">描画中にポリゴンを塗りつぶします</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="781"/>
+        <location filename="aidia/app.py" line="795"/>
         <source>&amp;File</source>
         <translation>&amp;ファイル</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="782"/>
+        <location filename="aidia/app.py" line="796"/>
         <source>&amp;Edit</source>
         <translation>&amp;編集</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="783"/>
+        <location filename="aidia/app.py" line="797"/>
         <source>&amp;View</source>
         <translation>&amp;表示</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="618"/>
+        <location filename="aidia/app.py" line="631"/>
         <source>&amp;Help</source>
         <translation>&amp;ヘルプ</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="786"/>
+        <location filename="aidia/app.py" line="800"/>
         <source>Open &amp;Recent</source>
         <translation>&amp;最近の項目を開く</translation>
     </message>
@@ -1913,17 +1943,17 @@ Polygons</source>
         <translation type="obsolete">ファイルオープンにエラーが発生しました</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1808"/>
+        <location filename="aidia/app.py" line="1823"/>
         <source>Choose File</source>
         <translation>ファイルの選択</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1837"/>
+        <location filename="aidia/app.py" line="1852"/>
         <source>You are about to permanently delete this label file, proceed anyway?</source>
         <translation>本当にこのラベルファイルを削除してもよろしいですか？</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1956"/>
+        <location filename="aidia/app.py" line="1971"/>
         <source>Attention</source>
         <translation>注意</translation>
     </message>
@@ -1933,7 +1963,7 @@ Polygons</source>
         <translation type="obsolete">&quot;{}&quot; を閉じる前にアノテーションを保存しますか？</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1874"/>
+        <location filename="aidia/app.py" line="1889"/>
         <source>Save annotations?</source>
         <translation>アノテーションを保存しますか？</translation>
     </message>
@@ -1983,7 +2013,7 @@ Polygons</source>
         <translation type="obsolete">折れ線の描画を開始します。Ctrl+左クリックで終点を作成します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="630"/>
+        <location filename="aidia/app.py" line="643"/>
         <source>Zoom in or out of the image. Also accessible with {} and {} from the canvas.</source>
         <translation>画像を拡大または縮小します。キャンバスから{}と{}で操作が可能です。</translation>
     </message>
@@ -2018,7 +2048,7 @@ Polygons</source>
         <translation type="obsolete">ラベルファイルに画像データを保存します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="469"/>
+        <location filename="aidia/app.py" line="482"/>
         <source>&amp;Close</source>
         <translation>&amp;閉じる</translation>
     </message>
@@ -2028,12 +2058,12 @@ Polygons</source>
         <translation type="obsolete">現在のファイルを閉じます</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="562"/>
+        <location filename="aidia/app.py" line="575"/>
         <source>Remove Selected Point</source>
         <translation>選択した点の削除</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="875"/>
+        <location filename="aidia/app.py" line="890"/>
         <source>{} started.</source>
         <translation>{}を開始しました。</translation>
     </message>
@@ -2048,12 +2078,12 @@ Polygons</source>
         <translation type="obsolete">{} - フォルダ内のアノテーションの保存/読み込み</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1794"/>
+        <location filename="aidia/app.py" line="1809"/>
         <source>{} - Choose File</source>
         <translation>{} - ファイルの選択</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="2389"/>
+        <location filename="aidia/app.py" line="2004"/>
         <source>{} - Open Directory</source>
         <translation>{} - フォルダを開く</translation>
     </message>
@@ -2078,7 +2108,7 @@ Polygons</source>
         <translation type="obsolete">確認者を編集します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="593"/>
+        <location filename="aidia/app.py" line="606"/>
         <source>&amp;Toggle
 Show/Hide Selected Polygon</source>
         <translation>&amp;選択ポリゴンの表示・非表示の切り替え</translation>
@@ -2094,7 +2124,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">自動的にポリゴンを生成しますか？</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1928"/>
+        <location filename="aidia/app.py" line="1943"/>
         <source>Confirmation</source>
         <translation>確認</translation>
     </message>
@@ -2134,22 +2164,22 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">データ確認者: {}</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1550"/>
+        <location filename="aidia/app.py" line="1565"/>
         <source>No such file: &lt;b&gt;{}&lt;/b&gt;</source>
         <translation>そのようなファイルはありません。 &lt;b&gt;{}&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1556"/>
+        <location filename="aidia/app.py" line="1571"/>
         <source>Loading {}...</source>
         <translation>{}を読み込み中...</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1667"/>
+        <location filename="aidia/app.py" line="1682"/>
         <source>Error reading {}</source>
         <translation>{}の読み込みエラー</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1593"/>
+        <location filename="aidia/app.py" line="1608"/>
         <source>Loaded {}</source>
         <translation>{}を読み込みました</translation>
     </message>
@@ -2184,12 +2214,12 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">&lt;p&gt;&lt;b&gt;{}&lt;/b&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;{}&lt;/i&gt;は無効なラベルファイルです。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1759"/>
+        <location filename="aidia/app.py" line="1774"/>
         <source>Image files ({})</source>
         <translation>画像ファイル ({})</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1763"/>
+        <location filename="aidia/app.py" line="1778"/>
         <source>{} - Choose Image file</source>
         <translation>{} - 画像ファイルを選択してください</translation>
     </message>
@@ -2219,7 +2249,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">画像読み込みエラー</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1672"/>
+        <location filename="aidia/app.py" line="1687"/>
         <source>&lt;p&gt;Cannot open image file.&lt;/p&gt;</source>
         <translation>&lt;p&gt;画像の読み込みに失敗しました。&lt;/p&gt;</translation>
     </message>
@@ -2279,7 +2309,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">自動ポリゴン作成</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1611"/>
+        <location filename="aidia/app.py" line="1626"/>
         <source>&lt;p&gt;&lt;b&gt;{}&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Make sure &lt;i&gt;{}&lt;/i&gt; is a valid label file.&lt;/p&gt;</source>
         <translation>&lt;p&gt;&lt;b&gt;{}&lt;/b&gt;&lt;/p&gt;&lt;p&gt; &lt;i&gt;{}&lt;/i&gt; は無効なラベルファイルです。&lt;/p&gt;</translation>
     </message>
@@ -2289,7 +2319,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">画像読み込みエラー</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1666"/>
+        <location filename="aidia/app.py" line="1681"/>
         <source>&lt;p&gt;Cannot load image file.&lt;/p&gt;</source>
         <translation>&lt;p&gt;画像ファイルを読み込めません。&lt;/p&gt;</translation>
     </message>
@@ -2409,12 +2439,12 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">ステータスは &apos;check&apos; である必要があります</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1871"/>
+        <location filename="aidia/app.py" line="1886"/>
         <source>Save annotations to &apos;{}&apos; before closing?</source>
         <translation>&apos;{}&apos; を閉じる前にアノテーションを保存しますか？</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1944"/>
+        <location filename="aidia/app.py" line="1959"/>
         <source>You are about to permanently delete &apos;{}&apos; polygon, proceed anyway?</source>
         <translation>&apos;{}&apos;のポリゴンを完全に削除しようとしています。本当によろしいですか？</translation>
     </message>
@@ -2424,7 +2454,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">ディレクトリのインポートエラー</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="2061"/>
+        <location filename="aidia/app.py" line="2413"/>
         <source>{} does not exists.</source>
         <translation>{}は存在しません。</translation>
     </message>
@@ -2614,7 +2644,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">送信元ラベルファイルを見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1405"/>
+        <location filename="aidia/app.py" line="1420"/>
         <source>&lt;p&gt;Error saving label data.&lt;/p&gt;&lt;b&gt;{}&lt;/b&gt;</source>
         <translation>&lt;p&gt;ラベルデータの保存でエラーが発生しました。&lt;/p&gt;&lt;b&gt;{}&lt;/b&gt;</translation>
     </message>
@@ -2624,7 +2654,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">このラベルファイルは書き込みできません。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1923"/>
+        <location filename="aidia/app.py" line="1938"/>
         <source>Error</source>
         <translation>エラー</translation>
     </message>
@@ -2664,7 +2694,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">&amp;輪郭近似パラメータの設定</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="690"/>
+        <location filename="aidia/app.py" line="703"/>
         <source>&amp;Setting</source>
         <translation>&amp;設定</translation>
     </message>
@@ -2724,82 +2754,82 @@ Show/Hide Selected Polygon</source>
         <translation>ラベルファイルを削除します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="474"/>
+        <location filename="aidia/app.py" line="487"/>
         <source>Close current file.</source>
         <translation>開いているファイルを閉じます。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="481"/>
+        <location filename="aidia/app.py" line="494"/>
         <source>Start drawing polygons.</source>
         <translation>ポリゴンの描画を開始します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="526"/>
+        <location filename="aidia/app.py" line="539"/>
         <source>Move and edit the selected polygons.</source>
         <translation>選択したポリゴンを編集します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="534"/>
+        <location filename="aidia/app.py" line="547"/>
         <source>Delete the selected polygons.</source>
         <translation>選択したポリゴンを削除します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="542"/>
+        <location filename="aidia/app.py" line="555"/>
         <source>Create a duplicate of the selected polygons.</source>
         <translation>選択したポリゴンの複製を作成します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="550"/>
+        <location filename="aidia/app.py" line="563"/>
         <source>Undo last drawn point.</source>
         <translation>最後の点の描画を取り消します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="558"/>
+        <location filename="aidia/app.py" line="571"/>
         <source>Add point to the nearest edge.</source>
         <translation>最も近い輪郭に点を追加します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="573"/>
+        <location filename="aidia/app.py" line="586"/>
         <source>Undo last add and edit of shape.</source>
         <translation>点の追加と形の変形を取り消します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="581"/>
+        <location filename="aidia/app.py" line="594"/>
         <source>Hide all polygons.</source>
         <translation>すべてのポリゴンを非表示にします。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="589"/>
+        <location filename="aidia/app.py" line="602"/>
         <source>Show all polygons.</source>
         <translation>すべてのポリゴンを表示します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="597"/>
+        <location filename="aidia/app.py" line="610"/>
         <source>Toggle show/hide selected polygon.</source>
         <translation>選択したポリゴンの表示と非表示を切り替えます。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="645"/>
+        <location filename="aidia/app.py" line="658"/>
         <source>Increase zoom level.</source>
         <translation>拡大します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="650"/>
+        <location filename="aidia/app.py" line="663"/>
         <source>Decrease zoom level.</source>
         <translation>縮小します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="655"/>
+        <location filename="aidia/app.py" line="668"/>
         <source>Zoom to original size.</source>
         <translation>元の画像サイズで表示します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="659"/>
+        <location filename="aidia/app.py" line="672"/>
         <source>Zoom follows window size.</source>
         <translation>ウィンドウに合わせて表示します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="677"/>
+        <location filename="aidia/app.py" line="690"/>
         <source>Modify the label of the selected polygon.</source>
         <translation>選択したポリゴンのラベルを修正します。</translation>
     </message>
@@ -2884,7 +2914,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">AI診断をテストしますか？これには少し時間がかかります。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="2323"/>
+        <location filename="aidia/app.py" line="2338"/>
         <source>AI Testing ...</source>
         <translation>AIテスト実行中…</translation>
     </message>
@@ -2894,7 +2924,7 @@ Show/Hide Selected Polygon</source>
         <translation>メモ</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="490"/>
+        <location filename="aidia/app.py" line="503"/>
         <source>Start drawing rectangles.</source>
         <translation>矩形の作成を開始する。</translation>
     </message>
@@ -2924,27 +2954,27 @@ Show/Hide Selected Polygon</source>
         <translation>ラベルの検索</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1641"/>
+        <location filename="aidia/app.py" line="1656"/>
         <source>&lt;p&gt;Cannot open DICOM file.&lt;/p&gt;&lt;p&gt;Error Details:&lt;br/&gt;{}&lt;/p&gt;</source>
         <translation>&lt;p&gt;DICOMファイルを開けません。&lt;/p&gt;&lt;p&gt;エラー詳細：&lt;br/&gt;{}&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="602"/>
+        <location filename="aidia/app.py" line="615"/>
         <source>&amp;Reset Brightness</source>
         <translation>&amp;明るさ初期化</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="605"/>
+        <location filename="aidia/app.py" line="618"/>
         <source>Reset brightness.</source>
         <translation>明るさをリセットします。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="610"/>
+        <location filename="aidia/app.py" line="623"/>
         <source>&amp;Reset Contrast</source>
         <translation>&amp;コントラスト初期化</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="613"/>
+        <location filename="aidia/app.py" line="626"/>
         <source>Reset contrast.</source>
         <translation>コントラストを初期化します。</translation>
     </message>
@@ -3110,7 +3140,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">DICOM情報の表示でエラーが発生しました。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1809"/>
+        <location filename="aidia/app.py" line="1824"/>
         <source>Label files (*{})</source>
         <translation>ラベルファイル (*{})</translation>
     </message>
@@ -3194,22 +3224,22 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">完了</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="494"/>
+        <location filename="aidia/app.py" line="507"/>
         <source>Create Linestrip</source>
         <translation>折れ線</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="499"/>
+        <location filename="aidia/app.py" line="512"/>
         <source>Start drawing linestrips.</source>
         <translation>折れ線を作成します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="508"/>
+        <location filename="aidia/app.py" line="521"/>
         <source>Start drawing a line.</source>
         <translation>直線を作成します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="517"/>
+        <location filename="aidia/app.py" line="530"/>
         <source>Start drawing a point.</source>
         <translation>点を作成します。</translation>
     </message>
@@ -3224,27 +3254,27 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">いくつかのアノテーションファイルの読み込みをスキップしました。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="682"/>
+        <location filename="aidia/app.py" line="695"/>
         <source>&amp;Copyright</source>
         <translation>&amp;Copyright</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="685"/>
+        <location filename="aidia/app.py" line="698"/>
         <source>Open copyright information.</source>
         <translation>コピーライトの情報を表示します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="693"/>
+        <location filename="aidia/app.py" line="706"/>
         <source>Open setting dialog.</source>
         <translation>設定を開きます。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="784"/>
+        <location filename="aidia/app.py" line="798"/>
         <source>&amp;Option</source>
         <translation>&amp;オプション</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1955"/>
+        <location filename="aidia/app.py" line="1970"/>
         <source>You are about to permanently delete polygon you selected, proceed anyway?</source>
         <translation>選択したポリゴンを完全に削除しようとしています。よろしいですか？</translation>
     </message>
@@ -3289,22 +3319,22 @@ Show/Hide Selected Polygon</source>
         <translation>AI評価</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1895"/>
+        <location filename="aidia/app.py" line="1910"/>
         <source>AI thread is running. Terminate?</source>
         <translation>AI処理が実行中です。強制終了しますか？</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="1896"/>
+        <location filename="aidia/app.py" line="1911"/>
         <source>AI thread is running!</source>
         <translation>AI処理が実行中です！</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="2200"/>
+        <location filename="aidia/app.py" line="2215"/>
         <source>[Images Total] {}</source>
         <translation>[画像枚数] {}</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="2202"/>
+        <location filename="aidia/app.py" line="2217"/>
         <source>[Annotations Total] {}</source>
         <translation>[アノテーション数] {}</translation>
     </message>
@@ -3319,17 +3349,17 @@ Show/Hide Selected Polygon</source>
         <translation>AI学習</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="2313"/>
+        <location filename="aidia/app.py" line="2328"/>
         <source>AI Model was not found.</source>
         <translation>AIモデルが見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="2318"/>
+        <location filename="aidia/app.py" line="2333"/>
         <source>Are you sure you want to overwrite annotations?</source>
         <translation>アノテーションを上書きしてもよろしいですか？</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="2345"/>
+        <location filename="aidia/app.py" line="2360"/>
         <source>No detections.</source>
         <translation>検出なし。</translation>
     </message>
@@ -3339,29 +3369,49 @@ Show/Hide Selected Polygon</source>
         <translation>サブフォルダモード</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="622"/>
+        <location filename="aidia/app.py" line="635"/>
         <source>Show Aidia GitHub page.</source>
         <translation>AidiaのGitHubページを開きます。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="2250"/>
+        <location filename="aidia/app.py" line="2265"/>
         <source>Construct dataset with all subdirectory data in {}</source>
         <translation>{} 内のすべてのサブフォルダに対してデータセットを構築します</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="461"/>
+        <location filename="aidia/app.py" line="463"/>
         <source>&amp;Export Annotations</source>
         <translation>&amp;アノテーションの書き出し</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="465"/>
+        <location filename="aidia/app.py" line="467"/>
         <source>Export JSON annotation files.</source>
         <translation>JSON形式のアノテーションファイルを書き出します。</translation>
     </message>
     <message>
-        <location filename="aidia/app.py" line="2378"/>
+        <location filename="aidia/app.py" line="2393"/>
         <source>Exported annotation files to {}</source>
         <translation>アノテーションファイルを{}に書き出しました</translation>
+    </message>
+    <message>
+        <location filename="aidia/app.py" line="473"/>
+        <source>&amp;Import Pretrained Model</source>
+        <translation>&amp;学習済みモデルのインポート</translation>
+    </message>
+    <message>
+        <location filename="aidia/app.py" line="477"/>
+        <source>Import pretrained model to dataset directory.</source>
+        <translation>学習済みモデルをデータセットフォルダにインポートします。</translation>
+    </message>
+    <message>
+        <location filename="aidia/app.py" line="2422"/>
+        <source>Imported {} to {}</source>
+        <translation>{}を{}にインポートしました</translation>
+    </message>
+    <message>
+        <location filename="aidia/app.py" line="2434"/>
+        <source>Select Directory</source>
+        <translation>フォルダの選択</translation>
     </message>
 </context>
 <context>
