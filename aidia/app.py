@@ -457,6 +457,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tr("Delete current label file."),
             enabled=False
         )
+
+        # export annotations
         export_anno_action = action(
             self.tr("&Export Annotations"),
             self.export_annotations,
@@ -465,6 +467,17 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tr("Export JSON annotation files."),
             enabled=True
         )
+
+        # import pretrained model
+        import_model_action = action(
+            self.tr("&Import Pretrained Model"),
+            self.import_model,
+            # shortcuts["delete_file"],
+            # icon=None,
+            self.tr("Import pretrained model to dataset directory."),
+            enabled=True
+        )
+
         close_action = action(
             text=self.tr("&Close"),
             slot=self.close_file,
@@ -710,6 +723,7 @@ class MainWindow(QtWidgets.QMainWindow):
             deleteFile=delete_file_action,
             delete=delete_action,
             exportAnno=export_anno_action,
+            importModel=import_model_action,
             edit=edit_action,
             popup_copyright=popup_copyright_action,
             popup_setting=popup_setting_action,
@@ -800,6 +814,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 # close_action,
                 None,
                 export_anno_action,
+                import_model_action,
                 None,
                 delete_file_action,
                 quit_action,
@@ -2377,6 +2392,36 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.info_message(self.tr("Exported annotation files to {}").format(target_dir))
         return
+
+    def import_model(self):
+        if self.work_dir is None:
+            return
+        
+        # open directory dialog
+        target_dir = self.select_dir_dialog(HOME_DIR)
+        if target_dir is None:
+            return
+
+        config_path = os.path.join(target_dir, "config.json")
+        onnx_path = os.path.join(target_dir, "model.onnx")
+
+        if not os.path.exists(config_path) :
+            self.error_message(self.tr("{} does not exists.").format(config_path))
+            return
+        
+        if not os.path.exists(onnx_path):
+            self.error_message(self.tr("{} does not exists.").format(onnx_path))
+            return
+        
+        data_dir = os.path.join(self.work_dir, "data")
+        if self.is_submode:
+            data_dir = os.path.join(utils.get_parent_path(self.work_dir), "data")
+        dirname = os.path.basename(target_dir)
+        shutil.copytree(target_dir, os.path.join(data_dir, dirname), dirs_exist_ok=True)
+
+        self.info_message(self.tr("Imported {} to {}").format(target_dir, data_dir))
+        self.update_ai_select()
+        return
     
     def select_dir_dialog(self, default_dir=None):
         opendir = HOME_DIR
@@ -2386,7 +2431,7 @@ class MainWindow(QtWidgets.QMainWindow):
         opendir = HOME_DIR
         target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
             self,
-            self.tr("{} - Open Directory".format(__appname__)),
+            self.tr("Select Directory"),
             opendir,
             QtWidgets.QFileDialog.ShowDirsOnly |
             QtWidgets.QFileDialog.DontResolveSymlinks))

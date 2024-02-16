@@ -178,8 +178,8 @@ class SegmentationModel(object):
         res = {}
         y_true = []
         y_pred = []
-        s = (self.dataset.num_test * self.config.image_size[0] * self.config.image_size[1],
-             self.config.num_classes)
+
+        # predict all test data
         for i, image_id in enumerate(self.dataset.test_ids):
             if cb_widget is not None:
                 cb_widget.notifyMessage.emit(f"Predicting... {i+1} / {self.dataset.num_test}")
@@ -200,6 +200,7 @@ class SegmentationModel(object):
         if cb_widget is not None:
             cb_widget.notifyMessage.emit("Calculating...")
 
+        # evaluation
         THRESH = 0.5
         res = {}
         if self.config.num_classes > 1:

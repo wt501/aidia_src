@@ -8,6 +8,7 @@ from qtpy import QtWidgets
 from aidia import CLS, DET, SEG
 from aidia.image import convert_dtype, mask2polygon
 from aidia.ai.config import AIConfig
+from aidia import image
 
 class AITestWidget(QtWidgets.QWidget):
     def __init__(self, parent):
@@ -28,9 +29,7 @@ class AITestWidget(QtWidgets.QWidget):
 
         if config.TASK == SEG:
             img = cv2.resize(img, config.image_size)
-            img = img.astype(np.float32)
-            img = img / 255.0
-            inputs = np.expand_dims(img, axis=0)
+            inputs = image.preprocessing(img, is_tensor=True)
             input_name = model.get_inputs()[0].name
             result = model.run([], {input_name: inputs})[0]
             masks = np.where(result[0] >= 0.5, 255, 0)

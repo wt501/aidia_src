@@ -22,6 +22,7 @@ from aidia.ai.test import TestModel
 from aidia.ai.det import DetectionModel
 from aidia.ai.seg import SegmentationModel
 from aidia.widgets import ImageWidget
+from aidia.widgets import CopyDataDialog
 from aidia import image
 from aidia.dicom import DICOM, is_dicom
 
@@ -84,8 +85,16 @@ class AIEvalDialog(QtWidgets.QDialog):
                 os.path.exists(dataset_path)):
                 self._set_ok(self.tag_name)
                 self.log_dir = logdir
+                self.button_export_data.setEnabled(True)
+                onnx_path = os.path.join(logdir, "model.onnx")
+                if os.path.exists(onnx_path):
+                    self.button_export_model.setEnabled(True)
+                else:
+                    self.button_export_model.setEnabled(False)
             else:
                 self._set_error(self.tag_name)
+                self.button_export_data.setEnabled(False)
+                self.button_export_model.setEnabled(False)
         self.input_name.currentTextChanged.connect(_validate)
         self._add_basic_params(self.tag_name, self.input_name)
 
@@ -121,6 +130,24 @@ class AIEvalDialog(QtWidgets.QDialog):
         ))
         self.button_pred.clicked.connect(self.predict_from_directory)
         self._layout.addWidget(self.button_pred, row, 1, 1, 4)
+        row += 1
+
+        # export data button
+        self.button_export_data = QtWidgets.QPushButton(self.tr("Export Data"))
+        self.button_export_data.setToolTip(self.tr(
+            """Export data."""
+        ))
+        self.button_export_data.clicked.connect(self.export_data)
+        self._layout.addWidget(self.button_export_data, row, 1, 1, 4)
+        row += 1
+
+        # export model button
+        self.button_export_model = QtWidgets.QPushButton(self.tr("Export Model"))
+        self.button_export_model.setToolTip(self.tr(
+            """Export model data."""
+        ))
+        self.button_export_model.clicked.connect(self.export_model)
+        self._layout.addWidget(self.button_export_model, row, 1, 1, 4)
         row += 1
 
         # figure area
@@ -259,13 +286,6 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.iw3.loadPixmap(images[2])
         self.iw4.loadPixmap(images[3])
         self.iw5.loadPixmap(images[4])
-
-    def _plt2img(self):
-        self.fig.canvas.draw()
-        data = self.fig.canvas.tostring_rgb()
-        w, h = self.fig.canvas.get_width_height()
-        c = len(data) // (w * h)
-        return np.frombuffer(data, dtype=np.uint8).reshape(h, w, c)
 
     def update_dataset(self, value):
         dataset_num = value["dataset_num"]
@@ -482,6 +502,40 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.ai_pred.set_params(config, target_path, onnx_path)
         self.ai_pred.start()
         self.aiRunning.emit(True)
+    
+    def export_data(self):
+        opendir = HOME_DIR
+        target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
+            self,
+            self.tr("Select Directory"),
+            opendir,
+            QtWidgets.QFileDialog.ShowDirsOnly |
+            QtWidgets.QFileDialog.DontResolveSymlinks))
+        if not target_path:
+            return None
+        target_path = target_path.replace('/', os.sep)
+
+        cd = CopyDataDialog(self, self.log_dir, target_path)
+        cd.popup()
+
+        self.text_status.setText(self.tr("Export data to {}").format(target_path))
+    
+    def export_model(self):
+        opendir = HOME_DIR
+        target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
+            self,
+            self.tr("Select Directory"),
+            opendir,
+            QtWidgets.QFileDialog.ShowDirsOnly |
+            QtWidgets.QFileDialog.DontResolveSymlinks))
+        if not target_path:
+            return None
+        target_path = target_path.replace('/', os.sep)
+
+        cd = CopyDataDialog(self, self.log_dir, target_path, only_model=True)
+        cd.popup()
+
+        self.text_status.setText(self.tr("Export data to {}").format(target_path))
 
     
 class AIEvalThread(QtCore.QThread):
