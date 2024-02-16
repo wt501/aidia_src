@@ -7,6 +7,7 @@ from .image_widget import ImageWidget
 
 from .setting_dialog import SettingDialog
 from .copyright_dialog import CopyrightDialog
+from .copy_anno_dialog import CopyAnnotationsDialog
 from .dicom_dialog import DICOMDialog
 
 from .label_list_widget import LabelListWidget

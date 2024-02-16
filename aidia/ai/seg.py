@@ -16,6 +16,71 @@ from aidia.ai.models.unet import UNet
 from aidia import image
 
 
+import matplotlib
+import matplotlib.pyplot as plt
+
+matplotlib.use("agg")
+plt.rcParams["font.size"] = 15
+
+
+def mask_iou(pred, gt):
+    pred_list = image.mask2rect(pred)
+    gt_list = image.mask2rect(gt)
+    
+    ious = []
+    for pred_rect in pred_list:
+        best_iou = 0.0
+        for gt_rect in gt_list:
+           iou = calc_iou(pred_rect, gt_rect)
+           if iou > best_iou:
+               best_iou = iou
+        ious.append(best_iou)
+
+    return ious
+
+def calc_iou(box1, box2):
+    inter_x1 = max(box1[0], box2[0])
+    inter_y1 = max(box1[1], box2[1])
+    inter_x2 = min(box1[2], box2[2])
+    inter_y2 = min(box1[3], box2[3])
+
+    inter_area = max((inter_x2 - inter_x1) * (inter_y2 - inter_y1), 0)
+    area_1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    area_2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    union_area = area_1 + area_2 - inter_area
+
+    iou = inter_area / union_area
+    return iou
+
+def eval_on_iou(y_true, y_pred):
+    tp = 0
+    fp = 0
+    num_gt = 0
+    for i in range(y_true.shape[0]):
+        pred_mask = y_pred[i]
+        gt_mask = y_true[i]
+        iou_list = mask_iou(pred_mask, gt_mask)
+        for iou in iou_list:
+            if iou >= 0.5:
+                tp += 1
+            else:
+                fp += 1
+        num_gt += len(image.mask2rect(gt_mask))
+
+    precision = tp / (tp + fp)
+    recall = tp / num_gt
+    f1 = (2 * precision * recall) / (precision + recall)
+    return [precision, recall, f1]
+
+def common_metrics(tp, tn, fp, fn):
+    acc = (tp + tn) / (tp + tn + fp + fn)
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    specificity = tn / (tn + fp)
+    f1 = (2 * precision * recall) / (precision + recall)
+    return [acc, precision, recall, specificity, f1]
+
+
 class SegmentationModel(object):
     def __init__(self, config:AIConfig) -> None:
         self.config = config
@@ -44,8 +109,6 @@ class SegmentationModel(object):
         self.model.build(input_shape=input_shape)
         self.model.compute_output_shape(input_shape=input_shape)
 
-        custom_metrics = ["binary_accuracy"]
-
         # if mode == "test":
         #     custom_metrics.append(metrics.MultiMetrics())
         #     for thresh in THRESH_LIST:
@@ -58,8 +121,7 @@ class SegmentationModel(object):
         optim = tf.keras.optimizers.Adam(learning_rate=self.config.LEARNING_RATE)
         self.model.compile(
             optimizer=optim,
-            loss=tf.keras.losses.BinaryCrossentropy(),
-            metrics=custom_metrics)
+            loss=tf.keras.losses.BinaryCrossentropy())
         
         if mode == "test":
              # select latest weights
@@ -120,7 +182,7 @@ class SegmentationModel(object):
              self.config.num_classes)
         for i, image_id in enumerate(self.dataset.test_ids):
             if cb_widget is not None:
-                cb_widget.notifyMessage.emit(f"{i+1} / {self.dataset.num_test}")
+                cb_widget.notifyMessage.emit(f"Predicting... {i+1} / {self.dataset.num_test}")
                 cb_widget.progressValue.emit(int((i+1) / self.dataset.num_test * 100))
             img = self.dataset.load_image(image_id)
             mask = self.dataset.load_masks(image_id)
@@ -130,39 +192,130 @@ class SegmentationModel(object):
             p = p[..., 1:]
             y_true.append(mask)
             y_pred.append(p)
-        y_true = np.array(y_true).reshape(s)
-        y_pred = np.array(y_pred).reshape(s)
-
-        # if cb_widget is not None:
-        #     cb_widget.notifyMessage.emit("Calculating precision recall curve per class...")
-        # pr_list = []
-        # ap_list = []
-        # for class_id in range(self.config.num_classes + 1):
-        #     yt = y_true[..., class_id]
-        #     yp = y_pred[..., class_id]
-        #     pr = metrics.precision_recall_curve(yt, yp)
-        #     ap = metrics.average_precision_score(yt, yp)
-        #     pr_list.append(pr)
-        #     ap_list.append(ap)
+            # if i == 50:  # TODO
+                # break
+        y_true = np.array(y_true)
+        y_pred = np.array(y_pred)
 
         if cb_widget is not None:
-            cb_widget.notifyMessage.emit("Calculating confusion matrix...")
-        yt = np.argmax(y_true, axis=1)
-        yp = np.argmax(y_pred, axis=1)
-        cm = metrics.confusion_matrix(yt, yp)
-        cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm,
-                                                 display_labels=self.config.LABELS)
-        acc = metrics.accuracy_score(yt, yp)
-        precision = metrics.precision_score(yt, yp, average="macro")
-        recall = metrics.recall_score(yt, yp, average="macro")
-        f1 = metrics.f1_score(yt, yp, average="macro")
+            cb_widget.notifyMessage.emit("Calculating...")
+
+        THRESH = 0.5
+        res = {}
+        if self.config.num_classes > 1:
+            sum_acc = 0.0
+            sum_pre = 0.0
+            sum_rec = 0.0
+            sum_spe = 0.0
+            sum_f1 = 0.0
+            sum_auc = 0.0
+            sum_ap = 0.0
+            sum_pre_det = 0.0
+            sum_rec_det = 0.0
+            sum_f1_det = 0.0
+            if cb_widget is not None:
+                cb_widget.progressValue.emit(0)
+            for class_id in range(self.config.num_classes):
+                if cb_widget is not None:
+                    cb_widget.notifyMessage.emit(f"{class_id} / {self.config.num_classes}")
+                    cb_widget.progressValue.emit(int(class_id / self.config.num_classes * 100))
+                y_true = y_true[..., class_id]
+                y_pred = y_pred[..., class_id]
+
+                yt = y_true.ravel()
+                yp = y_pred.ravel()
+                auc = metrics.roc_auc_score(yt, yp)
+                ap = metrics.average_precision_score(yt, yp)
+                sum_auc += auc
+                sum_ap += ap
+
+                y_pred[y_pred >= THRESH] = 1
+                y_pred[y_pred < THRESH] = 0
+
+                pre_det, rec_det, f1_det = eval_on_iou(y_true, y_pred)
+                sum_pre_det += pre_det
+                sum_rec_det += rec_det
+                sum_f1_det += f1_det
+
+                y_true = y_true.ravel()
+                y_pred = y_pred.ravel()
+
+                cm = metrics.confusion_matrix(y_true, y_pred)
+                tn, fp, fn, tp = cm.ravel()
+                acc, pre, rec, spe, f1 = common_metrics(tp, tn, fp, fn)
+                sum_acc += acc
+                sum_pre += pre
+                sum_rec += rec
+                sum_spe += spe
+                sum_f1 += f1
+            
+            # macro mean
+            acc = sum_acc / self.config.num_classes
+            pre = sum_pre / self.config.num_classes
+            rec = sum_rec / self.config.num_classes
+            spe = sum_spe / self.config.num_classes
+            f1 = sum_f1 / self.config.num_classes
+            auc = sum_auc / self.config.num_classes
+            ap = sum_ap / self.config.num_classes
+            pre_det = sum_pre_det / self.config.num_classes
+            rec_det = sum_rec_det / self.config.num_classes
+            f1_det = sum_f1_det / self.config.num_classes
+
+            # confusion matrix
+            fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+            yt = np.argmax(y_true, axis=1)
+            yp = np.argmax(y_pred, axis=1)
+            cm = metrics.confusion_matrix(yt, yp)
+            cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm,
+                                                    display_labels=self.config.LABELS)
+            cm_disp.plot(ax=ax)
+            filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
+            fig.savefig(filename)
+            img = image.fig2img(fig)
+           
+           
+        else:  # binary classification
+            y_true = y_true[..., 0]
+            y_pred = y_pred[..., 0]
+
+            yt = y_true.ravel()
+            yp = y_pred.ravel()
+            auc = metrics.roc_auc_score(yt, yp)
+            ap = metrics.average_precision_score(yt, yp)
+
+            y_pred[y_pred >= THRESH] = 1
+            y_pred[y_pred < THRESH] = 0
+
+            pre_det, rec_det, f1_det = eval_on_iou(y_true, y_pred)
+
+            y_true = y_true.ravel()
+            y_pred = y_pred.ravel()
+
+            cm = metrics.confusion_matrix(y_true, y_pred)
+
+            # confusion matrix
+            fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+            cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm)
+            cm_disp.plot(ax=ax)
+            filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
+            fig.savefig(filename)
+            img = image.fig2img(fig)
+
+            tn, fp, fn, tp = cm.ravel()
+            acc, pre, rec, spe, f1 = common_metrics(tp, tn, fp, fn)
+
         res = {
             "Accuracy": acc,
-            "Precision": precision,
-            "Recall": recall,
+            "Precision": pre,
+            "Recall": rec,
+            "Specificity": spe,
             "F1": f1,
-            "ConfusionMatrix": cm,
-            "ConfusionMatrixPlot": cm_disp,
+            "ROC Curve AUC": auc,
+            "Average Precision": ap,
+            "Precision (Detection)": pre_det,
+            "Recall (Detection)": rec_det,
+            "F1 (Detection)": f1_det,
+            "img": img,
         }
         return res
 
@@ -185,8 +338,6 @@ class SegmentationModel(object):
                         '--saved-model', saved_model_path,
                         '--output', onnx_path,
                         '--opset', '11'])
-
-
 
 
 class SegDataGenerator(object):

@@ -221,7 +221,7 @@ class Dataset(object):
             train_subdir_ids = np.array_split(subdir_ids, self.config.N_SPLITS)
             test_subdir_ids = train_subdir_ids.pop(-i)
             train_subdir_ids = np.concatenate(train_subdir_ids)
-            split_pos = int(train_subdir_ids.size * 0.8)
+            split_pos = int(train_subdir_ids.size * 0.95)
             train_subdir_ids, val_subdir_ids = np.split(train_subdir_ids, [split_pos])
 
             self.num_subdir = len(self.subdir_ids)
@@ -252,8 +252,11 @@ class Dataset(object):
             self.train_ids = np.array_split(ids, self.config.N_SPLITS)
             self.test_ids = self.train_ids.pop(-i)
             self.train_ids = np.concatenate(self.train_ids)
-            split_pos = int(self.train_ids.size * 0.8)
+            split_pos = int(self.train_ids.size * 0.95)
             self.train_ids, self.val_ids = np.split(self.train_ids, [split_pos])
+        
+        if len(self.val_ids) == 0 or len(self.test_ids) == 0:
+            raise ValueError("Missing data.")
 
         self.num_train = len(self.train_ids)
         self.num_test = len(self.test_ids)

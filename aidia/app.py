@@ -9,6 +9,7 @@ written by Kohei Torii
 import functools
 import re
 import os
+import shutil
 import os.path as osp
 import webbrowser
 import collections
@@ -29,6 +30,7 @@ from aidia.widgets import Canvas
 from aidia.widgets import LabelDialog
 from aidia.widgets import SettingDialog
 from aidia.widgets import CopyrightDialog
+from aidia.widgets import CopyAnnotationsDialog
 from aidia.widgets import DICOMDialog
 from aidia.widgets import LabelListWidget
 from aidia.widgets import LabelListWidgetItem
@@ -455,6 +457,14 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tr("Delete current label file."),
             enabled=False
         )
+        export_anno_action = action(
+            self.tr("&Export Annotations"),
+            self.export_annotations,
+            # shortcuts["delete_file"],
+            # icon=None,
+            self.tr("Export JSON annotation files."),
+            enabled=True
+        )
         close_action = action(
             text=self.tr("&Close"),
             slot=self.close_file,
@@ -699,6 +709,7 @@ class MainWindow(QtWidgets.QMainWindow):
             close=close_action,
             deleteFile=delete_file_action,
             delete=delete_action,
+            exportAnno=export_anno_action,
             edit=edit_action,
             popup_copyright=popup_copyright_action,
             popup_setting=popup_setting_action,
@@ -787,8 +798,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 save_action,
                 save_as_action,
                 # close_action,
-                delete_file_action,
                 None,
+                export_anno_action,
+                None,
+                delete_file_action,
                 quit_action,
             ),
         )
@@ -2348,3 +2361,36 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.button_ai_train.setEnabled(True)
             self.input_is_submode.setEnabled(True)
+
+    def export_annotations(self):
+        # confirm unsaved annotations
+        if not self.may_continue_unsaved():
+            return
+        
+        # open directory dialog
+        target_dir = self.select_dir_dialog(HOME_DIR)
+        if target_dir is None:
+            return
+        
+        pd = CopyAnnotationsDialog(self, self.work_dir, target_dir, self.is_submode)
+        pd.popup()
+
+        self.info_message(self.tr("Exported annotation files to {}").format(target_dir))
+        return
+    
+    def select_dir_dialog(self, default_dir=None):
+        opendir = HOME_DIR
+        if default_dir is not None:
+            opendir = default_dir
+        
+        opendir = HOME_DIR
+        target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
+            self,
+            self.tr("{} - Open Directory".format(__appname__)),
+            opendir,
+            QtWidgets.QFileDialog.ShowDirsOnly |
+            QtWidgets.QFileDialog.DontResolveSymlinks))
+        if not target_path:
+            return None
+        target_path = target_path.replace('/', os.sep)
+        return target_path

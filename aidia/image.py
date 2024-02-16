@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import os
+import matplotlib.pyplot as plt
 
 from aidia import LABEL_COLORMAP
 from aidia import dicom
@@ -359,3 +360,31 @@ def det2merge(src_img, pred, gt=None):
         cv2.rectangle(merge, (xmin, ymin), (xmax, ymax), color, 2, cv2.LINE_AA)
     merge = cv2.cvtColor(merge, cv2.COLOR_BGR2RGB)
     return merge
+
+def mask2rect(mask):
+    m = np.copy(mask)
+    if np.max(m) == 1:
+        m *= 255
+    m = np.array(m, dtype=np.uint8)
+
+    rect_list = []
+    contours, hierarchy = cv2.findContours(
+        m, 
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_NONE
+    ) 
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        x1 = x
+        y1 = y
+        x2 = x + w
+        y2 = y + h
+        rect_list.append([x1, y1, x2, y2])
+    return rect_list
+
+def fig2img(fig):
+    fig.canvas.draw()
+    data = fig.canvas.tostring_rgb()
+    w, h = fig.canvas.get_width_height()
+    c = len(data) // (w * h)
+    return np.frombuffer(data, dtype=np.uint8).reshape(h, w, c)

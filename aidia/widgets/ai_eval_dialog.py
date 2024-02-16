@@ -320,40 +320,27 @@ class AIEvalDialog(QtWidgets.QDialog):
     def update_status(self, value):
         self.text_status.setText(str(value))
 
-    def update_results(self, value):
+    def update_results(self, value:dict):
         self.ax.clear()
+
+        text = ""
+        for k, v in value.items():
+            if k == "img":
+                continue
+            text += f"{k}: {v:.6f}\n"
+        self.text_results.setText(text)
+        
         if self.task == DET:
-            mAP = value["mAP50"]
-            text = f"mAP50: {mAP}"
-            self.text_results.setText(text)
-            utils.save_dict_to_excel(value, os.path.join(self.log_dir, "eval.xlsx"))
+            pass
         elif self.task == SEG:
-            acc = value["Accuracy"]
-            precision = value["Precision"]
-            recall = value["Recall"]
-            f1 = value["F1"]
-            cm = value["ConfusionMatrix"]
-            cm_disp = value["ConfusionMatrixPlot"]
-            text = ""
-            text += f"Accuracy: {acc:.6f}\n"
-            text += f"Precision: {precision:.6f}\n"
-            text += f"Recall (Sensitivity): {recall:.6f}\n"
-            text += f"F1: {f1:.6f}\n"
-            self.text_results.setText(text)
-
-            save_dict = {
-                "Accuracy": [acc],
-                "Precision": [precision],
-                "Recall (Sensitivity)": [recall],
-                "F1": [f1],
-            }
-            utils.save_dict_to_excel(save_dict, os.path.join(self.log_dir, "eval.xlsx"))
-
-            cm_disp.plot(ax=self.ax)
-            self.image_widget.loadPixmap(self._plt2img())
-            filename = os.path.join(self.log_dir, "confusion_matrix.png")
-            # if not os.path.exists(filename):
-            self.fig.savefig(filename)
+            img = value.pop("img")
+            self.image_widget.loadPixmap(img)
+        
+        save_dict = {
+            "Metrics": list(value.keys()),
+            "Values": list(value.values()),
+        }
+        utils.save_dict_to_excel(save_dict, os.path.join(self.log_dir, "eval.xlsx"))
         
     def update_class_choice(self, index):
         pass
@@ -572,12 +559,18 @@ class AIEvalThread(QtCore.QThread):
             image_id = model.dataset.test_ids[i]
             img_path = model.dataset.image_info[image_id]["path"]
             name = os.path.splitext(os.path.basename(img_path))[0]
+            save_path = os.path.join(save_dir, f"{name}.png")
+            
+            # continue if output already exists
+            if os.path.exists(save_path):
+                self.progressValue.emit(int(i / n * 100))
+                continue
+
             try:
                 result_img = model.predict_by_id(image_id)
             except FileNotFoundError as e:
                 self.notifyMessage.emit(self.tr("Error: {} was not found.").format(img_path))
                 return
-            save_path = os.path.join(save_dir, f"{name}.png")
             image.imwrite(result_img, save_path)
             # update latest 5 images to the widget
             if len(predicts) <= 5:
