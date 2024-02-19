@@ -122,7 +122,13 @@ class Dataset(object):
                 for key, value in dic.items():
                     setattr(self, key, value)
         except Exception as e:
-            raise ValueError(f"Failed to load dataset.json: {e}")
+            try:    # not UTF-8 json file handling
+                with open(json_path) as f:
+                    dic = json.load(f)
+                    for key, value in dic.items():
+                        setattr(self, key, value)
+            except:
+                raise ValueError(f"Failed to load dataset.json: {e}")
 
     def save(self, json_path):
         # p = os.path.join(self.config.log_dir, "dataset.json")

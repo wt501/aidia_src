@@ -94,15 +94,22 @@ class DetectionModel(object):
     def stop_training(self):
         self.model.stop_training = True
 
-    def evaluate(self, custom_callbacks=None):
+    def evaluate(self, cb_widget=None):
         sum_AP = 0.0
         nc = self.dataset.num_classes
+        _i = 0
         # calculate AP each class
         for class_id in range(nc):
             gt_count = 0.0
             tp_list = []
             fp_list = []
             for image_id in self.dataset.test_ids:
+                # update progress
+                if cb_widget is not None:
+                    cb_widget.notifyMessage.emit(f"{_i+1} / {(self.dataset.num_test * nc)}")
+                    cb_widget.progressValue.emit(int((_i+1) / (self.dataset.num_test * nc) * 100))
+                    _i += 1
+
                 # load image and annotation
                 org_img = self.dataset.load_image(image_id, is_resize=False)
                 anno_gt = self.dataset.get_yolo_bboxes(image_id)
