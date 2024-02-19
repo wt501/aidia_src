@@ -67,17 +67,17 @@ def eval_on_iou(y_true, y_pred):
                 fp += 1
         num_gt += len(image.mask2rect(gt_mask))
 
-    precision = tp / (tp + fp)
-    recall = tp / num_gt
-    f1 = (2 * precision * recall) / (precision + recall)
+    precision = tp / (tp + fp + 1e-12)
+    recall = tp / (num_gt + + 1e-12)
+    f1 = (2 * precision * recall) / (precision + recall + 1e-12)
     return [precision, recall, f1]
 
 def common_metrics(tp, tn, fp, fn):
-    acc = (tp + tn) / (tp + tn + fp + fn)
-    precision = tp / (tp + fp)
-    recall = tp / (tp + fn)
-    specificity = tn / (tn + fp)
-    f1 = (2 * precision * recall) / (precision + recall)
+    acc = (tp + tn) / (tp + tn + fp + fn + 1e-12)
+    precision = tp / (tp + fp + 1e-12)
+    recall = tp / (tp + fn + 1e-12)
+    specificity = tn / (tn + fp + 1e-12)
+    f1 = (2 * precision * recall) / (precision + recall + 1e-12)
     return [acc, precision, recall, specificity, f1]
 
 
@@ -192,7 +192,7 @@ class SegmentationModel(object):
             p = p[..., 1:]
             y_true.append(mask)
             y_pred.append(p)
-            # if i == 50:  # TODO
+            # if i == 10:  # TODO
                 # break
         y_true = np.array(y_true)
         y_pred = np.array(y_pred)
@@ -218,30 +218,35 @@ class SegmentationModel(object):
                 cb_widget.progressValue.emit(0)
             for class_id in range(self.config.num_classes):
                 if cb_widget is not None:
-                    cb_widget.notifyMessage.emit(f"{class_id} / {self.config.num_classes}")
-                    cb_widget.progressValue.emit(int(class_id / self.config.num_classes * 100))
-                y_true = y_true[..., class_id]
-                y_pred = y_pred[..., class_id]
+                    cb_widget.notifyMessage.emit(f"{class_id + 1} / {self.config.num_classes}")
+                    cb_widget.progressValue.emit(int((class_id + 1) / self.config.num_classes * 100))
+                yt = y_true[..., class_id]
+                yp = y_pred[..., class_id]
 
-                yt = y_true.ravel()
-                yp = y_pred.ravel()
-                auc = metrics.roc_auc_score(yt, yp)
-                ap = metrics.average_precision_score(yt, yp)
+                if np.max(yt) == 0 or np.max(yp) == 0:  # no ground truth data
+                    continue
+
+                # ROC curve and PR curve
+                yt_flat = yt.ravel()
+                yp_flat_prob = yp.ravel()
+                auc = metrics.roc_auc_score(yt_flat, yp_flat_prob)
+                ap = metrics.average_precision_score(yt_flat, yp_flat_prob)
                 sum_auc += auc
                 sum_ap += ap
 
-                y_pred[y_pred >= THRESH] = 1
-                y_pred[y_pred < THRESH] = 0
+                # common metrics
+                yp[yp >= THRESH] = 1
+                yp[yp < THRESH] = 0
 
-                pre_det, rec_det, f1_det = eval_on_iou(y_true, y_pred)
+                pre_det, rec_det, f1_det = eval_on_iou(yt, yp)
                 sum_pre_det += pre_det
                 sum_rec_det += rec_det
                 sum_f1_det += f1_det
 
-                y_true = y_true.ravel()
-                y_pred = y_pred.ravel()
+                yt_flat = yt.ravel()
+                yp_flat = yp.ravel()
 
-                cm = metrics.confusion_matrix(y_true, y_pred)
+                cm = metrics.confusion_matrix(yt_flat, yp_flat)
                 tn, fp, fn, tp = cm.ravel()
                 acc, pre, rec, spe, f1 = common_metrics(tp, tn, fp, fn)
                 sum_acc += acc
@@ -264,8 +269,10 @@ class SegmentationModel(object):
 
             # confusion matrix
             fig, ax = plt.subplots(1, 1, figsize=(10, 8))
-            yt = np.argmax(y_true, axis=1)
-            yp = np.argmax(y_pred, axis=1)
+            yt = np.argmax(y_true, axis=-1)
+            yp = np.argmax(y_pred, axis=-1)
+            yt = yt.ravel()
+            yp = yp.ravel()
             cm = metrics.confusion_matrix(yt, yp)
             cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm,
                                                     display_labels=self.config.LABELS)

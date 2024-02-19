@@ -375,6 +375,8 @@ def mask2rect(mask):
     ) 
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
+        if w < 3 or h < 3:  # skip tiny box
+            continue
         x1 = x
         y1 = y
         x2 = x + w

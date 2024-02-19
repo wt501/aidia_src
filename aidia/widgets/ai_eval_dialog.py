@@ -120,8 +120,7 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.button_eval = QtWidgets.QPushButton(self.tr("Evaluate"))
         self.button_eval.clicked.connect(self.evaluate)
         row = max(self.left_row, self.right_row)
-        self._layout.addWidget(self.button_eval, row, 1, 1, 4)
-        row += 1
+        self._layout.addWidget(self.button_eval, row, 1, 1, 1)
 
         # predict button
         self.button_pred = QtWidgets.QPushButton(self.tr("Predict"))
@@ -129,8 +128,7 @@ class AIEvalDialog(QtWidgets.QDialog):
             """Predict images in your directory."""
         ))
         self.button_pred.clicked.connect(self.predict_from_directory)
-        self._layout.addWidget(self.button_pred, row, 1, 1, 4)
-        row += 1
+        self._layout.addWidget(self.button_pred, row, 2, 1, 1)
 
         # export data button
         self.button_export_data = QtWidgets.QPushButton(self.tr("Export Data"))
@@ -138,8 +136,7 @@ class AIEvalDialog(QtWidgets.QDialog):
             """Export data."""
         ))
         self.button_export_data.clicked.connect(self.export_data)
-        self._layout.addWidget(self.button_export_data, row, 1, 1, 4)
-        row += 1
+        self._layout.addWidget(self.button_export_data, row, 3, 1, 1)
 
         # export model button
         self.button_export_model = QtWidgets.QPushButton(self.tr("Export Model"))
@@ -147,7 +144,7 @@ class AIEvalDialog(QtWidgets.QDialog):
             """Export model data."""
         ))
         self.button_export_model.clicked.connect(self.export_model)
-        self._layout.addWidget(self.button_export_model, row, 1, 1, 4)
+        self._layout.addWidget(self.button_export_model, row, 4, 1, 1)
         row += 1
 
         # figure area
@@ -266,12 +263,16 @@ class AIEvalDialog(QtWidgets.QDialog):
             x.setEnabled(False)
         self.button_eval.setEnabled(False)
         self.button_pred.setEnabled(False)
+        self.button_export_data.setEnabled(False)
+        self.button_export_model.setEnabled(False)
     
     def enable_all(self):
         for x in self.input_fields:
             x.setEnabled(True)
         self.button_eval.setEnabled(True)
         self.button_pred.setEnabled(True)
+        self.button_export_data.setEnabled(True)
+        self.button_export_model.setEnabled(True)
 
     def closeEvent(self, event):
         self.input_name.clear()
@@ -428,23 +429,24 @@ class AIEvalDialog(QtWidgets.QDialog):
         if not os.path.exists(config_path):
             self.text_status.setText(self.tr("Config file was not found."))
             return
+        
+        config = AIConfig(dataset_dir=self.dataset_dir)
+        config.load(config_path)
 
         dataset_path = os.path.join(self.log_dir, "dataset.json")
         if not os.path.exists(dataset_path):
             self.text_status.setText(self.tr("Dataset file was not found."))
             return
-
-        self.disable_all()
-        self.reset_state()
-
-        config = AIConfig(dataset_dir=self.dataset_dir)
-        config.load(config_path)
-
+        
+        # set parameters
         self.task = config.TASK
         self.class_names = config.LABELS.copy()
         if config.TASK == SEG:
             self.class_names.insert(0, "background")
         self.class_names.insert(0, "all")
+
+        self.disable_all()
+        self.reset_state()
 
         self.ai.set_config(config)
         self.ai.start()
@@ -455,21 +457,27 @@ class AIEvalDialog(QtWidgets.QDialog):
         if error > 0:
             self.text_status.setText(self.tr("Please check parameters."))
             return
-
-        if self.task not in [SEG]:
-            self.text_status.setText(self.tr("Not implemented function."))
-            return
         
+        # load config
         config_path = os.path.join(self.log_dir, "config.json")
         if not os.path.exists(config_path):
             self.text_status.setText(self.tr("Config file was not found."))
             return
         
+        config = AIConfig(self.dataset_dir)
+        config.load(config_path)
+
+        if config.TASK not in [SEG]:
+            self.text_status.setText(self.tr("Not implemented function."))
+            return
+        
+        # chek onnx model
         onnx_path = os.path.join(self.log_dir, "model.onnx")
         if not os.path.exists(onnx_path):
             self.text_status.setText(self.tr("The ONNX model was not found."))
             return
-                
+        
+        # target data directory
         opendir = HOME_DIR
         if self.prev_dir and os.path.exists(self.prev_dir):
             opendir = self.prev_dir
@@ -487,17 +495,15 @@ class AIEvalDialog(QtWidgets.QDialog):
         if not len(os.listdir(target_path)):
             self.text_status.setText(self.tr("The Directory is empty."))
             return
-        
+
+        # AI run
         self.text_status.setText(self.tr("Processing..."))
 
+        self.task = config.TASK
         self.prev_dir = target_path
         self.disable_all()
         self.progress.setValue(0)
         # self.reset_state()
-
-        config = AIConfig(self.dataset_dir)
-        config.load(config_path)
-        self.task = config.TASK
 
         self.ai_pred.set_params(config, target_path, onnx_path)
         self.ai_pred.start()

@@ -29,6 +29,9 @@ class ImageWidget(QtWidgets.QWidget):
         p = self._painter
         p.begin(self)
 
+        x = 0
+        y = 0
+        scale = 1.0
         if self.pixmap.isNull():
             # return super().paintEvent(event)
             self.pixmap.fill()
@@ -39,12 +42,21 @@ class ImageWidget(QtWidgets.QWidget):
 
             w = self.pixmap.width()
             h = self.pixmap.height()
-            if w > 0 or h > 0:
-                w_scale = self.width() / w
-                h_scale = self.height() / h
-                p.scale(w_scale, h_scale)
+            winw = self.width()
+            winh = self.height()
+            # if w > 0 or h > 0:
+            #     w_scale = self.width() / w
+            #     h_scale = self.height() / h
+            #     p.scale(w_scale, h_scale)
+            if winw < winh:
+                scale = winw / w
+                y = int(winh / 2) - int(h * scale / 2)
+            else:
+                scale = winh / h
+                x = (int(winw / 2) - int(w * scale / 2))
 
-        p.drawPixmap(0, 0, self.pixmap)
+        p.scale(scale, scale)
+        p.drawPixmap(int(x/scale), int(y/scale), self.pixmap)
         p.end()
 
     def resizeEvent(self, event):
