@@ -14,4 +14,4 @@ pyinstaller_versionfile.create_versionfile(
     translations=[1033, 1041, 1200]  # English, Japanese, Unicode
 )
 
-subprocess.run(["pyinstaller", "aidia.spec"], encoding="utf-8")
+subprocess.run(["pyinstaller", "aidia.spec", "--clean", "-y"], encoding="utf-8")
