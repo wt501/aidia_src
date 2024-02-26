@@ -619,7 +619,14 @@ class AIEvalThread(QtCore.QThread):
             image_id = model.dataset.test_ids[i]
             img_path = model.dataset.image_info[image_id]["path"]
             name = os.path.splitext(os.path.basename(img_path))[0]
-            save_path = os.path.join(save_dir, f"{name}.png")
+            if self.config.SUBMODE:
+                dirname = utils.get_basedir(img_path)
+                subdir_path = os.path.join(save_dir, dirname)
+                if not os.path.exists(subdir_path):
+                    os.mkdir(subdir_path)
+                save_path = os.path.join(save_dir, dirname, f"{name}.png")
+            else:
+                save_path = os.path.join(save_dir, f"{name}.png")
             
             # continue if output already exists
             if os.path.exists(save_path):
