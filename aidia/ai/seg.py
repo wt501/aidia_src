@@ -44,7 +44,7 @@ def calc_iou(box1, box2):
     inter_x2 = min(box1[2], box2[2])
     inter_y2 = min(box1[3], box2[3])
 
-    inter_area = max((inter_x2 - inter_x1) * (inter_y2 - inter_y1), 0)
+    inter_area = max((inter_x2 - inter_x1), 0) * max((inter_y2 - inter_y1), 0)
     area_1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
     area_2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
     union_area = area_1 + area_2 - inter_area
