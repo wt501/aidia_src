@@ -40,20 +40,20 @@ class ImageWidget(QtWidgets.QWidget):
             p.setRenderHint(QtGui.QPainter.HighQualityAntialiasing)
             p.setRenderHint(QtGui.QPainter.SmoothPixmapTransform)
 
-            w = self.pixmap.width()
-            h = self.pixmap.height()
-            winw = self.width()
-            winh = self.height()
+            img_w = self.pixmap.width()
+            img_h = self.pixmap.height()
+            win_w = self.width()
+            win_h = self.height()
             # if w > 0 or h > 0:
             #     w_scale = self.width() / w
             #     h_scale = self.height() / h
             #     p.scale(w_scale, h_scale)
-            if winw < winh:
-                scale = winw / w
-                y = int(winh / 2) - int(h * scale / 2)
+            scale = win_h / img_h
+            if  win_w < img_w * scale:
+                scale = win_w / img_w
+                y = int(win_h / 2) - int(img_h * scale / 2)
             else:
-                scale = winh / h
-                x = (int(winw / 2) - int(w * scale / 2))
+                x = (int(win_w / 2) - int(img_w * scale / 2))
 
         p.scale(scale, scale)
         p.drawPixmap(int(x/scale), int(y/scale), self.pixmap)
