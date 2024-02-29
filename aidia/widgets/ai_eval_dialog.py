@@ -352,16 +352,14 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.text_results.setText(text)
         
         if self.task == DET:
-            pass
+            save_dict = {
+                "Metrics": list(value.keys()),
+                "Values": list(value.values()),
+            }
+            utils.save_dict_to_excel(save_dict, os.path.join(self.log_dir, "eval.xlsx"))
         elif self.task == SEG:
             img = value.pop("img")
             self.image_widget.loadPixmap(img)
-        
-        save_dict = {
-            "Metrics": list(value.keys()),
-            "Values": list(value.values()),
-        }
-        utils.save_dict_to_excel(save_dict, os.path.join(self.log_dir, "eval.xlsx"))
         
     def update_class_choice(self, index):
         pass

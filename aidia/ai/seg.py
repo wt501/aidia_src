@@ -14,13 +14,15 @@ from aidia.ai.models.unet import UNet
 # from aidia.ai import metrics
 
 from aidia import image
-
+from aidia import utils
 
 import matplotlib
 import matplotlib.pyplot as plt
 
 matplotlib.use("agg")
 plt.rcParams["font.size"] = 15
+
+np.set_printoptions(suppress=True)
 
 
 def mask_iou(pred, gt):
@@ -68,7 +70,7 @@ def eval_on_iou(y_true, y_pred):
         num_gt += len(image.mask2rect(gt_mask))
 
     precision = tp / (tp + fp + 1e-12)
-    recall = tp / (num_gt + + 1e-12)
+    recall = tp / (num_gt + 1e-12)
     f1 = (2 * precision * recall) / (precision + recall + 1e-12)
     return [precision, recall, f1]
 
@@ -178,6 +180,7 @@ class SegmentationModel(object):
         res = {}
         y_true = []
         y_pred = []
+        fig, ax = plt.subplots(1, 1, figsize=(10, 8))
 
         # predict all test data
         for i, image_id in enumerate(self.dataset.test_ids):
@@ -192,8 +195,8 @@ class SegmentationModel(object):
             p = p[..., 1:]
             y_true.append(mask)
             y_pred.append(p)
-            # if i == 10:  # TODO
-                # break
+            if i == 20:  # TODO
+                break
         y_true = np.array(y_true)
         y_pred = np.array(y_pred)
 
@@ -202,8 +205,14 @@ class SegmentationModel(object):
 
         # evaluation
         THRESH = 0.5
-        res = {}
+        eval_dict = {}
+        eval_dict["Metrics"] = [
+            "Accuracy", "Precision", "Recall", "Specificity",
+            "F1", "ROC Curve AUC", "Average Precision",
+            "Precision (Detection)", "Recall (Detection)", "F1 (Detection)"
+        ]
         if self.config.num_classes > 1:
+            num_results = self.config.num_classes
             sum_acc = 0.0
             sum_pre = 0.0
             sum_rec = 0.0
@@ -220,15 +229,44 @@ class SegmentationModel(object):
                 if cb_widget is not None:
                     cb_widget.notifyMessage.emit(f"{class_id + 1} / {self.config.num_classes}")
                     cb_widget.progressValue.emit(int((class_id + 1) / self.config.num_classes * 100))
+
+                # prepare class result directories
+                class_name = self.config.LABELS[class_id]
+                class_dir = os.path.join(self.config.log_dir, class_name)
+                if not os.path.exists(class_dir):
+                    os.mkdir(class_dir)
+
+                # get result by class
                 yt = y_true[..., class_id]
                 yp = y_pred[..., class_id]
 
                 if np.max(yt) == 0 or np.max(yp) == 0:  # no ground truth data
+                    num_results -= 1
                     continue
 
                 # ROC curve and PR curve
                 yt_flat = yt.ravel()
                 yp_flat_prob = yp.ravel()
+
+                fpr, tpr, thresholds = metrics.roc_curve(yt_flat, yp_flat_prob)
+                ax.plot(fpr, tpr)
+                ax.set_title(f"ROC Curve ({class_name})")
+                ax.set_xlabel('FPR')
+                ax.set_ylabel('TPR')
+                ax.grid()
+                fig.savefig(os.path.join(class_dir, "roc.png"))
+                ax.clear()
+
+                pres, recs, thresholds = metrics.precision_recall_curve(yt_flat, yp_flat_prob)
+                ax.plot(pres, recs)
+                ax.set_title(f"PR Curve ({class_name})")
+                ax.set_xlabel('Recall')
+                ax.set_ylabel('Precision')
+                ax.grid()
+                fig.savefig(os.path.join(class_dir, "pr.png"))
+                ax.clear()
+
+                # AUC and AP
                 auc = metrics.roc_auc_score(yt_flat, yp_flat_prob)
                 ap = metrics.average_precision_score(yt_flat, yp_flat_prob)
                 sum_auc += auc
@@ -254,21 +292,25 @@ class SegmentationModel(object):
                 sum_rec += rec
                 sum_spe += spe
                 sum_f1 += f1
+
+                # add result by class
+                eval_dict[class_name] = [
+                    acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det
+                ]
             
             # macro mean
-            acc = sum_acc / self.config.num_classes
-            pre = sum_pre / self.config.num_classes
-            rec = sum_rec / self.config.num_classes
-            spe = sum_spe / self.config.num_classes
-            f1 = sum_f1 / self.config.num_classes
-            auc = sum_auc / self.config.num_classes
-            ap = sum_ap / self.config.num_classes
-            pre_det = sum_pre_det / self.config.num_classes
-            rec_det = sum_rec_det / self.config.num_classes
-            f1_det = sum_f1_det / self.config.num_classes
+            acc = sum_acc / num_results
+            pre = sum_pre / num_results
+            rec = sum_rec / num_results
+            spe = sum_spe / num_results
+            f1 = sum_f1 / num_results
+            auc = sum_auc / num_results
+            ap = sum_ap / num_results
+            pre_det = sum_pre_det / num_results
+            rec_det = sum_rec_det / num_results
+            f1_det = sum_f1_det / num_results
 
             # confusion matrix
-            fig, ax = plt.subplots(1, 1, figsize=(10, 8))
             yt = np.argmax(y_true, axis=-1)
             yp = np.argmax(y_pred, axis=-1)
             yt = yt.ravel()
@@ -280,14 +322,41 @@ class SegmentationModel(object):
             filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
             fig.savefig(filename)
             img = image.fig2img(fig)
+
+            # save eval dict
+            eval_dict["(Macro Mean)"] = [
+                acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det
+            ]
+            utils.save_dict_to_excel(eval_dict, os.path.join(self.config.log_dir, "eval.xlsx"))
            
            
         else:  # binary classification
             y_true = y_true[..., 0]
             y_pred = y_pred[..., 0]
+            class_name = self.config.LABELS[0]
 
+            # AUC and AP
             yt = y_true.ravel()
             yp = y_pred.ravel()
+
+            fpr, tpr, thresholds = metrics.roc_curve(yt_flat, yp_flat_prob)
+            ax.plot(fpr, tpr)
+            ax.set_title(f"ROC Curve ({class_name})")
+            ax.set_xlabel('FPR')
+            ax.set_ylabel('TPR')
+            ax.grid()
+            fig.savefig(os.path.join(self.config.log_dir, "roc.png"))
+            ax.clear()
+
+            pres, recs, thresholds = metrics.precision_recall_curve(yt_flat, yp_flat_prob)
+            ax.plot(pres, recs)
+            ax.set_title(f"PR Curve ({class_name})")
+            ax.set_xlabel('Recall')
+            ax.set_ylabel('Precision')
+            ax.grid()
+            fig.savefig(os.path.join(self.config.log_dir, "pr.png"))
+            ax.clear()
+        
             auc = metrics.roc_auc_score(yt, yp)
             ap = metrics.average_precision_score(yt, yp)
 
@@ -302,7 +371,6 @@ class SegmentationModel(object):
             cm = metrics.confusion_matrix(y_true, y_pred)
 
             # confusion matrix
-            fig, ax = plt.subplots(1, 1, figsize=(10, 8))
             cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm)
             cm_disp.plot(ax=ax)
             filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
@@ -311,6 +379,10 @@ class SegmentationModel(object):
 
             tn, fp, fn, tp = cm.ravel()
             acc, pre, rec, spe, f1 = common_metrics(tp, tn, fp, fn)
+
+            eval_dict[class_name] = [
+                acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det
+            ]
 
         res = {
             "Accuracy": acc,
