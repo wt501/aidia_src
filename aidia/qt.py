@@ -94,7 +94,7 @@ def fmtShortcut(text):
 
 def head_text(text):
     bold_text = QtWidgets.QLabel(text)
-    bold_text.setStyleSheet("font-size: 20px; font-weight: 500")
+    bold_text.setStyleSheet("font-size: 15pt; font-weight: bold")
     return bold_text
 
 

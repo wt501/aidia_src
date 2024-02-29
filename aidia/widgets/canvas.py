@@ -4,6 +4,7 @@ from qtpy import QtCore
 from qtpy import QtGui
 from qtpy import QtWidgets
 
+from aidia import CFONT
 from aidia.shape import Shape
 from aidia.qt import distance
 from aidia.image import gamma_correct, change_contrast, dicom_transform
@@ -611,8 +612,7 @@ class Canvas(QtWidgets.QWidget):
         p.translate(self.offsetToCenter())
 
         text_size = 14
-        from aidia import CFONT
-        font = QtGui.QFont(CFONT, text_size, QtGui.QFont.Bold, False)
+        font = QtGui.QFont("Arial", text_size, QtGui.QFont.Bold, False)
         fm = QtGui.QFontMetrics(font)
         text_height = fm.height()
 

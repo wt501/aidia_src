@@ -195,8 +195,8 @@ class SegmentationModel(object):
             p = p[..., 1:]
             y_true.append(mask)
             y_pred.append(p)
-            if i == 20:  # TODO
-                break
+            # if i == 20:  # TODO
+                # break
         y_true = np.array(y_true)
         y_pred = np.array(y_pred)
 
@@ -315,7 +315,7 @@ class SegmentationModel(object):
             yp = np.argmax(y_pred, axis=-1)
             yt = yt.ravel()
             yp = yp.ravel()
-            cm = metrics.confusion_matrix(yt, yp)
+            cm = metrics.confusion_matrix(yt, yp, normalize="all")
             cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm,
                                                     display_labels=self.config.LABELS)
             cm_disp.plot(ax=ax)
@@ -339,7 +339,7 @@ class SegmentationModel(object):
             yt = y_true.ravel()
             yp = y_pred.ravel()
 
-            fpr, tpr, thresholds = metrics.roc_curve(yt_flat, yp_flat_prob)
+            fpr, tpr, thresholds = metrics.roc_curve(yt, yp)
             ax.plot(fpr, tpr)
             ax.set_title(f"ROC Curve ({class_name})")
             ax.set_xlabel('FPR')
@@ -348,7 +348,7 @@ class SegmentationModel(object):
             fig.savefig(os.path.join(self.config.log_dir, "roc.png"))
             ax.clear()
 
-            pres, recs, thresholds = metrics.precision_recall_curve(yt_flat, yp_flat_prob)
+            pres, recs, thresholds = metrics.precision_recall_curve(yt, yp)
             ax.plot(pres, recs)
             ax.set_title(f"PR Curve ({class_name})")
             ax.set_xlabel('Recall')
@@ -368,7 +368,7 @@ class SegmentationModel(object):
             y_true = y_true.ravel()
             y_pred = y_pred.ravel()
 
-            cm = metrics.confusion_matrix(y_true, y_pred)
+            cm = metrics.confusion_matrix(y_true, y_pred, normalize="all")
 
             # confusion matrix
             cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm)
