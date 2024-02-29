@@ -723,9 +723,10 @@ class AITrainDialog(QtWidgets.QDialog):
             self.ax.xaxis.set_major_locator(MaxNLocator(integer=True))
             mx = min((len(self.epoch) // 10 + 1) * 10, self.config.EPOCHS)
             self.ax.set_xlim([1, mx])
-            # if len(self.val_loss) > 1:
-            #     top_limit = np.mean(self.val_loss[1:]) * 1.5
-            #     self.ax.set_ylim([0, top_limit])
+            if len(self.val_loss) > 1:
+                top_limit = np.max(self.val_loss[1:])
+                # top_limit = np.mean(self.val_loss[1:]) * 1.5
+                self.ax.set_ylim([0, top_limit])
             self.ax.legend()
             self.ax.grid()
             self.image_widget.loadPixmap(self._plt2img())

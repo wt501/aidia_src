@@ -81,16 +81,20 @@ class AIEvalDialog(QtWidgets.QDialog):
             logdir = os.path.join(self.dataset_dir, "data", text)
             config_path = os.path.join(logdir, "config.json")
             dataset_path = os.path.join(logdir, "dataset.json")
+            weights_path = os.path.join(logdir, "weights")
             if (os.path.exists(config_path) and
-                os.path.exists(dataset_path)):
+                os.path.exists(dataset_path) and
+                len(os.listdir(weights_path))):
                 self._set_ok(self.tag_name)
                 self.log_dir = logdir
                 self.button_export_data.setEnabled(True)
                 onnx_path = os.path.join(logdir, "model.onnx")
                 if os.path.exists(onnx_path):
                     self.button_export_model.setEnabled(True)
+                    self.button_pred.setEnabled(True)
                 else:
                     self.button_export_model.setEnabled(False)
+                    self.button_pred.setEnabled(False)
             else:
                 self._set_error(self.tag_name)
                 self.button_export_data.setEnabled(False)
@@ -227,10 +231,19 @@ class AIEvalDialog(QtWidgets.QDialog):
         # pickup log directories
         data_dir = os.path.join(dirpath, "data")
         if os.path.exists(data_dir):
-            targets = [name for name in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, name))]
+            targets = []
+            for name in os.listdir(data_dir):
+                logdir = os.path.join(self.dataset_dir, "data", name)
+                config_path = os.path.join(logdir, "config.json")
+                dataset_path = os.path.join(logdir, "dataset.json")
+                weights_path = os.path.join(logdir, "weights")
+                if (os.path.exists(config_path) and
+                    os.path.exists(dataset_path) and
+                    len(os.listdir(weights_path))):
+                    targets.append(name)
             if len(targets):
-                self.input_name.addItems(targets)
                 self.enable_all()
+                self.input_name.addItems(targets)
                 # if self.input_class.count() == 0:
                     # self.input_class.setEnabled(False)
             else:
