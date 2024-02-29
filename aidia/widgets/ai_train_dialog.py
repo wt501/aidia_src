@@ -99,6 +99,9 @@ class AITrainDialog(QtWidgets.QDialog):
         self.input_name = self.create_input_field(200)
         self.input_name.setAlignment(QtCore.Qt.AlignCenter)
         def _validate(text):
+            if self.config.TASK in [MNIST]:
+                self._set_ok(self.tag_name)
+                return
             # check trained data in log directory
             p1 = os.path.join(self.dataset_dir, "data", text, "weights")
             p2 = os.path.join(self.dataset_dir, "data", text, "dataset.json")
@@ -535,7 +538,8 @@ class AITrainDialog(QtWidgets.QDialog):
             self.input_epochs.setEnabled(True)
             self.input_batchsize.setEnabled(True)
             self.input_lr.setEnabled(True)
-         
+            self.input_name.setText(self.config.NAME) # to avoid name error
+
         else:
             raise ValueError
 
@@ -925,6 +929,7 @@ class AITrainThread(QtCore.QThread):
             self.datasetInfo.emit(_info_dict)
         else:  # MNIST Test
             _info_dict = {
+                "dataset_num": 1,
                 "num_images": 60000,
                 "num_shapes": 0,
                 "num_classes": 0,

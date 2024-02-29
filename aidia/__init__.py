@@ -10,7 +10,7 @@ ADD_AI = True
 
 
 __appname__ = "Aidia" if ADD_AI is True else "Aidia (without AI)"
-__version__ = "1.2.3.0"
+__version__ = "1.2.3.1"
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 HOME_DIR = os.path.expanduser("~")
