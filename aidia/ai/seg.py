@@ -4,6 +4,7 @@ import numpy as np
 import subprocess
 import glob
 import random
+import threading
 import imgaug
 import imgaug.augmenters as iaa
 from sklearn import metrics
@@ -37,7 +38,6 @@ def mask_iou(pred, gt):
            if iou > best_iou:
                best_iou = iou
         ious.append(best_iou)
-
     return ious
 
 def calc_iou(box1, box2):
@@ -81,6 +81,13 @@ def common_metrics(tp, tn, fp, fn):
     specificity = tn / (tn + fp + 1e-12)
     f1 = (2 * precision * recall) / (precision + recall + 1e-12)
     return [acc, precision, recall, specificity, f1]
+
+def mIoU(c_matrix) -> float:
+    intersection = np.diag(c_matrix)
+    union = np.sum(c_matrix, axis=0) + np.sum(c_matrix, axis=1) - intersection
+    iou = intersection / union
+    miou = np.mean(iou)
+    return miou
 
 
 class SegmentationModel(object):
@@ -190,13 +197,14 @@ class SegmentationModel(object):
             img = self.dataset.load_image(image_id)
             mask = self.dataset.load_masks(image_id)
             inputs = image.preprocessing(img, is_tensor=True)
-            p = self.model.predict(inputs, verbose=0)[0]
+            p = self.model.predict_on_batch(inputs)[0]
             mask = mask[..., 1:] # exclude background
             p = p[..., 1:]
             y_true.append(mask)
             y_pred.append(p)
             # if i == 20:  # TODO
-                # break
+            #     break
+
         y_true = np.array(y_true)
         y_pred = np.array(y_pred)
 
@@ -211,6 +219,7 @@ class SegmentationModel(object):
             "F1", "ROC Curve AUC", "Average Precision",
             "Precision (Detection)", "Recall (Detection)", "F1 (Detection)"
         ]
+        delete_class_id = []
         if self.config.num_classes > 1:
             num_results = self.config.num_classes
             sum_acc = 0.0
@@ -242,6 +251,7 @@ class SegmentationModel(object):
 
                 if np.max(yt) == 0 or np.max(yp) == 0:  # no ground truth data
                     num_results -= 1
+                    delete_class_id.append(class_id)
                     continue
 
                 # ROC curve and PR curve
@@ -295,7 +305,7 @@ class SegmentationModel(object):
 
                 # add result by class
                 eval_dict[class_name] = [
-                    acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det
+                    acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det, 0
                 ]
             
             # macro mean
@@ -310,22 +320,32 @@ class SegmentationModel(object):
             rec_det = sum_rec_det / num_results
             f1_det = sum_f1_det / num_results
 
+            # delete data has no ground truth
+            y_true = np.delete(y_true, delete_class_id, axis=-1)
+            y_pred = np.delete(y_pred, delete_class_id, axis=-1)
+            labels = self.config.LABELS[:]
+            for i in sorted(delete_class_id, reverse=True):
+                labels.pop(i)
+
             # confusion matrix
             yt = np.argmax(y_true, axis=-1)
             yp = np.argmax(y_pred, axis=-1)
             yt = yt.ravel()
             yp = yp.ravel()
-            cm = metrics.confusion_matrix(yt, yp, normalize="all")
+            cm = metrics.confusion_matrix(yt, yp, normalize="true")
             cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm,
-                                                    display_labels=self.config.LABELS)
+                                                    display_labels=labels)
             cm_disp.plot(ax=ax)
             filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
             fig.savefig(filename)
             img = image.fig2img(fig)
 
+            # mIoU
+            miou = mIoU(cm)
+
             # save eval dict
             eval_dict["(Macro Mean)"] = [
-                acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det
+                acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det, miou
             ]
             utils.save_dict_to_excel(eval_dict, os.path.join(self.config.log_dir, "eval.xlsx"))
            
@@ -368,7 +388,10 @@ class SegmentationModel(object):
             y_true = y_true.ravel()
             y_pred = y_pred.ravel()
 
-            cm = metrics.confusion_matrix(y_true, y_pred, normalize="all")
+            cm = metrics.confusion_matrix(y_true, y_pred, normalize="true")
+
+            # mIoU
+            miou = mIoU(cm)
 
             # confusion matrix
             cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm)
@@ -381,7 +404,7 @@ class SegmentationModel(object):
             acc, pre, rec, spe, f1 = common_metrics(tp, tn, fp, fn)
 
             eval_dict[class_name] = [
-                acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det
+                acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det, miou
             ]
 
         res = {
@@ -395,6 +418,7 @@ class SegmentationModel(object):
             "Precision (Detection)": pre_det,
             "Recall (Detection)": rec_det,
             "F1 (Detection)": f1_det,
+            "mIoU": miou,
             "img": img,
         }
         return res
