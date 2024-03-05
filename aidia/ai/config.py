@@ -95,7 +95,16 @@ class AIConfig(object):
                         continue
                     setattr(self, key, value)
         except Exception as e:
-            raise ValueError(f"Failed to load dataset.json: {e}")
+            try:    #  not UTF-8 json file handling
+                with open(json_path) as f:
+                    dic = json.load(f)
+                    for key, value in dic.items():
+                        if key == "dataset_dir":
+                            continue
+                        setattr(self, key, value)
+            except Exception as e:
+                raise ValueError(f"Failed to load config.json: {e}")
+
         self.build_params()
 
     def save(self, json_path):

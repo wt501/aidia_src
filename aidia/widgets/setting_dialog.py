@@ -38,8 +38,8 @@ class SettingDialog(QtWidgets.QDialog):
         # approx epsilon definition
         self.approx_epsilon_label = QtWidgets.QLabel(self.tr("Approximation Accuracy"))
         self.approx_epsilon_input = QtWidgets.QLineEdit()
-        self.approx_epsilon_input.setAlignment(QtCore.Qt.AlignRight)
-        self.approx_epsilon_input.setFixedWidth(50)
+        self.approx_epsilon_input.setAlignment(QtCore.Qt.AlignCenter)
+        # self.approx_epsilon_input.setFixedWidth(50)
         def _validate(text):
             if text.replace(".", "", 1).isdigit() and 0.0 < float(text) < 1.0:
                 self.approx_epsilon = float(text)

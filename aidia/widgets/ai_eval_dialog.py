@@ -111,10 +111,10 @@ class AIEvalDialog(QtWidgets.QDialog):
         # self.input_class.setEnabled(False)
 
         ### add result fields ###
-        title_dataset = qt.head_text(self.tr("Results"))
-        title_dataset.setMaximumHeight(30)
-        title_dataset.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignCenter)
-        self._results_layout.addWidget(title_dataset)
+        title_result = qt.head_text(self.tr("Results"))
+        title_result.setMaximumHeight(100)
+        title_result.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignCenter)
+        self._results_layout.addWidget(title_result)
 
         self.text_results = QtWidgets.QLabel()
         self._results_layout.addWidget(self.text_results)
@@ -171,7 +171,7 @@ class AIEvalDialog(QtWidgets.QDialog):
         ### add dataset information ###
         # title
         title_dataset = qt.head_text(self.tr("Dataset Information"))
-        title_dataset.setMaximumHeight(30)
+        title_dataset.setMaximumHeight(100)
         title_dataset.setAlignment(QtCore.Qt.AlignTop)
         self._dataset_layout.addWidget(title_dataset)
 
@@ -408,13 +408,6 @@ class AIEvalDialog(QtWidgets.QDialog):
         tag.setStyleSheet("QLabel{ color: black; }")
         self.error_flags[tag.text()] = 0
                 
-    def create_input_field(self, size):
-        l = QtWidgets.QLineEdit()
-        l.setAlignment(QtCore.Qt.AlignRight)
-        l.setMaximumWidth(size)
-        l.setMinimumWidth(size)
-        return l
-
     def reset_state(self):
         # self.input_class.clear()
         self.general_results = []

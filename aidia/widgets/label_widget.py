@@ -156,8 +156,8 @@ class LabelDialog(QtWidgets.QWidget):
         button = QtWidgets.QPushButton('&{}'.format(button_label))
         button.setCheckable(True)
         button.setAutoDefault(False)
-        button.setMaximumWidth(size)
-        button.setMinimumWidth(size)
+        # button.setMaximumWidth(size)
+        # button.setMinimumWidth(size)
         if color:
             pal = QtGui.QPalette()
             pal.setColor(QtGui.QPalette.Button, QtGui.QColor(color))

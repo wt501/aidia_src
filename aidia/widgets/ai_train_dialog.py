@@ -46,10 +46,10 @@ class AITrainDialog(QtWidgets.QDialog):
         self._layout = QtWidgets.QGridLayout()
         self._dataset_layout = QtWidgets.QVBoxLayout()
         self._dataset_widget = QtWidgets.QWidget()
-        self._dataset_widget.setMinimumWidth(200)
+        # self._dataset_widget.setMinimumWidth(200)
         self._augment_layout = QtWidgets.QGridLayout()
         self._augment_widget = QtWidgets.QWidget()
-        self._augment_widget.setMinimumWidth(200)
+        # self._augment_widget.setMinimumWidth(200)
 
         self.dataset_dir = None
         self.start_time = 0
@@ -68,7 +68,8 @@ class AITrainDialog(QtWidgets.QDialog):
 
         self.error_flags = {}
         self.input_fields = []
-        self.unit_list = []
+        self.tags = []
+        self.units = []
         self.param_idx = 0
         self.left_row = 0
         self.right_row = 0
@@ -77,11 +78,11 @@ class AITrainDialog(QtWidgets.QDialog):
         # task selection
         self.tag_task = QtWidgets.QLabel(self.tr("Task"))
         self.input_task = QtWidgets.QComboBox()
-        self.input_task.setMinimumWidth(200)
+        # self.input_task.setMinimumWidth(200)
         self.input_task.addItems([DET, SEG, MNIST])
         def _validate(text):
             self.config.TASK = text
-            self.switch_inputs_by_task(text)
+            self.switch_enabled_by_task(text)
         self.input_task.currentTextChanged.connect(_validate)
         self._add_basic_params(self.tag_task, self.input_task)
 
@@ -97,11 +98,8 @@ class AITrainDialog(QtWidgets.QDialog):
         # name
         self.tag_name = QtWidgets.QLabel(self.tr("Name"))
         self.input_name = self.create_input_field(200)
-        self.input_name.setAlignment(QtCore.Qt.AlignCenter)
+        # self.input_name.setAlignment(QtCore.Qt.AlignCenter)
         def _validate(text):
-            if self.config.TASK in [MNIST]:
-                self._set_ok(self.tag_name)
-                return
             # check trained data in log directory
             p1 = os.path.join(self.dataset_dir, "data", text, "weights")
             p2 = os.path.join(self.dataset_dir, "data", text, "dataset.json")
@@ -190,7 +188,7 @@ class AITrainDialog(QtWidgets.QDialog):
         # label definition
         self.tag_labels = QtWidgets.QLabel(self.tr("Label Definition"))
         self.input_labels = QtWidgets.QTextEdit()
-        self.input_labels.setMinimumHeight(100)
+        # self.input_labels.setMinimumHeight(100)
         def _validate():
             text = self.input_labels.toPlainText()
             text = text.strip().replace(" ", "")
@@ -264,7 +262,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_is_vflip = QtWidgets.QLabel(self.tr("Vertical Flip"))
         self.input_is_vflip = QtWidgets.QCheckBox()
         self.unit_vflip = QtWidgets.QLabel()
-        self.unit_list.append(self.unit_vflip)
+        self.units.append(self.unit_vflip)
         def _validate(state): # check:2, empty:0
             if state == 2:
                 self.config.RANDOM_VFLIP = True
@@ -279,7 +277,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_is_hflip = QtWidgets.QLabel(self.tr("Horizontal Flip"))
         self.input_is_hflip = QtWidgets.QCheckBox()
         self.unit_hflip = QtWidgets.QLabel()
-        self.unit_list.append(self.unit_hflip)
+        self.units.append(self.unit_hflip)
         def _validate(state): # check:2, empty:0
             if state == 2:
                 self.config.RANDOM_HFLIP = True
@@ -294,7 +292,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_rotate = QtWidgets.QLabel(self.tr("Rotation"))
         self.input_rotate = self.create_input_field(50)
         self.unit_rotate = QtWidgets.QLabel()
-        self.unit_list.append(self.unit_rotate)
+        self.units.append(self.unit_rotate)
         def _validate(text):
             if text.isdigit() and 0 < int(text) < 90:
                 self.config.RANDOM_ROTATE = int(text)
@@ -311,7 +309,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_scale = QtWidgets.QLabel(self.tr("Scale"))
         self.input_scale = self.create_input_field(50)
         self.unit_scale = QtWidgets.QLabel()
-        self.unit_list.append(self.unit_scale)
+        self.units.append(self.unit_scale)
         def _validate(text):
             if text.replace(".", "", 1).isdigit() and 0.0 < float(text) < 1.0:
                 self.config.RANDOM_SCALE = float(text)
@@ -328,7 +326,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_shift = QtWidgets.QLabel(self.tr("Shift"))
         self.input_shift = self.create_input_field(50)
         self.unit_shift = QtWidgets.QLabel()
-        self.unit_list.append(self.unit_shift)
+        self.units.append(self.unit_shift)
         def _validate(text):
             if text.replace(".", "", 1).isdigit() and 0.0 < float(text) < 1.0:
                 self.config.RANDOM_SHIFT = float(text)
@@ -345,7 +343,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_shear = QtWidgets.QLabel(self.tr("Shear"))
         self.input_shear = self.create_input_field(50)
         self.unit_shear = QtWidgets.QLabel()
-        self.unit_list.append(self.unit_shear)
+        self.units.append(self.unit_shear)
         def _validate(text):
             if text.isdigit() and 0 < int(text) < 30:
                 self.config.RANDOM_SHEAR = int(text)
@@ -362,7 +360,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_blur = QtWidgets.QLabel(self.tr("Blur"))
         self.input_blur = self.create_input_field(50)
         self.unit_blur = QtWidgets.QLabel()
-        self.unit_list.append(self.unit_blur)
+        self.units.append(self.unit_blur)
         def _validate(text):
             if text.replace(".", "", 1).isdigit() and 0.0 < float(text) < 20.0:
                 self.config.RANDOM_BLUR = float(text)
@@ -379,7 +377,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_noise = QtWidgets.QLabel(self.tr("Noise"))
         self.input_noise = self.create_input_field(50)
         self.unit_noise = QtWidgets.QLabel()
-        self.unit_list.append(self.unit_noise)
+        self.units.append(self.unit_noise)
         def _validate(text):
             if text.isdigit() and 0 < int(text) < 50:
                 self.config.RANDOM_NOISE = int(text)
@@ -396,7 +394,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_brightness = QtWidgets.QLabel(self.tr("Brightness"))
         self.input_brightness = self.create_input_field(50)
         self.unit_brightness = QtWidgets.QLabel()
-        self.unit_list.append(self.unit_brightness)
+        self.units.append(self.unit_brightness)
         def _validate(text):
             if text.replace(".", "", 1).isdigit() and 0.0 < float(text) < 1.0:
                 self.config.RANDOM_BRIGHTNESS = float(text)
@@ -413,7 +411,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_contrast = QtWidgets.QLabel(self.tr("Contrast"))
         self.input_contrast = self.create_input_field(50)
         self.unit_contrast = QtWidgets.QLabel()
-        self.unit_list.append(self.unit_contrast)
+        self.units.append(self.unit_contrast)
         def _validate(text):
             if text.replace(".", "", 1).isdigit() and 0.0 < float(text) < 1.0:
                 self.config.RANDOM_CONTRAST = float(text)
@@ -449,13 +447,13 @@ class AITrainDialog(QtWidgets.QDialog):
 
         # status
         self.text_status = QtWidgets.QLabel()
-        self.text_status.setMaximumHeight(50)
+        # self.text_status.setMaximumHeight(200)
         self._layout.addWidget(self.text_status, row, 1, 1, 3)
         # row += 1
 
         # stop button
         self.button_stop = QtWidgets.QPushButton(self.tr("Terminate"))
-        self.button_stop.setMaximumSize(QtCore.QSize(100, 30))
+        # self.button_stop.setMaximumHeight(100)
         def _stop_training():
             self.ai.quit()
             self.button_stop.setEnabled(False)
@@ -467,7 +465,7 @@ class AITrainDialog(QtWidgets.QDialog):
         ### add dataset information ###
         # title
         title_dataset = qt.head_text(self.tr("Dataset Information"))
-        title_dataset.setMaximumHeight(30)
+        title_dataset.setMaximumHeight(100)
         title_dataset.setAlignment(QtCore.Qt.AlignTop)
         self._dataset_layout.addWidget(title_dataset)
 
@@ -496,63 +494,6 @@ class AITrainDialog(QtWidgets.QDialog):
 
         self.text_status.setText(self.tr("Ready"))
 
-    def switch_inputs_by_task(self, task):
-        if task == CLS:
-            raise NotImplementedError
-        
-        elif task == DET:
-            self.input_model.clear()
-            self.input_model.addItems(DET_MODEL)
-            for x in self.input_fields:
-                x.setEnabled(True)
-            for x in self.unit_list:
-                x.setStyleSheet(self.default_style)
-            self.input_rotate.setEnabled(False)
-            self.unit_rotate.setStyleSheet(self.disabled_style)
-            self.input_shift.setEnabled(False)
-            self.unit_shift.setStyleSheet(self.disabled_style)
-            self.input_scale.setEnabled(False)
-            self.unit_scale.setStyleSheet(self.disabled_style)
-            self.input_shear.setEnabled(False)
-            self.unit_shear.setStyleSheet(self.disabled_style)
-            self.input_blur.setEnabled(False)
-            self.unit_blur.setStyleSheet(self.disabled_style)
-            self.input_noise.setEnabled(False)
-            self.unit_noise.setStyleSheet(self.disabled_style)
-            
-        elif task == SEG:
-            self.input_model.clear()
-            self.input_model.addItems(SEG_MODEL)
-            for x in self.input_fields:
-                x.setEnabled(True)
-            for x in self.unit_list:
-                x.setStyleSheet(self.default_style)
-
-        elif task == MNIST:
-            self.input_model.clear()
-            for x in self.input_fields:
-                x.setEnabled(False)
-            for x in self.unit_list:
-                x.setStyleSheet(self.disabled_style)
-            self.input_task.setEnabled(True)
-            self.input_epochs.setEnabled(True)
-            self.input_batchsize.setEnabled(True)
-            self.input_lr.setEnabled(True)
-            self.input_name.setText(self.config.NAME) # to avoid name error
-
-        else:
-            raise ValueError
-
-        # global setting
-        if self.config.gpu_num < 2:
-            self.input_is_multi.setEnabled(False)
-        else:
-            self.input_is_multi.setEnabled(True)
-        if not self.config.SUBMODE:
-            self.input_is_dir_split.setEnabled(False)
-        else:
-            self.input_is_dir_split.setEnabled(True)
-
     def popup(self, dataset_dir, is_submode=False):
         """Popup train window and set config parameters to input fields."""
         self.dataset_dir = dataset_dir
@@ -562,12 +503,15 @@ class AITrainDialog(QtWidgets.QDialog):
         self.config = AIConfig(dataset_dir)
         config_path = os.path.join(dataset_dir, "data", "config.json")
         if os.path.exists(config_path):
-            self.config.load(config_path)
+            try:
+                self.config.load(config_path)
+            except Exception as e:
+                aidia_logger.error(e, exc_info=True)
         self.config.SUBMODE = is_submode
 
         # basic params
         self.input_task.setCurrentText(self.config.TASK)
-        self.switch_inputs_by_task(self.config.TASK)
+        self.switch_enabled_by_task(self.config.TASK)
         self.input_model.setCurrentText(self.config.MODEL)
         self.input_name.setText(self.config.NAME)
         self.input_dataset_num.setText(str(self.config.DATASET_NUM))
@@ -604,7 +548,7 @@ class AITrainDialog(QtWidgets.QDialog):
     
     def ai_finished(self):
         """Call back function when AI thread finished."""
-        self.enable_all()
+        self.switch_enabled_by_task(self.config.TASK)
 
         # raise error handle
         config_path = os.path.join(self.config.log_dir, "config.json")
@@ -641,22 +585,96 @@ class AITrainDialog(QtWidgets.QDialog):
     def callback_fit_started(self, value):
         self.button_stop.setEnabled(True)
 
+    def switch_enabled_by_task(self, task):
+        if task == CLS:
+            raise NotImplementedError
+        
+        elif task == DET:
+            self.input_model.clear()
+            self.input_model.addItems(DET_MODEL)
+            self.enable_all()
+            self.input_rotate.setEnabled(False)
+            self.unit_rotate.setStyleSheet(self.disabled_style)
+            self.input_shift.setEnabled(False)
+            self.unit_shift.setStyleSheet(self.disabled_style)
+            self.input_scale.setEnabled(False)
+            self.unit_scale.setStyleSheet(self.disabled_style)
+            self.input_shear.setEnabled(False)
+            self.unit_shear.setStyleSheet(self.disabled_style)
+            self.input_blur.setEnabled(False)
+            self.unit_blur.setStyleSheet(self.disabled_style)
+            self.input_noise.setEnabled(False)
+            self.unit_noise.setStyleSheet(self.disabled_style)
+            
+        elif task == SEG:
+            self.input_model.clear()
+            self.input_model.addItems(SEG_MODEL)
+            self.enable_all()
+
+        elif task == MNIST:
+            self.input_model.clear()
+            self.disable_all()
+            self.switch_enabled([
+                self.tag_name,
+                self.tag_batchsize,
+                self.tag_epochs,
+                self.tag_lr,
+                self.tag_task], True)
+            self.button_train.setEnabled(True)
+
+        else:
+            raise ValueError
+
+        # global setting
+        self.switch_global_params()
+        self.button_train.setEnabled(True)
+        self.button_stop.setEnabled(False)
+
+    def switch_enabled(self, targets:list, enabled:bool):
+        for t in targets:
+            if enabled:
+                t.setStyleSheet(self.default_style)
+            else:
+                t.setStyleSheet(self.disabled_style)
+            i = self.tags.index(t)
+            self.input_fields[i].setEnabled(enabled)
+        if enabled and self.config.gpu_num < 2:
+            self.tag_is_multi.setStyleSheet(self.disabled_style)
+            self.input_is_multi.setEnabled(False)
+        if enabled and not self.config.SUBMODE:
+            self.tag_is_dir_split.setStyleSheet(self.disabled_style)
+            self.input_is_dir_split.setEnabled(False)
+
+    def switch_global_params(self):
+        if self.config.gpu_num < 2:
+            self.tag_is_multi.setStyleSheet(self.disabled_style)
+            self.input_is_multi.setEnabled(False)
+        else:
+            self.tag_is_multi.setStyleSheet(self.default_style)
+            self.input_is_multi.setEnabled(True)
+        if not self.config.SUBMODE or self.config.TASK in [MNIST]:
+            self.tag_is_dir_split.setStyleSheet(self.disabled_style)
+            self.input_is_dir_split.setEnabled(False)
+        else:
+            self.tag_is_dir_split.setStyleSheet(self.default_style)
+            self.input_is_dir_split.setEnabled(True)
+    
     def enable_all(self):
         for x in self.input_fields:
             x.setEnabled(True)
-        self.switch_inputs_by_task(self.config.TASK)
-        self.button_train.setEnabled(True)
-        self.button_stop.setEnabled(False)
-        # if self.config.gpu_num < 2:
-        #     self.input_is_multi.setEnabled(False)
-        # if not self.config.SUBMODE:
-        #     self.input_is_dir_split.setEnabled(False)
+        for x in self.tags:
+            x.setStyleSheet(self.default_style)
+        for x in self.units:
+            x.setStyleSheet(self.default_style)
     
     def disable_all(self):
         for x in self.input_fields:
             x.setEnabled(False)
+        for x in self.tags:
+            x.setStyleSheet(self.disabled_style)
+        for x in self.units:
+            x.setStyleSheet(self.disabled_style)
         self.button_train.setEnabled(False)
-        # self.button_stop.setEnabled(True)
 
     def closeEvent(self, event):
         pass
@@ -666,10 +684,11 @@ class AITrainDialog(QtWidgets.QDialog):
             self.disable_all()
         else:
             self.reset_state()
-            self.enable_all()
+            self.switch_enabled_by_task(self.config.TASK)
 
     def _add_basic_params(self, tag:QtWidgets.QLabel, widget, right=False, reverse=False, custom_size=None):
         self.error_flags[tag.text()] = 0
+        self.tags.append(tag)
         self.input_fields.append(widget)
         row = self.left_row
         pos = [1, 2]
@@ -693,6 +712,7 @@ class AITrainDialog(QtWidgets.QDialog):
     
     def _add_augment_params(self, tag, widget, unit=None):
         self.error_flags[tag.text()] = 0
+        self.tags.append(tag)
         self.input_fields.append(widget)
         row = self.augment_row
         pos = [0, 1, 2]
@@ -704,11 +724,11 @@ class AITrainDialog(QtWidgets.QDialog):
         self.augment_row += 1
 
     def _set_error(self, tag:QtWidgets.QLabel):
-        tag.setStyleSheet("QLabel{ color: red; }")
+        tag.setStyleSheet(self.error_style)
         self.error_flags[tag.text()] = 1
 
     def _set_ok(self, tag:QtWidgets.QLabel):
-        tag.setStyleSheet("QLabel{ color: black; }")
+        tag.setStyleSheet(self.default_style)
         self.error_flags[tag.text()] = 0
 
     def update_figure(self):
@@ -818,9 +838,9 @@ class AITrainDialog(QtWidgets.QDialog):
 
     def create_input_field(self, size):
         l = QtWidgets.QLineEdit()
-        l.setAlignment(QtCore.Qt.AlignRight)
-        l.setMaximumWidth(size)
-        l.setMinimumWidth(size)
+        l.setAlignment(QtCore.Qt.AlignCenter)
+        # l.setMaximumWidth(size)
+        # l.setMinimumWidth(size)
         return l
 
 
@@ -829,7 +849,7 @@ class AITrainDialog(QtWidgets.QDialog):
         if error > 0:
             self.text_status.setText(self.tr("Please check parameters."))
             return
-
+        
         self.disable_all()
         self.reset_state()
 

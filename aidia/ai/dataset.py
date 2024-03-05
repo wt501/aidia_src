@@ -5,6 +5,7 @@ import glob
 import cv2
 
 from aidia import CLS, DET, SEG
+from aidia import aidia_logger
 from aidia import dicom
 from aidia import image
 from aidia import utils
