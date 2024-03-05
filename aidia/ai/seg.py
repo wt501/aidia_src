@@ -332,16 +332,19 @@ class SegmentationModel(object):
             yp = np.argmax(y_pred, axis=-1)
             yt = yt.ravel()
             yp = yp.ravel()
-            cm = metrics.confusion_matrix(yt, yp, normalize="true")
-            cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm,
+            cm = metrics.confusion_matrix(yt, yp)
+            cm_norm = cm / np.sum(cm, axis=1)[:, None]
+
+            # mIoU
+            miou = mIoU(cm)
+
+            # figure of confusion matrix
+            cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm_norm,
                                                     display_labels=labels)
             cm_disp.plot(ax=ax)
             filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
             fig.savefig(filename)
             img = image.fig2img(fig)
-
-            # mIoU
-            miou = mIoU(cm)
 
             # save eval dict
             eval_dict["(Macro Mean)"] = [
@@ -388,13 +391,14 @@ class SegmentationModel(object):
             y_true = y_true.ravel()
             y_pred = y_pred.ravel()
 
-            cm = metrics.confusion_matrix(y_true, y_pred, normalize="true")
+            cm = metrics.confusion_matrix(y_true, y_pred)
+            cm_norm = cm / np.sum(cm, axis=1)[:, None]
 
             # mIoU
             miou = mIoU(cm)
 
             # confusion matrix
-            cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm)
+            cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm_norm)
             cm_disp.plot(ax=ax)
             filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
             fig.savefig(filename)
