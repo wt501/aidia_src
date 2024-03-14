@@ -19,8 +19,8 @@ class LabelFile(object):
         self.lf_path = None
         self.filename = None
         self.elapsed_time = 0.0
-        self.brightness = 1.0
-        self.contrast = 0.0
+        self.brightness = 0.0
+        self.contrast = 1.0
         self.note = ""
         self.shapes = None
             
@@ -51,12 +51,12 @@ class LabelFile(object):
             # get brightness
             if data.get('brightness') is not None:
                 brightness = data['brightness']
-                self.brightness = brightness
+                self.brightness = brightness if -1.0 < brightness < 1.0 else 0.0
 
             # get contrast
             if data.get('contrast') is not None:
                 contrast = data['contrast']
-                self.contrast = contrast
+                self.contrast = contrast if 0.0 < contrast < 2.0 else 1.0
 
             # get note
             if data.get('note') is not None:

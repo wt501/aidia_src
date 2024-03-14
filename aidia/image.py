@@ -155,6 +155,16 @@ def change_contrast(image, contrast=0.0):
         return result.astype(np.uint16)
     else:
         raise TypeError(f"Unsupported {image.dtype}")
+    
+def graylevel_transform(img, brightness, contrast):
+    if img.dtype == np.uint8:
+        result = np.clip(img * contrast + brightness, 0, 255)
+        return result.astype(np.uint8)
+    elif img.dtype == np.uint16:
+        result = np.clip(img * contrast + brightness, 0, 65535)
+        return result.astype(np.uint16)
+    else:
+        raise TypeError(f"Unsupported {img.dtype}")
 
 
 def dicom_transform(img, wc, ww, bits):
@@ -244,36 +254,35 @@ def mask2polygon(masks, labels, approx_epsilon=0.003):
     """ masks: 0 or 255 pix masks, shape (h, w, c)"""
     shapes = []
     for i in range(masks.shape[2] - 1):
-        shape = {}
         binary = masks[:, :, i + 1]
         binary = cv2.dilate(binary, (9, 9))
         # binary = np.array(np.where(masks[:, :, i + 1], 255, 0), dtype=np.uint8)
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        if len(contours):
-            cnt = contours[0]
-        else:
+        if not len(contours):
             continue
-        area = cv2.contourArea(cnt)
-        if len(contours) > 1:
-            for _cnt_i, _cnt in enumerate(contours[1:]):
-                _area = cv2.contourArea(_cnt)
-                if _area > area:
-                    cnt = contours[_cnt_i + 1]
-                    area = _area
-        # Detect points of a polygon.
-        approx = cv2.approxPolyDP(
-            curve=cnt,
-            epsilon=approx_epsilon * cv2.arcLength(cnt, True),
-            closed=True)
-        # Skip polygons have less than 3 points.
-        if len(approx) < 3:
-            continue
-        approx = approx.astype(int).reshape((-1, 2)).tolist()
+        for cnt in contours:
+            # area = cv2.contourArea(cnt)
+            # if len(contours) > 1:
+            #     for _cnt_i, _cnt in enumerate(contours[1:]):
+            #         _area = cv2.contourArea(_cnt)
+            #         if _area > area:
+            #             cnt = contours[_cnt_i + 1]
+            #             area = _area
+            # Detect points of a polygon.
+            approx = cv2.approxPolyDP(
+                curve=cnt,
+                epsilon=approx_epsilon * cv2.arcLength(cnt, True),
+                closed=True)
+            # Skip polygons have less than 3 points.
+            if len(approx) < 3:
+                continue
+            approx = approx.astype(int).reshape((-1, 2)).tolist()
 
-        shape["label"] = labels[i - 1]
-        shape["points"] = approx
-        shape["shape_type"] = "polygon"
-        shapes.append(shape)
+            shape = {}
+            shape["label"] = labels[i - 1]
+            shape["points"] = approx
+            shape["shape_type"] = "polygon"
+            shapes.append(shape)
     return shapes
 
 def mask2merge(src_img, pred, class_names, gt=None, thresh=0.5):

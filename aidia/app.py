@@ -1391,8 +1391,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         try:
             filename = osp.basename(self.img_path)
-            br = 1.0 if self.canvas.brightness is None else self.canvas.brightness
-            co = 0.0 if self.canvas.contrast is None else self.canvas.contrast
+            br = 0.0 if self.canvas.brightness is None else self.canvas.brightness
+            co = 1.0 if self.canvas.contrast is None else self.canvas.contrast
             lf.save(
                 lf_path=lf_path,
                 filename=filename,

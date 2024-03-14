@@ -271,18 +271,18 @@ class YOLODataGenerator(object):
             bboxes[:, [1, 3]] = h - bboxes[:, [3, 1]]
         return img, bboxes
     
-    def random_brightness(self, img, range=0.2):
+    def random_brightness(self, img, range=40):
         """Return an image applied brightness adjustment
-        by alpha sampled from [1 - range, 1 + range]"""
-        alpha = random.uniform(1.0 - range, 1.0 + range)
-        ret = img.astype(float) * alpha
+        by beta sampled from [- range,  + range]"""
+        beta = random.uniform(-range, range)
+        ret = img.astype(float) + beta
         return ret.clip(0, 255).astype(np.uint8)
     
     def random_contrast(self, img, range=0.2):
         """Return an image applied contrast adjustment
-        by gamma sampled from [1 - range, 1 + range]"""
-        gamma = random.uniform(1.0 - range, 1.0 + range)
-        ret = 255.0 * (img.astype(float) / 255.0)**gamma
+        by alpha sampled from [1 - range, 1 + range]"""
+        alpha = random.uniform(1.0 - range, 1.0 + range)
+        ret = img.astype(float) * alpha
         return ret.clip(0, 255).astype(np.uint8)
 
     def random_crop(self, image, bboxes):

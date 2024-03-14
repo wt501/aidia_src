@@ -7,7 +7,7 @@ from qtpy import QtWidgets
 from aidia import CFONT
 from aidia.shape import Shape
 from aidia.qt import distance
-from aidia.image import gamma_correct, change_contrast, dicom_transform
+from aidia.image import gamma_correct, change_contrast, dicom_transform, graylevel_transform
 
 
 CURSOR_DEFAULT = QtCore.Qt.ArrowCursor
@@ -68,8 +68,8 @@ class Canvas(QtWidgets.QWidget):
         self.img_array = None
         self.pixmap = QtGui.QPixmap()
         self.bits = None  # bits allocated value in DICOM
-        self.brightness = 1.0
-        self.contrast = 0.0
+        self.brightness = 0.0
+        self.contrast = 1.0
         self.wc = self.original_wc = 0
         self.ww = self.original_ww = 0
         self.is_dicom = False
@@ -213,8 +213,8 @@ class Canvas(QtWidgets.QWidget):
             else:
                 brightness = self.brightness - (c / self.BR_STEP)
                 contrast = self.contrast + (w / self.CO_STEP)
-                self.brightness = brightness if 0.0 < brightness < 5.0 else self.brightness
-                self.contrast = contrast if -1.0 < contrast < 1.0 else self.contrast
+                self.brightness = brightness if -1.0 < brightness < 1.0 else self.brightness
+                self.contrast = contrast if 0.0 < contrast < 2.0 else self.contrast
             self.update_image()
             self.paint_polygon = False
         
@@ -830,12 +830,14 @@ class Canvas(QtWidgets.QWidget):
         if self.src_image.ndim == 3:  # color image
             h, w = self.src_image.shape[0:2]
             img = self.src_image
-            img = gamma_correct(img, self.brightness)
-            img = change_contrast(img, self.contrast)
+            # img = gamma_correct(img, self.brightness)
+            # img = change_contrast(img, self.contrast)
             dtype = img.dtype
             if dtype == "uint8":
+                img = graylevel_transform(img, self.brightness*255, self.contrast)
                 self.image = QtGui.QImage(img, w, h, img[0].nbytes, QtGui.QImage.Format_RGB888)
             elif dtype == "uint16":
+                img = graylevel_transform(img, self.brightness*65535, self.contrast)
                 self.image = QtGui.QImage(img, w, h, img[0].nbytes, QtGui.QImage.Format_RGB16)
             else:
                 print(f"CanvasError: Unsupported {dtype}.")
@@ -855,12 +857,14 @@ class Canvas(QtWidgets.QWidget):
         elif self.src_image.ndim == 2:  # grayscale image except DICOM format
             h, w = self.src_image.shape[0:2]
             img = self.src_image
-            img = gamma_correct(img, self.brightness)
-            img = change_contrast(img, self.contrast)
+            # img = gamma_correct(img, self.brightness)
+            # img = change_contrast(img, self.contrast)
             dtype = img.dtype
             if dtype == "uint8":
+                img = graylevel_transform(img, self.brightness*255, self.contrast)
                 self.image = QtGui.QImage(img, w, h, img[0].nbytes, QtGui.QImage.Format_Grayscale8)
             elif dtype == "uint16":
+                img = graylevel_transform(img, self.brightness*65535, self.contrast)
                 self.image = QtGui.QImage(img, w, h, img[0].nbytes, QtGui.QImage.Format_GrayScale16)
             else:
                 print(f"CanvasError: Unsupported {dtype}.")
@@ -924,20 +928,20 @@ class Canvas(QtWidgets.QWidget):
 
 
     def reset_brightness(self):
-        self.brightness = 1.0
+        self.brightness = 0.0
         self.wc = self.original_wc
         self.update_image()
 
 
     def reset_contrast(self):
-        self.contrast = 0.0
+        self.contrast = 1.0
         self.ww = self.original_ww
         self.update_image()
 
     
     def reset_params(self):
-        self.brightness = 1.0
-        self.contrast = 0.0
+        self.brightness = 0.0
+        self.contrast = 1.0
         self.wc = 0
         self.ww = 0
         # self.update_image()
