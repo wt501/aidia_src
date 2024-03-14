@@ -328,13 +328,13 @@ class AITrainDialog(QtWidgets.QDialog):
         self.unit_shift = QtWidgets.QLabel()
         self.units.append(self.unit_shift)
         def _validate(text):
-            if text.replace(".", "", 1).isdigit() and 0.0 < float(text) < 1.0:
-                self.config.RANDOM_SHIFT = float(text)
-                self.unit_shift.setText(self.tr("({:.1f} to {:.1f} times)").format(
-                    1.0 - float(text), 1.0 + float(text)
+            if text.isdigit() and 0 < int(text) < self.config.INPUT_SIZE:
+                self.config.RANDOM_SHIFT = int(text)
+                self.unit_shift.setText(self.tr("({} to {} px)").format(
+                    - int(text), int(text)
                 ))
             else:
-                self.config.RANDOM_SHIFT = 0.0
+                self.config.RANDOM_SHIFT = 0
                 self.unit_shift.setText(self.tr("Disabled"))
         self.input_shift.textChanged.connect(_validate)
         self._add_augment_params(self.tag_shift, self.input_shift, self.unit_shift)
@@ -396,13 +396,13 @@ class AITrainDialog(QtWidgets.QDialog):
         self.unit_brightness = QtWidgets.QLabel()
         self.units.append(self.unit_brightness)
         def _validate(text):
-            if text.replace(".", "", 1).isdigit() and 0.0 < float(text) < 1.0:
-                self.config.RANDOM_BRIGHTNESS = float(text)
-                self.unit_brightness.setText(self.tr("({:.1f} to {:.1f} times)").format(
-                    1.0 - float(text), 1.0 + float(text)
+            if text.isdigit() and 0 < int(text) < 255:
+                self.config.RANDOM_BRIGHTNESS = int(text)
+                self.unit_brightness.setText(self.tr("({} to {} px)").format(
+                    - int(text), int(text)
                 ))
             else:
-                self.config.RANDOM_BRIGHTNESS = 0.0
+                self.config.RANDOM_BRIGHTNESS = 0
                 self.unit_brightness.setText(self.tr("Disabled"))
         self.input_brightness.textChanged.connect(_validate)
         self._add_augment_params(self.tag_brightness, self.input_brightness, self.unit_brightness)

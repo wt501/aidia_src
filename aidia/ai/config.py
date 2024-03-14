@@ -63,8 +63,8 @@ class AIConfig(object):
         self.RANDOM_ROTATE = 30
         self.RANDOM_HFLIP = True
         self.RANDOM_VFLIP = True
-        self.RANDOM_SHIFT = 0.2
-        self.RANDOM_BRIGHTNESS = 0.1
+        self.RANDOM_SHIFT = 20
+        self.RANDOM_BRIGHTNESS = 40
         self.RANDOM_CONTRAST = 0.1
         self.RANDOM_SCALE = 0.2
         self.RANDOM_BLUR = 3.0  # 0 to n

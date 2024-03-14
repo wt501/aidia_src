@@ -492,8 +492,8 @@ class SegDataGenerator(object):
 
             if self.augmentation:
                 img, masks = self.augment_image(img, masks)
-                if self.config.RANDOM_BRIGHTNESS > 0:
-                    img = self.random_brightness(img)
+                # if self.config.RANDOM_BRIGHTNESS > 0:
+                    # img = self.random_brightness(img)
             
             self.images.append(img)
             self.targets.append(masks)
@@ -518,7 +518,7 @@ class SegDataGenerator(object):
             scale={
                 "x": (1.0 - self.config.RANDOM_SCALE, 1.0 + self.config.RANDOM_SCALE),
                 "y": (1.0 - self.config.RANDOM_SCALE, 1.0 + self.config.RANDOM_SCALE)},
-            translate_percent={
+            translate_px={
                 "x": (-self.config.RANDOM_SHIFT, self.config.RANDOM_SHIFT),
                 "y": (-self.config.RANDOM_SHIFT, self.config.RANDOM_SHIFT)},
             rotate=(-self.config.RANDOM_ROTATE, self.config.RANDOM_ROTATE),
@@ -529,22 +529,22 @@ class SegDataGenerator(object):
             factors.append(iaa.GaussianBlur((0.0, self.config.RANDOM_BLUR)))
         if self.config.RANDOM_NOISE > 0:
             factors.append(iaa.AdditiveGaussianNoise(0, (0, self.config.RANDOM_NOISE)))
-        # if self.config.RANDOM_BRIGHTNESS > 0:
-        #     factors.append(iaa.MultiplyBrightness((
-        #         1.0 - self.config.RANDOM_BRIGHTNESS,
-        #         1.0 + self.config.RANDOM_BRIGHTNESS)))
+        if self.config.RANDOM_BRIGHTNESS > 0:
+            factors.append(iaa.Add((
+                - self.config.RANDOM_BRIGHTNESS,
+                self.config.RANDOM_BRIGHTNESS)))
         if self.config.RANDOM_CONTRAST > 0:
-            factors.append(iaa.LogContrast(gain=(
+            factors.append(iaa.Multiply((
                 1.0 - self.config.RANDOM_CONTRAST,
                 1.0 + self.config.RANDOM_CONTRAST)))
         self.augseq = iaa.Sequential(factors, random_order=True)
 
-    def random_brightness(self, img):
-        gain = random.uniform(1.0 - self.config.RANDOM_BRIGHTNESS,
-                              1.0 + self.config.RANDOM_BRIGHTNESS)
-        ret = img.astype(float) * gain
-        ret = ret.clip(0.0, 255.0).astype(np.uint8)
-        return ret
+    # def random_brightness(self, img):
+    #     gain = random.uniform(1.0 - self.config.RANDOM_BRIGHTNESS,
+    #                           1.0 + self.config.RANDOM_BRIGHTNESS)
+    #     ret = img.astype(float) * gain
+    #     ret = ret.clip(0.0, 255.0).astype(np.uint8)
+    #     return ret
 
     def _hook(self, images, augmenter, parents, default):
         """Determines which augmenters to apply to masks."""
