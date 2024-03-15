@@ -134,16 +134,9 @@ class AITrainDialog(QtWidgets.QDialog):
         ))
         self.input_size = self.create_input_field(100)
         def _validate(text):
-            if text.isdigit() and 16 <= int(text) <= 2048:
-                if "YOLO" in self.input_model.currentText():
-                    if int(text) % 32 == 0:
-                        self._set_ok(self.tag_size)
-                        self.config.INPUT_SIZE = int(text)
-                    else:
-                        self._set_error(self.tag_size)
-                else:
-                    self._set_ok(self.tag_size)
-                    self.config.INPUT_SIZE = int(text)
+            if text.isdigit() and 32 <= int(text) <= 2048 and int(text) % 32 == 0:
+                self._set_ok(self.tag_size)
+                self.config.INPUT_SIZE = int(text)
             else:
                 self._set_error(self.tag_size)
         self.input_size.textChanged.connect(_validate)
@@ -165,7 +158,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.tag_batchsize = QtWidgets.QLabel(self.tr("Batch Size"))
         self.input_batchsize = self.create_input_field(100)
         def _validate(text):
-            if text.isdigit() and 0 < int(text) <= 128:
+            if text.isdigit() and 0 < int(text) <= 256:
                 self._set_ok(self.tag_batchsize)
                 self.config.BATCH_SIZE = int(text)
             else:
