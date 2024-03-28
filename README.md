@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="aidia/icons/icon.png" width="30%"><br>
+  <img src=".readme/icon.png" width="30%"><br>
   Aidia
 </h1>
 
