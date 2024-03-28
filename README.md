@@ -24,7 +24,7 @@ Pre-built packages (Windows) of Aidia and documents are available at [Torii Lab]
 - Adjustment of brightness and contrast by mouse dragging like a DICOM viewer.
 
 
-## Build & Installation
+## Installation
 You need install [Anaconda](https://www.anaconda.com/download), then run below:
 ```bash
 conda create --n aidia python=3.9
@@ -32,10 +32,17 @@ conda activate aidia
 python install.py
 ```
 
-## Usage
+
+## Launch App
 ```bash
 conda activate aidia  # if you did not activate the environment
 aidia
+```
+
+## Development
+```bash
+conda activate aidia
+python -m aidia
 ```
 
 ## GPU Support
