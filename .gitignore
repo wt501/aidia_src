@@ -6,10 +6,12 @@ Output/
 pyinstaller-5.13.2/
 .DS_Store
 signtool/
+aidia/icons/
 
 *.h5
 *.iss
 *.onnx
 *.log
 *.egg-info
+
 version.txt
