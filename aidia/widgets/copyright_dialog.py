@@ -18,9 +18,9 @@ class CopyrightDialog(QtWidgets.QDialog):
                             | QtCore.Qt.WindowTitleHint
                             | QtCore.Qt.WindowCloseButtonHint)
 
-        text = QtWidgets.QLabel("Copyright (C) 2021-2023 Kohei Torii.")
-        text2 = QtWidgets.QLabel("""Copyright (C) 2021-2023 Kohei Torii.
-Copyright (C) 2016-2018 Kentaro Wada.
+        text = QtWidgets.QLabel("Copyright (C) 2021 Kohei Torii.")
+        text2 = QtWidgets.QLabel("""Copyright (C) 2021 Kohei Torii.
+Copyright (C) 2016 Kentaro Wada.
 Copyright (C) 2011 Michael Pitidis, Hussein Abdulwahid.
 
 Aidia is free software: you can redistribute it and/or modify

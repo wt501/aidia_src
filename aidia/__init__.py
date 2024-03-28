@@ -1,8 +1,6 @@
 # coding: utf-8
 import os
-import numpy as np
 import logging
-from qtpy import QtCore
 
 
 # whether enables AI functions
@@ -43,8 +41,7 @@ SEG_MODEL = ["U-Net"]
 
 CFONT = "Arial"
 CFONT_SIZE = 10
-locale = QtCore.QLocale.system().name()
-# if locale == "ja_JP":
+
 if os.name == "posix":
     CFONT = "Hiragino Sans"
     CFONT_SIZE = 12

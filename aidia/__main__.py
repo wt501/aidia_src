@@ -4,6 +4,7 @@ import os
 
 from qtpy import QtWidgets
 from qtpy import QtGui
+from qtpy import QtCore
 
 from aidia import __appname__
 from aidia import __version__
@@ -43,12 +44,13 @@ def main():
     config_file = config_from_args.pop('config')
     config = get_config(config_file, config_from_args)
 
-    from qtpy import QtCore
-    translator_base = QtCore.QTranslator()
-    translator = QtCore.QTranslator()
-    translator_base.load("qtbase_ja_JP", QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath))
-    #translator.load(QtCore.QLocale.system().name(), '{}/translate'.format(APP_DIR))
-    translator.load('ja_JP', os.path.join(APP_DIR, 'translate'))
+    # set language translation
+    if QtCore.QLocale.system().name() == "ja_JP":
+        translator_base = QtCore.QTranslator()
+        translator = QtCore.QTranslator()
+        translator_base.load("qtbase_ja_JP", QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath))
+        #translator.load(QtCore.QLocale.system().name(), '{}/translate'.format(APP_DIR))
+        translator.load('ja_JP', os.path.join(APP_DIR, 'translate'))
 
     # For high resolution display.
     # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
