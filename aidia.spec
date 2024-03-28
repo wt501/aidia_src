@@ -15,7 +15,7 @@ a = Analysis(
         ('aidia/translate/ja_JP.qm', 'aidia/translate'),
     ],
     hiddenimports=['pydicom.encoders.gdcm', 'pydicom.encoders.pylibjpeg'],
-    excludes=['PySide2', 'vs2015_runtime'],
+    excludes=['PySide2', 'vs2015_runtime', 'pyinstaller'],
     hookspath=[],
     runtime_hooks=[],
     cipher=block_cipher,
