@@ -42,6 +42,7 @@ aidia
 ## Development
 ```bash
 conda activate aidia
+pip install -r requirements.txt  # if not installed
 python -m aidia
 ```
 
