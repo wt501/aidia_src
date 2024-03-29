@@ -60,7 +60,7 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.target_name = ""
         self.log_dir = ""
         self.prev_dir = ""
-        self.class_names = []
+        # self.class_names = []
         self.task = None
 
         # self.fig, self.axes = plt.subplots(1, 2, figsize=(20, 8))
@@ -444,10 +444,10 @@ class AIEvalDialog(QtWidgets.QDialog):
         
         # set parameters
         self.task = config.TASK
-        self.class_names = config.LABELS.copy()
-        if config.TASK == SEG:
-            self.class_names.insert(0, "background")
-        self.class_names.insert(0, "all")
+        # self.class_names = config.LABELS.copy()
+        # if config.TASK == SEG:
+        #     self.class_names.insert(0, "background")
+        # self.class_names.insert(0, "all")
 
         self.disable_all()
         self.reset_state()

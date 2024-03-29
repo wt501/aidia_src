@@ -98,20 +98,28 @@ class DetectionModel(object):
         sum_AP = 0.0
         nc = self.dataset.num_classes
         _i = 0
+        
+        # test data predictions
+        preds = []
+        for image_id in self.dataset.test_ids:
+            # update progress
+            if cb_widget is not None:
+                cb_widget.notifyMessage.emit(f"{_i+1} / {self.dataset.num_test}")
+                cb_widget.progressValue.emit(int((_i+1) / (self.dataset.num_test * 100)))
+                _i += 1
+            org_img = self.dataset.load_image(image_id, is_resize=False)
+            pred_bboxes = self.model.predict(org_img)
+            preds.append(pred_bboxes)
+
         # calculate AP each class
+        if cb_widget is not None:
+            cb_widget.notifyMessage.emit(f"Calculating...")
         for class_id in range(nc):
             gt_count = 0.0
             tp_list = []
             fp_list = []
-            for image_id in self.dataset.test_ids:
-                # update progress
-                if cb_widget is not None:
-                    cb_widget.notifyMessage.emit(f"{_i+1} / {(self.dataset.num_test * nc)}")
-                    cb_widget.progressValue.emit(int((_i+1) / (self.dataset.num_test * nc) * 100))
-                    _i += 1
-
+            for pred_idx, image_id in enumerate(self.dataset.test_ids):
                 # load image and annotation
-                org_img = self.dataset.load_image(image_id, is_resize=False)
                 anno_gt = self.dataset.get_yolo_bboxes(image_id)
                 if len(anno_gt) == 0:
                     bboxes_gt = []
@@ -131,7 +139,7 @@ class DetectionModel(object):
                     gt_count += 1
 
                 # prediction
-                pred_bboxes = self.model.predict(org_img)
+                pred_bboxes = preds[pred_idx]
                 
                 bbox_dict_pred = []
                 for bbox_pred in pred_bboxes:
@@ -201,6 +209,9 @@ class DetectionModel(object):
                 tp_list[idx] += cumsum
                 cumsum += val
 
+            tp = tp_list[-1]
+            fp = fp_list[-1]
+
             recall = tp_list[:]
             for idx, val in enumerate(tp_list):
                 recall[idx] = tp_list[idx] / gt_count
@@ -212,9 +223,13 @@ class DetectionModel(object):
             ap, mrec, mprec = self.voc_ap(recall, precision)
             sum_AP += ap
 
+        pre = tp / (tp + fp)
+        rec = tp / gt_count
         mAP = sum_AP / nc
 
         res = {
+            "Precision": pre,
+            "Recall": rec,
             "mAP50": mAP,
         }
         # result = [mAP]

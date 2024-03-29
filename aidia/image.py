@@ -363,10 +363,13 @@ def det2merge(src_img, pred, gt=None):
     merge = cv2.cvtColor(src_img, cv2.COLOR_RGB2BGR)
     for p in pred:
         class_id = p["class_id"]
+        class_name = p["class_name"]
         xmin, ymin, xmax, ymax = list(map(int, p["bbox"]))
         color = LABEL_COLORMAP[class_id + 2][::-1]
-
         cv2.rectangle(merge, (xmin, ymin), (xmax, ymax), color, 2, cv2.LINE_AA)
+ 
+        cv2.putText(merge, class_name, (xmin, ymin+5), fonttype, 1, color, 1, cv2.LINE_AA)
+
     merge = cv2.cvtColor(merge, cv2.COLOR_BGR2RGB)
     return merge
 

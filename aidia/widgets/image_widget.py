@@ -17,8 +17,8 @@ class ImageWidget(QtWidgets.QWidget):
         image = QtGui.QImage(image.flatten(), w, h, byte_per_line,
                             QtGui.QImage.Format_RGB888)
         self.pixmap = QtGui.QPixmap.fromImage(image)
-        self.setMinimumHeight(self.pixmap.height() // 4)
-        self.setMinimumWidth(self.pixmap.width() // 4)
+        self.setMinimumHeight(10)
+        self.setMinimumWidth(10)
         self.update()
     
     def clear(self):

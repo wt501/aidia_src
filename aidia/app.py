@@ -249,7 +249,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.button_ai_eval.clicked.connect(self.ai_eval_popup)
             self.button_ai_eval.setEnabled(True)
 
-            self.tag_is_submode = QtWidgets.QLabel(self.tr("Sub Directory Mode"))
+            self.tag_is_submode = QtWidgets.QLabel(self.tr("Build Dataset from Parent Directory"))
+            self.tag_is_submode.setToolTip(self.tr("""Build dataset using all data in sub directories from the parent directory."""))
             self.input_is_submode = QtWidgets.QCheckBox()
             self.input_is_submode.setChecked(self.is_submode)
             def _validate(state):

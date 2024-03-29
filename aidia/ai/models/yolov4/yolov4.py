@@ -119,11 +119,11 @@ class YOLO(tf.keras.Model):
     def call(self, x):
         return self.model(x)
     
-    def predict(self, image, score_thresh=0.5):
-        org_image = np.copy(image)
+    def predict(self, img, score_thresh=0.5):
+        org_image = np.copy(img)
         org_h, org_w, _ = org_image.shape
 
-        image_data = utils.image_preprocess(image, [self.config.INPUT_SIZE, self.config.INPUT_SIZE])
+        image_data = utils.image_preprocess(img, self.config.image_size)
         image_data = image_data[np.newaxis, ...]
 
         # print(len(self.model(image_data)))
