@@ -1,7 +1,10 @@
 import os
 import json
 import logging
+import imgaug
+import imgaug.augmenters as iaa
 
+# TensorFlow global setting
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
 
@@ -110,3 +113,36 @@ class AIConfig(object):
     def save(self, json_path):
         with open(json_path, mode='w', encoding="utf-8") as f:
             json.dump(self.__dict__, f, indent=2, ensure_ascii=False)
+
+    def get_augseq(self):
+        """Return imgaug Sequential() depends on config of augmentation."""
+        imgaug.seed(self.SEED)
+        factors = []
+        if self.RANDOM_HFLIP:
+            factors.append(iaa.Fliplr(0.5))
+        if self.RANDOM_VFLIP:
+            factors.append(iaa.Flipud(0.5))
+        affine = iaa.Affine(
+            scale={
+                "x": (1.0 - self.RANDOM_SCALE, 1.0 + self.RANDOM_SCALE),
+                "y": (1.0 - self.RANDOM_SCALE, 1.0 + self.RANDOM_SCALE)},
+            translate_px={
+                "x": (-self.RANDOM_SHIFT, self.RANDOM_SHIFT),
+                "y": (-self.RANDOM_SHIFT, self.RANDOM_SHIFT)},
+            rotate=(-self.RANDOM_ROTATE, self.RANDOM_ROTATE),
+            shear=(-self.RANDOM_SHEAR, self.RANDOM_SHEAR)
+        )
+        factors.append(affine)
+        if self.RANDOM_BLUR > 0:
+            factors.append(iaa.GaussianBlur((0.0, self.config.RANDOM_BLUR)))
+        if self.RANDOM_NOISE > 0:
+            factors.append(iaa.AdditiveGaussianNoise(0, (0, self.config.RANDOM_NOISE)))
+        if self.RANDOM_BRIGHTNESS > 0:
+            factors.append(iaa.Add((
+                - self.RANDOM_BRIGHTNESS,
+                self.RANDOM_BRIGHTNESS)))
+        if self.RANDOM_CONTRAST > 0:
+            factors.append(iaa.Multiply((
+                1.0 - self.RANDOM_CONTRAST,
+                1.0 + self.RANDOM_CONTRAST)))
+        return iaa.Sequential(factors, random_order=True)

@@ -4,26 +4,21 @@ import numpy as np
 import subprocess
 import glob
 import random
-import threading
 import imgaug
 import imgaug.augmenters as iaa
 from sklearn import metrics
 
-from aidia.ai.dataset import Dataset
-from aidia.ai.config import AIConfig
-from aidia.ai.models.unet import UNet
-# from aidia.ai import metrics
+import matplotlib
+import matplotlib.pyplot as plt
+matplotlib.use("agg")
+plt.rcParams["font.size"] = 15
+np.set_printoptions(suppress=True)
 
 from aidia import image
 from aidia import utils
-
-import matplotlib
-import matplotlib.pyplot as plt
-
-matplotlib.use("agg")
-plt.rcParams["font.size"] = 15
-
-np.set_printoptions(suppress=True)
+from aidia.ai.dataset import Dataset
+from aidia.ai.config import AIConfig
+from aidia.ai.models.unet import UNet
 
 
 def mask_iou(pred, gt):
@@ -456,11 +451,9 @@ class SegDataGenerator(object):
         self.config = config
         self.mode = mode
 
-        self.augseq = None
+        self.augseq = config.get_augseq()
         self.images = []
         self.targets = []
-
-        self.set_augmenter()
 
         self.image_ids = self.dataset.train_ids
         self.augmentation = True
@@ -508,43 +501,6 @@ class SegDataGenerator(object):
                 b = 0
                 self.reset()
 
-    def set_augmenter(self):
-        factors = []
-        if self.config.RANDOM_HFLIP:
-            factors.append(iaa.Fliplr(0.5))
-        if self.config.RANDOM_VFLIP:
-            factors.append(iaa.Flipud(0.5))
-        affine = iaa.Affine(
-            scale={
-                "x": (1.0 - self.config.RANDOM_SCALE, 1.0 + self.config.RANDOM_SCALE),
-                "y": (1.0 - self.config.RANDOM_SCALE, 1.0 + self.config.RANDOM_SCALE)},
-            translate_px={
-                "x": (-self.config.RANDOM_SHIFT, self.config.RANDOM_SHIFT),
-                "y": (-self.config.RANDOM_SHIFT, self.config.RANDOM_SHIFT)},
-            rotate=(-self.config.RANDOM_ROTATE, self.config.RANDOM_ROTATE),
-            shear=(-self.config.RANDOM_SHEAR, self.config.RANDOM_SHEAR)
-        )
-        factors.append(affine)
-        if self.config.RANDOM_BLUR > 0:
-            factors.append(iaa.GaussianBlur((0.0, self.config.RANDOM_BLUR)))
-        if self.config.RANDOM_NOISE > 0:
-            factors.append(iaa.AdditiveGaussianNoise(0, (0, self.config.RANDOM_NOISE)))
-        if self.config.RANDOM_BRIGHTNESS > 0:
-            factors.append(iaa.Add((
-                - self.config.RANDOM_BRIGHTNESS,
-                self.config.RANDOM_BRIGHTNESS)))
-        if self.config.RANDOM_CONTRAST > 0:
-            factors.append(iaa.Multiply((
-                1.0 - self.config.RANDOM_CONTRAST,
-                1.0 + self.config.RANDOM_CONTRAST)))
-        self.augseq = iaa.Sequential(factors, random_order=True)
-
-    # def random_brightness(self, img):
-    #     gain = random.uniform(1.0 - self.config.RANDOM_BRIGHTNESS,
-    #                           1.0 + self.config.RANDOM_BRIGHTNESS)
-    #     ret = img.astype(float) * gain
-    #     ret = ret.clip(0.0, 255.0).astype(np.uint8)
-    #     return ret
 
     def _hook(self, images, augmenter, parents, default):
         """Determines which augmenters to apply to masks."""
