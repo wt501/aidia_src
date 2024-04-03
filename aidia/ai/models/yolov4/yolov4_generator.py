@@ -3,10 +3,11 @@ import re
 import cv2
 import numpy as np
 import tensorflow as tf
+import imgaug
+from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 
 from aidia.ai.dataset import Dataset
 from aidia.ai.config import AIConfig
-
 from aidia.ai.models.yolov4.yolov4_config import YOLO_Config
 from aidia.ai.models.yolov4.yolov4_utils import image_preprocess, bbox_iou
 
@@ -28,6 +29,7 @@ class YOLODataGenerator(object):
         self.mode = mode
 
         self.num_classes = self.dataset.num_classes
+        self.augseq = config.get_augseq()
 
         if mode == "train":
             self.image_ids = self.dataset.train_ids
@@ -113,24 +115,64 @@ class YOLODataGenerator(object):
 
                 img = self.dataset.load_image(image_id, is_resize=False)
                 bboxes = self.dataset.get_yolo_bboxes(image_id)
+
                 if self.augmentation:
-                    if self.config.RANDOM_HFLIP:
-                        img, bboxes = self.random_horizontal_flip(img, bboxes)
-                    if self.config.RANDOM_VFLIP:
-                        img, bboxes = self.random_vertical_flip(img, bboxes)
-                    if self.config.RANDOM_BRIGHTNESS > 0:
-                        img = self.random_brightness(img, self.config.RANDOM_BRIGHTNESS)
-                    if self.config.RANDOM_CONTRAST > 0:
-                        img = self.random_contrast(img, self.config.RANDOM_CONTRAST)
+                    bbs = BoundingBoxesOnImage([
+                            BoundingBox(x1=xmin, y1=ymin, x2=xmax, y2=ymax, label=self.dataset.class_names[label_idx])
+                            for xmin, ymin, xmax, ymax, label_idx in bboxes
+                        ], shape=img.shape)
+                    img, bbs = self.augseq(image=img, bounding_boxes=bbs)
+                    bbs = bbs.remove_out_of_image().clip_out_of_image()
+                    _bboxes = []
+                    for i in range(len(bbs.bounding_boxes)):
+                        after = bbs.bounding_boxes[i]
+                        _bboxes.append([after.x1_int, after.y1_int, after.x2_int, after.y2_int, self.dataset.class_names.index(after.label)])
+                    if len(_bboxes) > 0:
+                        bboxes = np.array(_bboxes, int)
+                    else:
+                        bboxes = None
+
+                    # def pad(image, by):
+                    #     image_border1 = imgaug.pad(image, top=1, right=1, bottom=1, left=1,
+                    #                         mode="constant", cval=255)
+                    #     image_border2 = imgaug.pad(image_border1, top=by-1, right=by-1,
+                    #                         bottom=by-1, left=by-1,
+                    #                         mode="constant", cval=0)
+                    #     return image_border2
+
+
+                    # def draw_bbs(image, bbs, border):
+                    #     image_border = pad(image, border)
+                    #     for bb in bbs.bounding_boxes:
+                    #         if bb.is_fully_within_image(image.shape):
+                    #             color = [255, 0, 0]
+                    #         elif bb.is_partly_within_image(image.shape):
+                    #             color = [255,255,0]
+                    #         else:
+                    #             color = [0, 255, 255]
+                    #         image_border = bb.shift(left=border, top=border)\
+                    #                         .draw_on_image(image_border, size=2, color=color)
+
+                    #     return image_border
+                    
+                    # image_after = draw_bbs(img, bbs, 100)
+                    # import cv2
+                    # cv2.imwrite("test.png", image_after)
+                    # if self.config.RANDOM_HFLIP:
+                    #     img, bboxes = self.random_horizontal_flip(img, bboxes)
+                    # if self.config.RANDOM_VFLIP:
+                    #     img, bboxes = self.random_vertical_flip(img, bboxes)
+                    # if self.config.RANDOM_BRIGHTNESS > 0:
+                    #     img = self.random_brightness(img, self.config.RANDOM_BRIGHTNESS)
+                    # if self.config.RANDOM_CONTRAST > 0:
+                    #     img = self.random_contrast(img, self.config.RANDOM_CONTRAST)
                     # img, bboxes = self.random_crop(img, bboxes)
                     # img, bboxes = self.random_translate(img, bboxes)
                 
-                img, bboxes = image_preprocess(img, self.config.image_size, bboxes)
+                if bboxes is None:
+                    continue
 
-                # cv2.imwrite("test.png", (img*255).astype(np.uint8)[..., ::-1])
-                # print()
-                # print(bboxes)
-                # raise StopIteration
+                img, bboxes = image_preprocess(img, self.config.image_size, bboxes)
 
                 if self.is_tiny:
                     (label_mbbox, label_lbbox, mbboxes, lbboxes) = self.preprocess_true_boxes(bboxes)

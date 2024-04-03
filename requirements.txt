@@ -13,5 +13,6 @@ scikit-learn
 openpyxl
 tensorflow==2.10.1
 onnxruntime==1.14.1
+onnx==1.12.0
 tf2onnx==1.14.0
 imgaug==0.3.0

@@ -1,24 +1,15 @@
 import os
 import tensorflow as tf
 import numpy as np
-import cv2
-import subprocess
+import tf2onnx
 import glob
 import random
 
-from sklearn import metrics
-
 from aidia.ai.dataset import Dataset
 from aidia.ai.config import AIConfig
-from aidia.ai import metrics
-
 from aidia.image import det2merge
-
-from aidia import LABEL_COLORMAP
-
 from aidia.ai.models.yolov4.yolov4 import YOLO
 from aidia.ai.models.yolov4.yolov4_generator import YOLODataGenerator
-from aidia.ai.models.yolov4.yolov4_utils import image_preprocess
 
 
 class DetectionModel(object):
@@ -277,15 +268,10 @@ class DetectionModel(object):
         return merge
     
     def convert2onnx(self):
-        saved_model_path = os.path.join(self.config.log_dir, 'saved_model')
         onnx_path = os.path.join(self.config.log_dir, "model.onnx")
         if os.path.exists(onnx_path):
             return
-        self.model.save(saved_model_path)
-        subprocess.run(['python', '-m', 'tf2onnx.convert',
-                        '--saved-model', saved_model_path,
-                        '--output', onnx_path,
-                        '--opset', '11'])
+        tf2onnx.convert.from_keras(self.model, opset=11, output_path=onnx_path)
 
     @staticmethod
     def voc_ap(rec, prec):

@@ -134,9 +134,9 @@ class AIConfig(object):
         )
         factors.append(affine)
         if self.RANDOM_BLUR > 0:
-            factors.append(iaa.GaussianBlur((0.0, self.config.RANDOM_BLUR)))
+            factors.append(iaa.GaussianBlur((0.0, self.RANDOM_BLUR)))
         if self.RANDOM_NOISE > 0:
-            factors.append(iaa.AdditiveGaussianNoise(0, (0, self.config.RANDOM_NOISE)))
+            factors.append(iaa.AdditiveGaussianNoise(0, (0, self.RANDOM_NOISE)))
         if self.RANDOM_BRIGHTNESS > 0:
             factors.append(iaa.Add((
                 - self.RANDOM_BRIGHTNESS,

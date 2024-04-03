@@ -7,7 +7,7 @@ import logging
 ADD_AI = True
 
 
-__appname__ = "Aidia" if ADD_AI is True else "Aidia (without AI)"
+__appname__ = "Aidia" if ADD_AI is True else "Aidia (annotation only)"
 __version__ = "1.2.3.4"
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))

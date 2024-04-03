@@ -582,26 +582,9 @@ class AITrainDialog(QtWidgets.QDialog):
         if task == CLS:
             raise NotImplementedError
         
-        elif task == DET:
+        elif task in [DET, SEG]:
             self.input_model.clear()
             self.input_model.addItems(DET_MODEL)
-            self.enable_all()
-            self.input_rotate.setEnabled(False)
-            self.unit_rotate.setStyleSheet(self.disabled_style)
-            self.input_shift.setEnabled(False)
-            self.unit_shift.setStyleSheet(self.disabled_style)
-            self.input_scale.setEnabled(False)
-            self.unit_scale.setStyleSheet(self.disabled_style)
-            self.input_shear.setEnabled(False)
-            self.unit_shear.setStyleSheet(self.disabled_style)
-            self.input_blur.setEnabled(False)
-            self.unit_blur.setStyleSheet(self.disabled_style)
-            self.input_noise.setEnabled(False)
-            self.unit_noise.setStyleSheet(self.disabled_style)
-            
-        elif task == SEG:
-            self.input_model.clear()
-            self.input_model.addItems(SEG_MODEL)
             self.enable_all()
 
         elif task == MNIST:
@@ -659,6 +642,10 @@ class AITrainDialog(QtWidgets.QDialog):
             x.setStyleSheet(self.default_style)
         for x in self.units:
             x.setStyleSheet(self.default_style)
+        for i, v in enumerate(self.error_flags.values()):
+            if v == 1:
+                self.tags[i].setStyleSheet(self.error_style)
+
     
     def disable_all(self):
         for x in self.input_fields:

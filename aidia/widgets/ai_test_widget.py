@@ -38,4 +38,4 @@ class AITestWidget(QtWidgets.QWidget):
             shapes = mask2polygon(masks, config.LABELS, epsilon)
             return shapes
         else:
-            raise NotImplementedError
+            raise NotImplementedError("Not implemented error.")
