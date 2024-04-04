@@ -18,7 +18,7 @@ from glob import glob
 from qtpy import QtCore, QtGui, QtWidgets
 from qtpy.QtCore import Qt
 
-from aidia import __appname__, __version__, LABEL_COLORMAP, ADD_AI, HOME_DIR
+from aidia import __appname__, __version__, pretrained_dir, LABEL_COLORMAP, HOME_DIR
 from aidia import qt
 from aidia import utils
 from aidia.image import imread
@@ -38,10 +38,9 @@ from aidia.widgets import ToolBar
 from aidia.widgets import ZoomWidget
 from aidia.dicom import DICOM, is_dicom
 
-if ADD_AI:
-    from aidia.widgets.ai_train_dialog import AITrainDialog
-    from aidia.widgets.ai_eval_dialog import AIEvalDialog
-    from aidia.widgets.ai_test_widget import AITestWidget
+from aidia.widgets.ai_train_dialog import AITrainDialog
+from aidia.widgets.ai_eval_dialog import AIEvalDialog
+from aidia.widgets.ai_test_widget import AITestWidget
 
 
 WEB_URL = "https://kottonhome.sakura.ne.jp/index.html"
@@ -116,16 +115,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.copyrightDialog = CopyrightDialog(parent=self)
         self.settingDialog = SettingDialog(parent=self)
         self.dicomDialog = DICOMDialog(parent=self)
-        
-        if ADD_AI:
-            self.ai_train_dialog = AITrainDialog(parent=self)
-            self.ai_eval_dialog = AIEvalDialog(parent=self)
+    
+        self.ai_train_dialog = AITrainDialog(parent=self)
+        self.ai_eval_dialog = AIEvalDialog(parent=self)
 
-            self.ai_train_dialog.aiRunning.connect(self.callback_ai_train_running)
-            self.ai_eval_dialog.aiRunning.connect(self.callback_ai_eval_running)
+        self.ai_train_dialog.aiRunning.connect(self.callback_ai_train_running)
+        self.ai_eval_dialog.aiRunning.connect(self.callback_ai_eval_running)
 
-            # initialize AI test widget
-            self.ai_test_widget = AITestWidget(self)
+        # initialize AI test widget
+        self.ai_test_widget = AITestWidget(self)
 
         # initialize label widget
         self.labelDialog = LabelDialog(self, self.label_def)
@@ -216,68 +214,69 @@ class MainWindow(QtWidgets.QMainWindow):
         self.canvas.fileOpenRequest.connect(self.file_open_request)
 
         # AI Button
-        if ADD_AI:
-            self.button_ai_test = QtWidgets.QPushButton(self)
-            self.button_ai_test.setText(self.tr("AI Data Generation"))
-            self.button_ai_test.clicked.connect(self.ai_test)
-            self.button_ai_test.setEnabled(False)
+        self.button_ai_test = QtWidgets.QPushButton(self)
+        self.button_ai_test.setText(self.tr("Automatic Annotation"))
+        self.button_ai_test.clicked.connect(self.ai_test)
+        self.button_ai_test.setEnabled(False)
 
-            self.ai_select = QtWidgets.QComboBox(self)
-            self.ai_select.setStyleSheet("QComboBox{ text-align: center; }")
-            # self.ai_select.setEditable(True)
-            # self.ai_select.lineEdit().setReadOnly(True)
-            # self.ai_select.lineEdit().setAlignment(QtCore.Qt.AlignCenter)
-            def _validate(text):
-                if self.is_submode:
-                    path = osp.join(utils.get_parent_path(self.work_dir), "data", text)
-                else:
-                    path = osp.join(self.work_dir, "data", text)
-                if osp.exists(path):
-                    self.model_dir = path
-                else:
-                    self.model_dir = None
-            self.ai_select.currentTextChanged.connect(_validate)
-            self.ai_select.setEnabled(False)
-            
-            self.button_ai_train = QtWidgets.QPushButton(self)
-            self.button_ai_train.setText(self.tr("AI Training"))
-            self.button_ai_train.clicked.connect(self.ai_train_popup)
-            self.button_ai_train.setEnabled(True)
+        self.ai_select = QtWidgets.QComboBox(self)
+        self.ai_select.setStyleSheet("QComboBox{ text-align: center; }")
+        # self.ai_select.setEditable(True)
+        # self.ai_select.lineEdit().setReadOnly(True)
+        # self.ai_select.lineEdit().setAlignment(QtCore.Qt.AlignCenter)
+        def _validate(text):
+            path = osp.join(pretrained_dir, text)
+            if osp.exists(path):
+                self.model_dir = path
+            else:
+                self.model_dir = None
+        self.ai_select.currentTextChanged.connect(_validate)
+        self.ai_select.setEnabled(False)
 
-            self.button_ai_eval = QtWidgets.QPushButton(self)
-            self.button_ai_eval.setText(self.tr("AI Evaluation"))
-            self.button_ai_eval.clicked.connect(self.ai_eval_popup)
-            self.button_ai_eval.setEnabled(True)
+        self.ai_import = QtWidgets.QPushButton(self)
+        self.ai_import.setText(self.tr("Import"))
+        self.ai_import.clicked.connect(self.import_model)
+        
+        self.button_ai_train = QtWidgets.QPushButton(self)
+        self.button_ai_train.setText(self.tr("AI Training"))
+        self.button_ai_train.clicked.connect(self.ai_train_popup)
+        self.button_ai_train.setEnabled(True)
 
-            self.tag_is_submode = QtWidgets.QLabel(self.tr("Build Dataset from Parent Directory"))
-            self.tag_is_submode.setToolTip(self.tr("""Build dataset using all data in sub directories from the parent directory."""))
-            self.input_is_submode = QtWidgets.QCheckBox()
-            self.input_is_submode.setChecked(self.is_submode)
-            def _validate(state):
-                if state == 2:
-                    self.is_submode = True
-                    self.update_config_atkey("is_submode", True)
-                    self.update_ai_select()
-                else:
-                    self.is_submode = False
-                    self.update_config_atkey("is_submode", False)
-                    self.update_ai_select()
-            self.input_is_submode.stateChanged.connect(_validate)
+        self.button_ai_eval = QtWidgets.QPushButton(self)
+        self.button_ai_eval.setText(self.tr("AI Evaluation"))
+        self.button_ai_eval.clicked.connect(self.ai_eval_popup)
+        self.button_ai_eval.setEnabled(True)
 
-            self.ai_dock = QtWidgets.QDockWidget(self.tr("AI"), self)
-            self.ai_dock.setObjectName("AI")
-            ai_layout = QtWidgets.QGridLayout()
-            ai_layout.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-            # ai_layout.addWidget(self.auto_create_button)
-            ai_layout.addWidget(self.button_ai_test, 0, 0, 1, 4)
-            ai_layout.addWidget(self.ai_select, 1, 0, 1, 4)
-            ai_layout.addWidget(self.button_ai_train, 2, 0, 1, 2)
-            ai_layout.addWidget(self.button_ai_eval, 2, 2, 1, 2)
-            ai_layout.addWidget(self.input_is_submode, 3, 0, 1, 1, QtCore.Qt.AlignRight)
-            ai_layout.addWidget(self.tag_is_submode, 3, 1, 1, 3, QtCore.Qt.AlignLeft)
-            ai_widget = QtWidgets.QWidget()
-            ai_widget.setLayout(ai_layout)
-            self.ai_dock.setWidget(ai_widget)
+        self.tag_is_submode = QtWidgets.QLabel(self.tr("from Parent Directory"))
+        self.tag_is_submode.setToolTip(self.tr("""Build dataset using all data in sub directories from the parent directory."""))
+        self.input_is_submode = QtWidgets.QCheckBox()
+        self.input_is_submode.setChecked(self.is_submode)
+        def _validate(state):
+            if state == 2:
+                self.is_submode = True
+                self.update_config_atkey("is_submode", True)
+                self.update_ai_select()
+            else:
+                self.is_submode = False
+                self.update_config_atkey("is_submode", False)
+                self.update_ai_select()
+        self.input_is_submode.stateChanged.connect(_validate)
+
+        self.ai_dock = QtWidgets.QDockWidget(self.tr("AI"), self)
+        self.ai_dock.setObjectName("AI")
+        ai_layout = QtWidgets.QGridLayout()
+        ai_layout.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
+        # ai_layout.addWidget(self.auto_create_button)
+        ai_layout.addWidget(self.button_ai_test, 0, 0, 1, 4)
+        ai_layout.addWidget(self.ai_select, 1, 0, 1, 3)
+        ai_layout.addWidget(self.ai_import, 1, 3, 1, 1)
+        ai_layout.addWidget(self.button_ai_train, 2, 0, 1, 2)
+        ai_layout.addWidget(self.button_ai_eval, 2, 2, 1, 2)
+        ai_layout.addWidget(self.input_is_submode, 3, 0, 1, 1, QtCore.Qt.AlignRight)
+        ai_layout.addWidget(self.tag_is_submode, 3, 1, 1, 3, QtCore.Qt.AlignLeft)
+        ai_widget = QtWidgets.QWidget()
+        ai_widget.setLayout(ai_layout)
+        self.ai_dock.setWidget(ai_widget)
 
         # note dock
         self.input_note = QtWidgets.QTextEdit(self)
@@ -359,8 +358,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.file_dock.setAllowedAreas(Qt.RightDockWidgetArea)
         self.shape_dock.setAllowedAreas(Qt.RightDockWidgetArea)
         self.ld_dock.setAllowedAreas(Qt.RightDockWidgetArea)
-        if ADD_AI:
-            self.ai_dock.setAllowedAreas(Qt.RightDockWidgetArea)
+        self.ai_dock.setAllowedAreas(Qt.RightDockWidgetArea)
         self.note_dock.setAllowedAreas(Qt.RightDockWidgetArea)
         self.timer_dock.setAllowedAreas(Qt.RightDockWidgetArea)
         self.summary_dock.setAllowedAreas(Qt.RightDockWidgetArea)
@@ -369,8 +367,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.file_dock.setFeatures(features)
         self.shape_dock.setFeatures(features)
         self.ld_dock.setFeatures(features)
-        if ADD_AI:
-            self.ai_dock.setFeatures(features)
+        self.ai_dock.setFeatures(features)
         self.note_dock.setFeatures(features)
         self.timer_dock.setFeatures(features)
         self.summary_dock.setFeatures(features)
@@ -379,8 +376,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, self.file_dock)
         self.addDockWidget(Qt.RightDockWidgetArea, self.shape_dock)
         self.addDockWidget(Qt.RightDockWidgetArea, self.ld_dock)
-        if ADD_AI:
-            self.addDockWidget(Qt.RightDockWidgetArea, self.ai_dock)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.ai_dock)
         self.addDockWidget(Qt.RightDockWidgetArea, self.note_dock)
         self.addDockWidget(Qt.RightDockWidgetArea, self.timer_dock)
         self.addDockWidget(Qt.RightDockWidgetArea, self.summary_dock)
@@ -475,7 +471,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.import_model,
             # shortcuts["delete_file"],
             # icon=None,
-            self.tr("Import pretrained model to dataset directory."),
+            self.tr("Import pretrained models."),
             enabled=True
         )
 
@@ -836,7 +832,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.file_dock.toggleViewAction(),
                 self.shape_dock.toggleViewAction(),
                 self.ld_dock.toggleViewAction(),
-                self.ai_dock.toggleViewAction() if ADD_AI else None,
+                self.ai_dock.toggleViewAction(),
                 self.dicom_dock.toggleViewAction(),
                 self.note_dock.toggleViewAction(),
                 self.timer_dock.toggleViewAction(),
@@ -954,7 +950,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         if not self.may_continue_unsaved():
             event.ignore()
-        if ADD_AI and not self.may_continue_ai_running():
+        if not self.may_continue_ai_running():
             event.ignore()
 
         self.settings.setValue("filename", self.img_path if self.img_path else "")
@@ -2011,9 +2007,6 @@ class MainWindow(QtWidgets.QMainWindow):
         target_path = target_path.replace('/', os.sep)
         self.labels = {}
         self.import_from_dir(target_path)
-        
-        # update previous directory
-        self.update_config_atkey('work_dir', target_path)
 
 
     @property
@@ -2086,7 +2079,8 @@ class MainWindow(QtWidgets.QMainWindow):
         target_dir = self.make_imgdir(dirpath)
         img_list = self.scan_all_imgs(target_dir)
         if img_list is None or len(img_list) == 0:
-            # self.error_message(self.tr("Failed to get image list."))
+            self.reset_cursor()
+            self.error_message(self.tr("No images in the directory."))
             return
         
         # create data directory
@@ -2143,13 +2137,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.work_dir = dirpath
         self.update_sum(only_text=True)
         # self.open_next_img(load=load)
-        if ADD_AI:
-            self.update_ai_select()
+        self.update_ai_select()
         self.resetState()
         self.fileListWidget.setCurrentRow(0)
         self.fileListWidget.repaint()
 
         self.reset_cursor()
+
+        # update previous directory
+        self.update_config_atkey('work_dir', dirpath)
 
 
     def import_from_workdir(self):
@@ -2288,21 +2284,17 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.ai_select.count() > 1:
             bkup_select = self.ai_select.currentText()
         self.ai_select.clear()
-        if self.is_submode:
-            data_dir = os.path.join(utils.get_parent_path(self.work_dir), "data")
-        else:
-            data_dir = os.path.join(self.work_dir, "data")
-        if not os.path.exists(data_dir):
+        if not os.path.exists(pretrained_dir):
             self.button_ai_test.setEnabled(False)
             self.ai_select.setEnabled(False)
             return
         
         # get directory names in data directory
-        targets = [name for name in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, name))]
+        targets = [name for name in os.listdir(pretrained_dir) if os.path.isdir(os.path.join(pretrained_dir, name))]
 
         _t = []
         for t in targets:
-            logdir = os.path.join(data_dir, t)
+            logdir = os.path.join(pretrained_dir, t)
             config_path = os.path.join(logdir, "config.json")
             onnx_path = os.path.join(logdir, "model.onnx")
             if (os.path.exists(config_path) and
@@ -2394,12 +2386,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.info_message(self.tr("Exported annotation files to {}").format(target_dir))
         return
 
+
     def import_model(self):
         if self.work_dir is None:
             return
         
         # open directory dialog
-        target_dir = self.select_dir_dialog(HOME_DIR)
+        target_dir = self.select_dir_dialog(HOME_DIR, custom_text=self.tr("Select Pretrained Model Directory"))
         if target_dir is None:
             return
 
@@ -2414,17 +2407,19 @@ class MainWindow(QtWidgets.QMainWindow):
             self.error_message(self.tr("{} does not exists.").format(onnx_path))
             return
         
-        data_dir = os.path.join(self.work_dir, "data")
-        if self.is_submode:
-            data_dir = os.path.join(utils.get_parent_path(self.work_dir), "data")
-        dirname = os.path.basename(target_dir)
-        shutil.copytree(target_dir, os.path.join(data_dir, dirname), dirs_exist_ok=True)
-
-        self.info_message(self.tr("Imported {} to {}").format(target_dir, data_dir))
+        self.wait_cursor()
+        dir_path = os.path.join(pretrained_dir, os.path.basename(target_dir))
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)
+        shutil.copy(config_path, dir_path)
+        shutil.copy(onnx_path, dir_path)
+        self.reset_cursor()
+        
+        self.info_message(self.tr("Imported {}").format(target_dir))
         self.update_ai_select()
         return
     
-    def select_dir_dialog(self, default_dir=None):
+    def select_dir_dialog(self, default_dir=None, custom_text=None):
         opendir = HOME_DIR
         if default_dir is not None:
             opendir = default_dir
@@ -2432,7 +2427,7 @@ class MainWindow(QtWidgets.QMainWindow):
         opendir = HOME_DIR
         target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
             self,
-            self.tr("Select Directory"),
+            custom_text if custom_text else self.tr("Select Directory"),
             opendir,
             QtWidgets.QFileDialog.ShowDirsOnly |
             QtWidgets.QFileDialog.DontResolveSymlinks))

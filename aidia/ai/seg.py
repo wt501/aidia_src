@@ -105,7 +105,7 @@ class SegmentationModel(object):
     def load_dataset(self):
         self.dataset = Dataset(self.config, load=True)
     
-    def build_model(self, mode):
+    def build_model(self, mode, weights_path=None):
         assert mode in ["train", "test"]
         self.model = UNet(self.config.num_classes)
 
@@ -113,25 +113,16 @@ class SegmentationModel(object):
         self.model.build(input_shape=input_shape)
         self.model.compute_output_shape(input_shape=input_shape)
 
-        # if mode == "test":
-        #     custom_metrics.append(metrics.MultiMetrics())
-        #     for thresh in THRESH_LIST:
-        #         custom_metrics.append(metrics.MultiMetrics(thresh, name=f"MM_{thresh}"))
-        #     for class_id in range(self.config.num_classes + 1):
-        #         custom_metrics.append(metrics.MultiMetrics(class_id=class_id, name=f"MM_{class_id}"))
-        #         for thresh in THRESH_LIST:
-        #             custom_metrics.append(metrics.MultiMetrics(thresh, class_id, name=f"MM_{class_id}_{thresh}"))
-
         optim = tf.keras.optimizers.Adam(learning_rate=self.config.LEARNING_RATE)
-        self.model.compile(
-            optimizer=optim,
-            loss=tf.keras.losses.BinaryCrossentropy())
+        self.model.compile(optimizer=optim, loss=tf.keras.losses.BinaryCrossentropy())
         
         if mode == "test":
-             # select latest weights
-            _wlist = os.path.join(self.config.log_dir, "weights", "*.h5")
-            weights_path = sorted(glob.glob(_wlist))[-1]
-            self.model.load_weights(weights_path)
+            if weights_path and os.path.exists(weights_path):
+                self.model.load_weights(weights_path)
+            else:
+                _wlist = os.path.join(self.config.log_dir, "weights", "*.h5")
+                weights_path = sorted(glob.glob(_wlist))[-1]
+                self.model.load_weights(weights_path)
 
 
     def train(self, custom_callbacks=None):

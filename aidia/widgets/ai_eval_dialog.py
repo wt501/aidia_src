@@ -3,11 +3,9 @@ import os
 import logging
 import cv2
 import glob
-import numpy as np
-import openpyxl
 import matplotlib.pyplot as plt
 from onnxruntime import InferenceSession
-from qtpy import QtCore, QtWidgets, QtGui
+from qtpy import QtCore, QtWidgets
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
@@ -15,16 +13,14 @@ import tensorflow as tf
 from aidia import qt
 from aidia import utils
 from aidia import __appname__, aidia_logger
-from aidia import HOME_DIR, CLS, DET, SEG, LABEL_COLORMAP
+from aidia import HOME_DIR, CLS, DET, SEG
 from aidia.ai.config import AIConfig
 from aidia.ai.dataset import Dataset
-from aidia.ai.test import TestModel
 from aidia.ai.det import DetectionModel
 from aidia.ai.seg import SegmentationModel
 from aidia.widgets import ImageWidget
 from aidia.widgets import CopyDataDialog
 from aidia import image
-from aidia.dicom import DICOM, is_dicom
 
 tf.get_logger().setLevel('ERROR')
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
@@ -60,6 +56,7 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.target_name = ""
         self.log_dir = ""
         self.prev_dir = ""
+        self.weights_path = ""
         # self.class_names = []
         self.task = None
 
@@ -79,36 +76,31 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.input_name.setMinimumWidth(200)
         def _validate(text):
             logdir = os.path.join(self.dataset_dir, "data", text)
-            config_path = os.path.join(logdir, "config.json")
-            dataset_path = os.path.join(logdir, "dataset.json")
-            weights_path = os.path.join(logdir, "weights")
-            if (os.path.exists(config_path) and
-                os.path.exists(dataset_path) and
-                len(os.listdir(weights_path))):
+            if self._check_datadir(logdir):
                 self._set_ok(self.tag_name)
                 self.log_dir = logdir
                 self.button_export_data.setEnabled(True)
-                onnx_path = os.path.join(logdir, "model.onnx")
-                if os.path.exists(onnx_path):
-                    self.button_export_model.setEnabled(True)
-                    self.button_pred.setEnabled(True)
-                else:
-                    self.button_export_model.setEnabled(False)
-                    self.button_pred.setEnabled(False)
+                _wlist = os.path.join(logdir, "weights", "*.h5")
+                _wpath = sorted(glob.glob(_wlist), reverse=True)
+                _wname = [os.path.basename(w) for w in _wpath]
+                self.input_weights.clear()
+                self.input_weights.addItems(_wname)
+                self._switch_enable_by_onnx()
             else:
                 self._set_error(self.tag_name)
-                self.button_export_data.setEnabled(False)
-                self.button_export_model.setEnabled(False)
+                self.disable_all()
         self.input_name.currentTextChanged.connect(_validate)
         self._add_basic_params(self.tag_name, self.input_name)
 
-        # select results box
-        # self.tag_class = QtWidgets.QLabel(self.tr("Select Class"))
-        # self.input_class = QtWidgets.QComboBox()
-        # self.input_class.setMinimumWidth(150)
-        # self.input_class.currentIndexChanged.connect(self.update_class_choice)
-        # self._add_basic_params(self.tag_class, self.input_class)
-        # self.input_class.setEnabled(False)
+        # select weights box
+        self.tag_weights = QtWidgets.QLabel(self.tr("Select Weights"))
+        self.input_weights = QtWidgets.QComboBox()
+        self.input_weights.setMinimumWidth(200)
+        def _validate(text):
+            self.weights_path = os.path.join(self.log_dir, "weights", text)
+        self.input_weights.currentTextChanged.connect(_validate)
+        self._add_basic_params(self.tag_weights, self.input_weights)
+        self.input_weights.setEnabled(False)
 
         ### add result fields ###
         title_result = qt.head_text(self.tr("Results"))
@@ -122,6 +114,7 @@ class AIEvalDialog(QtWidgets.QDialog):
         ### add buttons ###
         # evaluate button
         self.button_eval = QtWidgets.QPushButton(self.tr("Evaluate"))
+        self.button_eval.setMinimumWidth(200)
         self.button_eval.clicked.connect(self.evaluate)
         row = max(self.left_row, self.right_row)
         self._layout.addWidget(self.button_eval, row, 1, 1, 1)
@@ -131,7 +124,7 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.button_pred.setToolTip(self.tr(
             """Predict images in your directory."""
         ))
-        self.button_pred.clicked.connect(self.predict_from_directory)
+        self.button_pred.clicked.connect(self.predict_unknown)
         self._layout.addWidget(self.button_pred, row, 2, 1, 1)
 
         # export data button
@@ -234,18 +227,11 @@ class AIEvalDialog(QtWidgets.QDialog):
             targets = []
             for name in os.listdir(data_dir):
                 logdir = os.path.join(self.dataset_dir, "data", name)
-                config_path = os.path.join(logdir, "config.json")
-                dataset_path = os.path.join(logdir, "dataset.json")
-                weights_path = os.path.join(logdir, "weights")
-                if (os.path.exists(config_path) and
-                    os.path.exists(dataset_path) and
-                    len(os.listdir(weights_path))):
+                if self._check_datadir(logdir):
                     targets.append(name)
             if len(targets):
-                self.enable_all()
                 self.input_name.addItems(targets)
-                # if self.input_class.count() == 0:
-                    # self.input_class.setEnabled(False)
+                self.enable_all()
             else:
                 self.disable_all()
         else:
@@ -283,9 +269,8 @@ class AIEvalDialog(QtWidgets.QDialog):
         for x in self.input_fields:
             x.setEnabled(True)
         self.button_eval.setEnabled(True)
-        self.button_pred.setEnabled(True)
         self.button_export_data.setEnabled(True)
-        self.button_export_model.setEnabled(True)
+        self._switch_enable_by_onnx()
 
     def closeEvent(self, event):
         self.input_name.clear()
@@ -348,11 +333,14 @@ class AIEvalDialog(QtWidgets.QDialog):
         with open(os.path.join(self.log_dir, "dataset_info.txt"), mode="w", encoding="utf-8") as f:
             f.write(text)
     
+
     def update_progress(self, value):
         self.progress.setValue(value)
 
+
     def update_status(self, value):
         self.text_status.setText(str(value))
+
 
     def update_results(self, value:dict):
         self.ax.clear()
@@ -374,8 +362,6 @@ class AIEvalDialog(QtWidgets.QDialog):
             img = value.pop("img")
             self.image_widget.loadPixmap(img)
         
-    def update_class_choice(self, index):
-        pass
 
     def _add_basic_params(self, tag:QtWidgets.QLabel, widget, right=False, reverse=False, custom_size=None):
         self.error_flags[tag.text()] = 0
@@ -452,11 +438,11 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.disable_all()
         self.reset_state()
 
-        self.ai.set_config(config)
+        self.ai.set_config(config, self.weights_path)
         self.ai.start()
         self.aiRunning.emit(True)
     
-    def predict_from_directory(self):
+    def predict_unknown(self):
         error = sum(self.error_flags.values())
         if error > 0:
             self.text_status.setText(self.tr("Please check parameters."))
@@ -490,7 +476,6 @@ class AIEvalDialog(QtWidgets.QDialog):
             self,
             self.tr("{} - Open Directory".format(__appname__)),
             opendir,
-            QtWidgets.QFileDialog.ShowDirsOnly |
             QtWidgets.QFileDialog.DontResolveSymlinks))
         target_path = target_path.replace("/", os.sep)
         if not target_path:
@@ -548,6 +533,28 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.text_status.setText(self.tr("Export data to {}").format(target_path))
 
     
+    def _switch_enable_by_onnx(self):
+        onnx_path = os.path.join(self.log_dir, "model.onnx")
+        if os.path.exists(onnx_path):
+            self.button_export_model.setEnabled(True)
+            self.button_pred.setEnabled(True)
+        else:
+            self.button_export_model.setEnabled(False)
+            self.button_pred.setEnabled(False)
+
+    @staticmethod
+    def _check_datadir(logdir):
+        config_path = os.path.join(logdir, "config.json")
+        dataset_path = os.path.join(logdir, "dataset.json")
+        weights_path = os.path.join(logdir, "weights")
+        if (os.path.exists(config_path) and
+            os.path.exists(dataset_path) and
+            len(os.listdir(weights_path))):
+            return True
+        else:
+            return False
+
+    
 class AIEvalThread(QtCore.QThread):
 
     resultsList = QtCore.Signal(dict)
@@ -560,9 +567,10 @@ class AIEvalThread(QtCore.QThread):
     def __init__(self, parent):
         super().__init__(parent)
 
-    def set_config(self, config:AIConfig):
+    def set_config(self, config:AIConfig, weights_path):
         self.config = config
-    
+        self.weights_path = weights_path
+
     def run(self):
         model = None
         if self.config.TASK == CLS:
@@ -610,7 +618,12 @@ class AIEvalThread(QtCore.QThread):
             self.datasetInfo.emit(_info_dict)
 
         self.notifyMessage.emit(self.tr("Model building..."))
-        model.build_model(mode="test")
+        try:
+            model.build_model(mode="test", weights_path=self.weights_path)
+        except Exception as e:
+            self.notifyMessage.emit(self.tr("Failed to build the model."))
+            aidia_logger.error(e, exc_info=True)
+            return
 
         self.notifyMessage.emit(self.tr("Generate test result images..."))
 

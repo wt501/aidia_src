@@ -1,14 +1,13 @@
 import os
 import cv2
 import numpy as np
+import json
 
 from onnxruntime import InferenceSession
 from qtpy import QtWidgets
 
 from aidia import CLS, DET, SEG
-from aidia.image import convert_dtype, mask2polygon
-from aidia.ai.config import AIConfig
-from aidia import image
+from aidia.image import convert_dtype, mask2polygon, preprocessing
 
 class AITestWidget(QtWidgets.QWidget):
     def __init__(self, parent):
@@ -21,21 +20,35 @@ class AITestWidget(QtWidgets.QWidget):
         if img.ndim == 2:
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         
-        config = AIConfig()
-        config.load(os.path.join(log_dir, "config.json"))
+        json_path = os.path.join(log_dir, "config.json")
+        if not os.path.exists(json_path):
+            raise FileNotFoundError(f"{json_path} is not found.")
+        try:
+            with open(json_path, encoding="utf-8") as f:
+                dic = json.load(f)
+        except Exception as e:
+            try:    #  not UTF-8 json file handling
+                with open(json_path) as f:
+                    dic = json.load(f)
+            except Exception as e:
+                raise ValueError(f"Failed to load config.json: {e}")
+        
+        img_size = (dic["INPUT_SIZE"], dic["INPUT_SIZE"])
+        task = dic["TASK"]
+        labels = dic["LABELS"]
 
         onnx_path = os.path.join(log_dir, "model.onnx")
         model = InferenceSession(onnx_path)
 
-        if config.TASK == SEG:
-            img = cv2.resize(img, config.image_size)
-            inputs = image.preprocessing(img, is_tensor=True)
+        if task == SEG:
+            img = cv2.resize(img, img_size)
+            inputs = preprocessing(img, is_tensor=True)
             input_name = model.get_inputs()[0].name
             result = model.run([], {input_name: inputs})[0]
             masks = np.where(result[0] >= 0.5, 255, 0)
             masks = masks.astype(np.uint8)
             masks = cv2.resize(masks, (w, h), cv2.INTER_NEAREST)
-            shapes = mask2polygon(masks, config.LABELS, epsilon)
+            shapes = mask2polygon(masks, labels, epsilon)
             return shapes
         else:
             raise NotImplementedError("Not implemented error.")

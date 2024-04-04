@@ -2,13 +2,8 @@
 import os
 import logging
 
-
-# whether enables AI functions
-ADD_AI = True
-
-
-__appname__ = "Aidia" if ADD_AI is True else "Aidia (annotation only)"
-__version__ = "1.2.3.4"
+__appname__ = "Aidia"
+__version__ = "1.2.4.0"
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 HOME_DIR = os.path.expanduser("~")
@@ -16,6 +11,9 @@ HOME_DIR = os.path.expanduser("~")
 app_cfg_dir = os.path.join(HOME_DIR, ".aidia")
 if not os.path.exists(app_cfg_dir):
     os.mkdir(app_cfg_dir)
+pretrained_dir = os.path.join(app_cfg_dir, "pretrained")
+if not os.path.exists(pretrained_dir):
+    os.mkdir(pretrained_dir)
 
 aidia_logger = logging.getLogger("Aidia")
 aidia_logger.setLevel(logging.INFO)

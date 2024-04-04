@@ -31,7 +31,7 @@ class DetectionModel(object):
     def load_dataset(self):
         self.dataset = Dataset(self.config, load=True)
     
-    def build_model(self, mode):
+    def build_model(self, mode, weights_path=None):
         assert mode in ["train", "test"]
 
         if self.config.MODEL.find("YOLO") > -1:
@@ -46,9 +46,12 @@ class DetectionModel(object):
         optim = tf.keras.optimizers.Adam(learning_rate=self.config.LEARNING_RATE)
         self.model.compile(optimizer=optim)
         if mode == "test":
-            _wlist = os.path.join(self.config.log_dir, "weights", "*.h5")
-            weights_path = sorted(glob.glob(_wlist))[-1]
-            self.model.load_weights(weights_path)
+            if weights_path and os.path.exists(weights_path):
+                self.model.load_weights(weights_path)
+            else:
+                _wlist = os.path.join(self.config.log_dir, "weights", "*.h5")
+                weights_path = sorted(glob.glob(_wlist))[-1]
+                self.model.load_weights(weights_path)
 
     def train(self, custom_callbacks=None):
         checkpoint_path = os.path.join(self.config.log_dir, "weights")

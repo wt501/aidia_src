@@ -180,6 +180,7 @@ class AITrainDialog(QtWidgets.QDialog):
 
         # label definition
         self.tag_labels = QtWidgets.QLabel(self.tr("Label Definition"))
+        self.tag_labels.setToolTip(self.tr("""Set target labels. Separate the labels with line breaks."""))
         self.input_labels = QtWidgets.QTextEdit()
         # self.input_labels.setMinimumHeight(100)
         def _validate():
@@ -201,6 +202,7 @@ class AITrainDialog(QtWidgets.QDialog):
 
         # save best only
         self.tag_is_savebest = QtWidgets.QLabel(self.tr("Save Only the Best Weights"))
+        self.tag_is_savebest.setToolTip(self.tr("""Enable saving only the weights achived the minimum validation loss."""))
         self.input_is_savebest = QtWidgets.QCheckBox()
         def _validate(state): # check:2, empty:0
             if state == 2:
@@ -212,6 +214,7 @@ class AITrainDialog(QtWidgets.QDialog):
 
         # early stopping
         self.tag_is_earlystop = QtWidgets.QLabel(self.tr("Early Stopping"))
+        self.tag_is_earlystop.setToolTip(self.tr("""(BETA) Enable Early Stopping."""))
         self.input_is_earlystop = QtWidgets.QCheckBox()
         def _validate(state): # check:2, empty:0
             if state == 2:
@@ -223,6 +226,7 @@ class AITrainDialog(QtWidgets.QDialog):
 
         # use multiple gpu
         self.tag_is_multi = QtWidgets.QLabel(self.tr("Use Multiple GPUs"))
+        self.tag_is_multi.setToolTip(self.tr("""Enable parallel calculation with multiple GPUs."""))
         self.input_is_multi = QtWidgets.QCheckBox()
         def _validate(state): # check:2, empty:0
             if state == 2:
@@ -233,7 +237,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self._add_basic_params(self.tag_is_multi, self.input_is_multi, right=True, reverse=True)
 
         # train target select
-        self.tag_is_dir_split = QtWidgets.QLabel(self.tr("Build Dataset with Directories"))
+        self.tag_is_dir_split = QtWidgets.QLabel(self.tr("Separate Data by Directory"))
         self.input_is_dir_split = QtWidgets.QCheckBox()
         def _validate(state): # check:2, empty:0
             if state == 2:
@@ -584,7 +588,10 @@ class AITrainDialog(QtWidgets.QDialog):
         
         elif task in [DET, SEG]:
             self.input_model.clear()
-            self.input_model.addItems(DET_MODEL)
+            if task == DET:
+                self.input_model.addItems(DET_MODEL)
+            elif task == SEG:
+                self.input_model.addItems(SEG_MODEL)
             self.enable_all()
 
         elif task == MNIST:
