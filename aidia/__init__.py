@@ -3,7 +3,7 @@ import os
 import logging
 
 __appname__ = "Aidia"
-__version__ = "1.2.4.0"
+__version__ = "1.2.4.1"
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 HOME_DIR = os.path.expanduser("~")

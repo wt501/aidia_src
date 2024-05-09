@@ -6,6 +6,7 @@ import tensorflow as tf
 import imgaug
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 
+from aidia import aidia_logger
 from aidia.ai.dataset import Dataset
 from aidia.ai.config import AIConfig
 from aidia.ai.models.yolov4.yolov4_config import YOLO_Config
@@ -174,10 +175,15 @@ class YOLODataGenerator(object):
 
                 img, bboxes = image_preprocess(img, self.config.image_size, bboxes)
 
-                if self.is_tiny:
-                    (label_mbbox, label_lbbox, mbboxes, lbboxes) = self.preprocess_true_boxes(bboxes)
-                else:
-                    (label_sbbox, label_mbbox, label_lbbox, sbboxes, mbboxes, lbboxes) = self.preprocess_true_boxes(bboxes)
+                #TODO: handling data augmentation error
+                try:
+                    if self.is_tiny:
+                        (label_mbbox, label_lbbox, mbboxes, lbboxes) = self.preprocess_true_boxes(bboxes)
+                    else:
+                        (label_sbbox, label_mbbox, label_lbbox, sbboxes, mbboxes, lbboxes) = self.preprocess_true_boxes(bboxes)
+                except Exception as e:
+                    aidia_logger.error(e, exc_info=True)
+                    continue
                 
                 self.batch_image[b, :, :, :] = img
                 if not self.is_tiny:
