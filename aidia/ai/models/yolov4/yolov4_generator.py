@@ -127,7 +127,12 @@ class YOLODataGenerator(object):
                     _bboxes = []
                     for i in range(len(bbs.bounding_boxes)):
                         after = bbs.bounding_boxes[i]
-                        _bboxes.append([after.x1_int, after.y1_int, after.x2_int, after.y2_int, self.dataset.class_names.index(after.label)])
+                        x1 = after.x1_int
+                        y1 = after.y1_int
+                        x2 = after.x2_int
+                        y2 = after.y2_int
+                        if abs(x2 - x1) > 5 and abs(y2 - y1) > 5:  # exclude boxes have tiny area
+                            _bboxes.append([x1, y1, x2, y2, self.dataset.class_names.index(after.label)])
                     if len(_bboxes) > 0:
                         bboxes = np.array(_bboxes, int)
                     else:

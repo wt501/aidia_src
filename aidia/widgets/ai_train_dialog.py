@@ -974,8 +974,14 @@ class AITrainThread(QtCore.QThread):
             cb = [cb_getprocess]
         try:
             model.train(cb)
-        except tf.errors.ResourceExhaustedError:
+        except tf.errors.ResourceExhaustedError as e:
             self.notifyMessage.emit(self.tr("Memory error. Please reduce the input size or batch size."))
+            aidia_logger.error(e, exc_info=True)
+            return
+        except ValueError as e:
+            self.notifyMessage.emit(self.tr("Loss got NaN. Please adjust the learning rate."))
+            aidia_logger.error(e, exc_info=True)
+            return
         except Exception as e:
             self.notifyMessage.emit(self.tr("Failed to train."))
             aidia_logger.error(e, exc_info=True)
