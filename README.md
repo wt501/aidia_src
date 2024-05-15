@@ -40,14 +40,26 @@ aidia
 ```
 
 ## Development
+
 ```bash
 conda activate aidia
 pip install -r requirements.txt  # if not installed
 python -m aidia
 ```
 
+## Translation
+
+```bash
+pylupdate5 translate.pro
+linguist
+```
+
+ [Qt Linguist Binary](https://github.com/lelegard/qtlinguist-installers/releases)
+
 ## GPU Support
+
 TensorFlow GPU support requires below:
+
 - [CUDA Toolkit 11.2](https://developer.nvidia.com/cuda-11.2.2-download-archive)
 - [cudDNN 8.1.0](https://developer.nvidia.com/rdp/cudnn-archive)
 

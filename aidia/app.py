@@ -19,6 +19,7 @@ from qtpy import QtCore, QtGui, QtWidgets
 from qtpy.QtCore import Qt
 
 from aidia import __appname__, __version__, pretrained_dir, LABEL_COLORMAP, HOME_DIR
+from aidia import S_EPSILON, S_IS_MULTILABEL, S_IS_SUBMODE, S_LAEBL_DEF
 from aidia import qt
 from aidia import utils
 from aidia.image import imread
@@ -52,6 +53,7 @@ STATE_COLORS = {
     EDIT: QtGui.QBrush(QtCore.Qt.yellow),
 }
 
+
 class MainWindow(QtWidgets.QMainWindow):
 
     FIT_WINDOW_MODE, MANUAL_ZOOM = 0, 1
@@ -79,6 +81,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.work_dir = None
         self.dicom_data = None
 
+        # get image extensions
+        self.extensions = [".{}".format(fmt.data().decode("ascii").lower())
+            for fmt in QtGui.QImageReader.supportedImageFormats()]
+        self.extensions.append(".dcm")
+        self.extensions.append(".pano")
+
         # mode of annotation
         self.create_mode = None
 
@@ -99,17 +107,22 @@ class MainWindow(QtWidgets.QMainWindow):
         # ONNX path for AI test
         self.model_dir = None
 
+        # global setting values
         self.approx_epsilon = 0.003
-        if self._config.get("approx_epsilon"):
-            self.approx_epsilon = self._config["approx_epsilon"]
+        if self._config.get(S_EPSILON):
+            self.approx_epsilon = self._config[S_EPSILON]
         
-        self.label_def = []
-        if self._config.get("label_def"):
-            self.label_def = self._config["label_def"]
+        label_def = []
+        if self._config.get(S_LAEBL_DEF):
+            label_def = self._config[S_LAEBL_DEF]
+
+        is_multi_label = True
+        if self._config.get(S_IS_MULTILABEL) is not None:
+            is_multi_label = self._config[S_IS_MULTILABEL]
         
         self.is_submode = False
-        if self._config.get("is_submode"):
-            self.is_submode = self._config["is_submode"]
+        if self._config.get(S_IS_SUBMODE) is not None:
+            self.is_submode = self._config[S_IS_SUBMODE]
 
         # Initialize popup dialog.
         self.copyrightDialog = CopyrightDialog(parent=self)
@@ -126,8 +139,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ai_test_widget = AITestWidget(self)
 
         # initialize label widget
-        self.labelDialog = LabelDialog(self, self.label_def)
+        self.labelDialog = LabelDialog(self, label_def, is_multi_label)
         self.labelDialog.valueChanged.connect(self.label_update)
+        self.labelDialog.isMultiLabelChanged.connect(self.update_config_is_multi_label)
+        self.labelDialog.labelDefChanged.connect(self.update_config_label_def)
 
         # label list dock
         self.labelList = LabelListWidget()
@@ -254,11 +269,11 @@ class MainWindow(QtWidgets.QMainWindow):
         def _validate(state):
             if state == 2:
                 self.is_submode = True
-                self.update_config_atkey("is_submode", True)
+                self.update_config_atkey(S_IS_SUBMODE, True)
                 self.update_ai_select()
             else:
                 self.is_submode = False
-                self.update_config_atkey("is_submode", False)
+                self.update_config_atkey(S_IS_SUBMODE, False)
                 self.update_ai_select()
         self.input_is_submode.stateChanged.connect(_validate)
 
@@ -357,12 +372,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.file_dock.setAllowedAreas(Qt.RightDockWidgetArea)
         self.shape_dock.setAllowedAreas(Qt.RightDockWidgetArea)
-        self.ld_dock.setAllowedAreas(Qt.RightDockWidgetArea)
         self.ai_dock.setAllowedAreas(Qt.RightDockWidgetArea)
-        self.note_dock.setAllowedAreas(Qt.RightDockWidgetArea)
-        self.timer_dock.setAllowedAreas(Qt.RightDockWidgetArea)
-        self.summary_dock.setAllowedAreas(Qt.RightDockWidgetArea)
-        self.dicom_dock.setAllowedAreas(Qt.RightDockWidgetArea)
+
+        self.ld_dock.setAllowedAreas(Qt.BottomDockWidgetArea)
+        self.note_dock.setAllowedAreas(Qt.BottomDockWidgetArea)
+        self.timer_dock.setAllowedAreas(Qt.BottomDockWidgetArea)
+        self.summary_dock.setAllowedAreas(Qt.BottomDockWidgetArea)
+        self.dicom_dock.setAllowedAreas(Qt.BottomDockWidgetArea)
 
         self.file_dock.setFeatures(features)
         self.shape_dock.setFeatures(features)
@@ -375,12 +391,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.addDockWidget(Qt.RightDockWidgetArea, self.file_dock)
         self.addDockWidget(Qt.RightDockWidgetArea, self.shape_dock)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.ld_dock)
         self.addDockWidget(Qt.RightDockWidgetArea, self.ai_dock)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.note_dock)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.timer_dock)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.summary_dock)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.dicom_dock)
+
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.ld_dock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.note_dock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.timer_dock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.summary_dock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.dicom_dock)
 
         self.tabifyDockWidget(self.note_dock, self.timer_dock)
         self.tabifyDockWidget(self.note_dock, self.summary_dock)
@@ -409,13 +426,13 @@ class MainWindow(QtWidgets.QMainWindow):
             "open",
             self.tr("Open image or label file.")
         )
-        opendir_action = action(
-            self.tr("&Open Dir"),
-            self.opendir_dialog,
-            shortcuts["open_dir"],
-            "open",
-            self.tr("Open directory.")
-        )
+        # opendir_action = action(
+        #     self.tr("&Open Dir"),
+        #     self.opendir_dialog,
+        #     shortcuts["open_dir"],
+        #     "open",
+        #     self.tr("Open directory.")
+        # )
         open_next_action = action(
             self.tr("&Next Image"),
             self.open_next_img,
@@ -745,9 +762,13 @@ class MainWindow(QtWidgets.QMainWindow):
             openNextImg=open_next_action,
             openPrevImg=open_prev_action,
             toggle_show_label=toggle_show_label_action,
-            fileMenuActions=(open_action, opendir_action,
-                             save_action, save_as_action,
-                             close_action, quit_action),
+            fileMenuActions=(
+                open_action,
+                # opendir_action,
+                save_action,
+                save_as_action,
+                close_action,
+                quit_action),
             tool=(),
             editMenu=(
                 # edit_action,
@@ -802,7 +823,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.menus.file,
             (
                 open_action,
-                opendir_action,
+                # opendir_action,
                 open_prev_action,
                 open_next_action,
                 self.menus.recentFiles,
@@ -861,8 +882,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # tool bar
         self.tools = self.toolbar("Tools")
         self.actions.tool = (
-            # open_action,
-            opendir_action,
+            open_action,
+            # opendir_action,
             open_prev_action,
             open_next_action,
             save_action,
@@ -1168,6 +1189,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.menus.labelList.exec_(self.labelList.mapToGlobal(point))
 
 
+    # LabelDialog call back functions
+    def update_config_is_multi_label(self):
+        self.update_config_atkey(S_IS_MULTILABEL, self.labelDialog.is_multi_label)
+    
+
+    def update_config_label_def(self):
+        self.update_config_atkey(S_LAEBL_DEF, self.labelDialog.label_def)
+
+
     def label_update(self):
         """Get current labels of the label widget, and update shape labels."""
         if not self.currentItem():
@@ -1216,23 +1246,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         
     def popup_setting(self):
-        params_dict = {
-            "label_def": self.label_def,
-            "approx_epsilon": self.approx_epsilon,
-        }
-        setting_dict = self.settingDialog.popUp(params_dict)
-        if setting_dict:
-            self.label_def = setting_dict["label_def"]
-            self.update_config_atkey("label_def", self.label_def)
-            self.approx_epsilon = setting_dict["approx_epsilon"]
-            self.update_config_atkey("approx_epsilon", self.approx_epsilon)
-            self.update_label_buttons()
+        new_setting_dict = self.settingDialog.popUp({
+                S_EPSILON: self.approx_epsilon
+            })
+        if new_setting_dict:
+            self.approx_epsilon = new_setting_dict[S_EPSILON]
+            self.update_config_atkey(S_EPSILON, self.approx_epsilon)
 
     
-    def update_label_buttons(self):
-        self.labelDialog.update_label_def(self.label_def)
-
-
     def labelSearchChanged(self):
         """Call back function. Update target label and the shapes."""
         target = self.labelSearch.text().split('_')
@@ -1329,8 +1350,8 @@ class MainWindow(QtWidgets.QMainWindow):
             # label_id = self.labelList.model().indexFromItem(item).row() + 1
             label_id = 1
             for x in shape.label.split("_"):
-                if x in self.label_def:
-                    label_id += self.label_def.index(x) + 1
+                if x in self.labelDialog.label_def:
+                    label_id += self.labelDialog.label_def.index(x) + 1
             return LABEL_COLORMAP[label_id % len(LABEL_COLORMAP)]
         elif (self._config["shape_color"] == "manual" and
               self._config["label_colors"] and
@@ -1638,8 +1659,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def _load_image(self, img_path):
-        extensions = [".{}".format(fmt.data().decode("ascii").lower())
-            for fmt in QtGui.QImageReader.supportedImageFormats()]
         if is_dicom(img_path) or utils.extract_ext(img_path) == ".dcm":
             try:
                 dicom_data = DICOM(img_path)
@@ -1671,7 +1690,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.error_message(self.tr("<p>Cannot open image file.</p>"))
                 self.setClean()
                 return False
-        elif utils.extract_ext(img_path) in extensions:
+        elif utils.extract_ext(img_path) in self.extensions:
             img = imread(img_path)
             if img is None:
                 self.reset_cursor()
@@ -1766,19 +1785,28 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.may_continue_unsaved():
             return
         path = osp.dirname(str(self.img_path)) if self.img_path else "."
-        formats = ["*.{}".format(fmt.data().decode())
-                   for fmt in QtGui.QImageReader.supportedImageFormats()]
-        filters = self.tr("Image files ({})").format(" ".join(
-            formats + ["*.dcm"] + ["*.pano"]))
         filename = QtWidgets.QFileDialog.getOpenFileName(
             self,
-            self.tr("{} - Choose Image file").format(__appname__),
-            path,
-            filters)
-        filename = filename[0]
-        filename = str(filename)
-        if filename:
-            self.load_file(filename)
+            self.tr("Choose image file"),
+            path)
+        filename = str(filename[0]).replace("/", os.sep)
+        ext = os.path.splitext(filename)[1].lower()
+        if len(filename) == 0:
+            return
+        elif len(ext) and ext not in self.extensions:     # exclude not supported file
+            self.error_message(self.tr("This file format is not supported."))
+            return
+        elif not len(ext) and not is_dicom(filename):   # exclude not dicom file has no ext
+            self.error_message(self.tr("This file is not a dicom file."))
+            return
+        
+        # open directory
+        target_path = utils.get_parent_path(filename)
+        if target_path != self.work_dir:
+            self.labels = {}
+            self.import_from_dir(target_path)
+
+        self.load_file(filename, update_list=True)
 
     def save_file(self):
         assert not self.canvas.image.isNull(), "cannot save empty image"
@@ -1986,27 +2014,27 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setDirty()
 
 
-    def opendir_dialog(self, _value=False, dirpath=None):
-        if not self.may_continue_unsaved():
-            return
+    # def opendir_dialog(self, _value=False, dirpath=None):
+    #     if not self.may_continue_unsaved():
+    #         return
 
-        opendir = self.work_dir
-        if self.work_dir and osp.exists(self.work_dir):
-            opendir = osp.dirname(self.work_dir)
-        elif self.img_path:
-            opendir = osp.dirname(self.img_path)
+    #     opendir = self.work_dir
+    #     if self.work_dir and osp.exists(self.work_dir):
+    #         opendir = osp.dirname(self.work_dir)
+    #     elif self.img_path:
+    #         opendir = osp.dirname(self.img_path)
 
-        target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
-            self,
-            self.tr("{} - Open Directory".format(__appname__)),
-            opendir,
-            QtWidgets.QFileDialog.ShowDirsOnly |
-            QtWidgets.QFileDialog.DontResolveSymlinks))
-        if not target_path:
-            return
-        target_path = target_path.replace('/', os.sep)
-        self.labels = {}
-        self.import_from_dir(target_path)
+    #     target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
+    #         self,
+    #         self.tr("{} - Open Directory".format(__appname__)),
+    #         opendir,
+    #         QtWidgets.QFileDialog.ShowDirsOnly |
+    #         QtWidgets.QFileDialog.DontResolveSymlinks))
+    #     if not target_path:
+    #         return
+    #     target_path = target_path.replace('/', os.sep)
+    #     self.labels = {}
+    #     self.import_from_dir(target_path)
 
 
     @property
@@ -2153,15 +2181,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def scan_all_imgs(self, dirpath=None):
-        extensions = [".{}".format(fmt.data().decode("ascii").lower())
-            for fmt in QtGui.QImageReader.supportedImageFormats()]
-        extensions.append(".dcm")
-        
         number_sort = True
         img_paths = []
         target_dir = dirpath if dirpath is not None  else self.imgdir
         for fp in glob(osp.join(target_dir, '*')):
-            if is_dicom(fp) or utils.extract_ext(fp) in extensions:
+            if is_dicom(fp) or utils.extract_ext(fp) in self.extensions:
                 img_paths.append(fp)
                 key = re.sub(r"\D", "", osp.basename(fp))
                 if key == "":

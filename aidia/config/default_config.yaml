@@ -1,18 +1,17 @@
 # path
 work_dir: "."
 
-# for AI
+# original settings
 approx_epsilon: 0.003
 is_submode: false
+label_def: [a, b, c]
+is_multi_label: True
 
 keep_prev_scale: false
 
 shape_color: auto   # null, 'auto', 'manual'
 shift_auto_shape_color: 0
 label_colors: null
-
-# label definition
-label_def: [a, b, c]
 
 # canvas
 epsilon: 10.0

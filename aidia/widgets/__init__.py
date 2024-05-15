@@ -3,6 +3,7 @@
 from .canvas import Canvas
 
 from .label_widget import LabelDialog
+from .label_setting_dialog import LabelSettingDialog
 from .image_widget import ImageWidget
 
 from .setting_dialog import SettingDialog

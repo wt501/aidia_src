@@ -3,7 +3,7 @@ import os
 import logging
 
 __appname__ = "Aidia"
-__version__ = "1.2.4.1"
+__version__ = "1.3.0.0"
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 HOME_DIR = os.path.expanduser("~")
@@ -32,6 +32,12 @@ DET = "Detection"
 SEG = "Segmentation"
 MNIST = "MNIST Test"
 
+# setting tag definition
+S_LAEBL_DEF = "label_def"
+S_IS_MULTILABEL = "is_multi_label"
+S_EPSILON = "approx_epsilon"
+S_IS_SUBMODE = "is_submode"
+
 # model definition
 CLS_MODEL = ["EfficientNetv2-s"]
 DET_MODEL = ["YOLOv4", "YOLOv4-tiny", "YOLOv3", "YOLOv3-tiny"]
@@ -39,6 +45,9 @@ SEG_MODEL = ["U-Net"]
 
 CFONT = "Arial"
 CFONT_SIZE = 10
+
+# for error handling
+CLEAR, ERROR = 0, 1
 
 if os.name == "posix":
     CFONT = "Hiragino Sans"
