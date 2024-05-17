@@ -40,7 +40,7 @@ class AIConfig(object):
         self.SEED = 12345
 
         self.SUBMODE = False
-        self.DIR_SPLIT = True
+        self.DIR_SPLIT = False
         self.EARLY_STOPPING = False
 
         # training setting

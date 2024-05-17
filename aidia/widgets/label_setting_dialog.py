@@ -4,7 +4,6 @@ from qtpy import QtWidgets
 from aidia import qt
 from aidia import utils
 from aidia import __appname__
-from aidia.qt import head_text
 
 CLEAR, ERROR = 0, 1
 NUM_MAX_LABELS = 10
@@ -16,6 +15,8 @@ class LabelSettingDialog(QtWidgets.QDialog):
         self.setWindowFlags(QtCore.Qt.Window
                             | QtCore.Qt.CustomizeWindowHint
                             | QtCore.Qt.WindowTitleHint)
+        
+        self.setWindowTitle(self.tr("Label Setting"))
 
         layout = QtWidgets.QVBoxLayout()
 
@@ -28,7 +29,6 @@ class LabelSettingDialog(QtWidgets.QDialog):
         self.label_def_input.textChanged.connect(self.parse_label)
         self.label_def_warning_text = QtWidgets.QLabel("")
         self.label_def_warning_text.setStyleSheet("color: red")
-        layout.addWidget(head_text(self.tr("Label Definition")))
         layout.addWidget(self.label_def_input)
         layout.addWidget(self.label_def_warning_text)
 

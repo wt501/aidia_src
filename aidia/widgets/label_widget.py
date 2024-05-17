@@ -90,10 +90,16 @@ class LabelDialog(QtWidgets.QWidget):
         if ret:
             self.label_def = ret
             self.create_label_buttons()
+            if self.is_active:
+                self.enable_buttons()
+            else:
+                self.disable_buttons()
             self.labelDefChanged.emit()
 
 
     def _reset_at_is_multi_label_changed(self):
+        self.prev_button = None
+        self.prev_button2 = None
         self.label_list.clear()
         self.label = ""
         self.reset_button()
@@ -178,9 +184,16 @@ class LabelDialog(QtWidgets.QWidget):
                 self.label_list = label.split("_")
 
             # update button states by label
-            for l in self.label_list:
+            if self.is_multi_label:
+                for l in self.label_list:
+                    if l in self.label_def:
+                        self.b_dict[l].setChecked(True)
+            else:
+                l = self.label_list[0]
                 if l in self.label_def:
                     self.b_dict[l].setChecked(True)
+                    self.prev_button = self.b_dict[l]
+                
             self.validate()
                         
     
@@ -270,4 +283,7 @@ class LabelDialog(QtWidgets.QWidget):
                 self.default_label_list.append(label)
             self.default_label = "_".join(self.default_label_list)
         else:
-            self.default_label = label
+            if len(self.default_label) and label == self.default_label:
+                self.default_label = ""
+            else:
+                self.default_label = label

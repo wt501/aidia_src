@@ -1,12 +1,7 @@
-import cv2
-import os.path as osp
 from qtpy import QtCore
 from qtpy import QtWidgets
 
-from aidia.widgets import ImageWidget
-from aidia.qt import head_text
-from aidia import APP_DIR
-from aidia.image import imread
+from aidia.qt import head_text, hline
 
 
 class CopyrightDialog(QtWidgets.QDialog):
@@ -17,8 +12,12 @@ class CopyrightDialog(QtWidgets.QDialog):
                             | QtCore.Qt.CustomizeWindowHint
                             | QtCore.Qt.WindowTitleHint
                             | QtCore.Qt.WindowCloseButtonHint)
+        
+        aidia_text = QtWidgets.QLabel("Aidia")
+        aidia_text2 = QtWidgets.QLabel("AI Development and Image Annotation")
+        aidia_text3 = QtWidgets.QLabel("Developed by Kohei Torii, Tokushima University, Japan")
 
-        text = QtWidgets.QLabel("Copyright (C) 2021 Kohei Torii.")
+        text = QtWidgets.QLabel("Copyright (C) 2021-2024 Kohei Torii.")
         text2 = QtWidgets.QLabel("""Copyright (C) 2021 Kohei Torii.
 Copyright (C) 2016 Kentaro Wada.
 Copyright (C) 2011 Michael Pitidis, Hussein Abdulwahid.
@@ -37,6 +36,11 @@ You should have received a copy of the GNU General Public License
 along with Aidia. If not, see <http://www.gnu.org/licenses/>.""")
 
         layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(head_text("About"))
+        layout.addWidget(aidia_text, alignment=QtCore.Qt.AlignCenter)
+        layout.addWidget(aidia_text2, alignment=QtCore.Qt.AlignCenter)
+        layout.addWidget(aidia_text3, alignment=QtCore.Qt.AlignCenter)
+        layout.addWidget(hline())
         layout.addWidget(head_text("Copyright"))
         layout.addWidget(text)
         layout.addWidget(head_text("License"))

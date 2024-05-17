@@ -11,7 +11,7 @@ from qtpy import QtCore, QtWidgets
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
 
-from aidia import CLS, DET, SEG, MNIST, CLS_MODEL, DET_MODEL, SEG_MODEL
+from aidia import CLS, DET, SEG, MNIST, DET_MODEL, SEG_MODEL, CLEAR, ERROR
 from aidia import aidia_logger
 from aidia import qt
 from aidia import utils
@@ -78,6 +78,11 @@ class AITrainDialog(QtWidgets.QDialog):
         # task selection
         self.tag_task = QtWidgets.QLabel(self.tr("Task"))
         self.input_task = QtWidgets.QComboBox()
+        self.input_task.setToolTip(self.tr(
+            """Select the task.
+Detection uses YOLO and Segmentation uses U-Net.
+If MNIST Test are selected, the training test using MNIST dataset are performed and you can check the calculation performance."""
+        ))
         # self.input_task.setMinimumWidth(200)
         self.input_task.addItems([DET, SEG, MNIST])
         def _validate(text):
@@ -98,6 +103,10 @@ class AITrainDialog(QtWidgets.QDialog):
         # name
         self.tag_name = QtWidgets.QLabel(self.tr("Name"))
         self.input_name = self.create_input_field(200)
+        self.input_name.setToolTip(self.tr(
+            """Set the experiment name.
+You cannot set existed experiment names."""
+        ))
         # self.input_name.setAlignment(QtCore.Qt.AlignCenter)
         def _validate(text):
             # check trained data in log directory
@@ -116,23 +125,27 @@ class AITrainDialog(QtWidgets.QDialog):
         self._add_basic_params(self.tag_name, self.input_name)
 
         # dataset idx
-        self.tag_dataset_num = QtWidgets.QLabel(self.tr("Dataset Number"))
-        self.input_dataset_num = self.create_input_field(50)
+        self.tag_dataset_num = QtWidgets.QLabel(self.tr("Dataset"))
+        # self.input_dataset_num = self.create_input_field(50)
+        self.input_dataset_pattern = QtWidgets.QComboBox()
+        self.input_dataset_pattern.addItems(["Pattern 1", "Pattern 2", "Pattern 3", "Pattern 4", "Pattern 5"])
+        self.input_dataset_pattern.setToolTip(self.tr(
+            """Select the dataset pattern.
+Aidia splits the data into a 8:2 ratio (train:test) depend on the selected pattern.
+You can use this function for 5-fold cross-validation."""
+        ))
         def _validate(text):
-            if text.isdigit() and 0 < int(text) <= self.config.N_SPLITS:
-                self._set_ok(self.tag_dataset_num)
-                self.config.DATASET_NUM = int(text)
-            else:
-                self._set_error(self.tag_dataset_num)
-        self.input_dataset_num.textChanged.connect(_validate)
-        self._add_basic_params(self.tag_dataset_num, self.input_dataset_num)
+            self.config.DATASET_NUM = int(text.split(" ")[1])
+        self.input_dataset_pattern.currentTextChanged.connect(_validate)
+        self._add_basic_params(self.tag_dataset_num, self.input_dataset_pattern)
 
         # input size
         self.tag_size = QtWidgets.QLabel(self.tr("Input Size"))
-        self.tag_size.setToolTip(self.tr(
-            "Set size of an input image on a side. Example: If you set 256, resizes input images to 256x256."""
-        ))
         self.input_size = self.create_input_field(100)
+        self.input_size.setToolTip(self.tr(
+            """Set the size of input images on a side.
+If you set 256, input images are resized to (256, 256)."""
+        ))
         def _validate(text):
             if text.isdigit() and 32 <= int(text) <= 2048 and int(text) % 32 == 0:
                 self._set_ok(self.tag_size)
@@ -145,6 +158,10 @@ class AITrainDialog(QtWidgets.QDialog):
         # epochs
         self.tag_epochs = QtWidgets.QLabel(self.tr("Epochs"))
         self.input_epochs = self.create_input_field(100)
+        self.input_epochs.setToolTip(self.tr(
+            """Set the epochs.
+If you set 100, all data are trained 100 times."""
+        ))
         def _validate(text):
             if text.isdigit() and 0 < int(text):
                 self._set_ok(self.tag_epochs)
@@ -157,6 +174,10 @@ class AITrainDialog(QtWidgets.QDialog):
         # batch size
         self.tag_batchsize = QtWidgets.QLabel(self.tr("Batch Size"))
         self.input_batchsize = self.create_input_field(100)
+        self.input_batchsize.setToolTip(self.tr(
+            """Set the batch size.
+If you set 8, 8 samples are trained per step."""
+        ))
         def _validate(text):
             if text.isdigit() and 0 < int(text) <= 256:
                 self._set_ok(self.tag_batchsize)
@@ -169,6 +190,11 @@ class AITrainDialog(QtWidgets.QDialog):
         # learning rate
         self.tag_lr = QtWidgets.QLabel(self.tr("Learning Rate"))
         self.input_lr = self.create_input_field(100)
+        self.input_lr.setToolTip(self.tr(
+            """Set the initial learning rate of Adam.
+The value is 0.001 by default.
+Other parameters of Adam uses the default values of TensorFlow."""
+        ))
         def _validate(text):
             if text.replace(".", "", 1).isdigit() and 0.0 < float(text) < 1.0:
                 self._set_ok(self.tag_lr)
@@ -180,8 +206,10 @@ class AITrainDialog(QtWidgets.QDialog):
 
         # label definition
         self.tag_labels = QtWidgets.QLabel(self.tr("Label Definition"))
-        self.tag_labels.setToolTip(self.tr("""Set target labels. Separate the labels with line breaks."""))
         self.input_labels = QtWidgets.QTextEdit()
+        self.input_labels.setToolTip(self.tr(
+            """Set target labels.
+Separate the labels with line breaks."""))
         # self.input_labels.setMinimumHeight(100)
         def _validate():
             text = self.input_labels.toPlainText()
@@ -511,7 +539,7 @@ class AITrainDialog(QtWidgets.QDialog):
         self.switch_enabled_by_task(self.config.TASK)
         self.input_model.setCurrentText(self.config.MODEL)
         self.input_name.setText(self.config.NAME)
-        self.input_dataset_num.setText(str(self.config.DATASET_NUM))
+        self.input_dataset_pattern.setCurrentText("Pattern " + str(self.config.DATASET_NUM))
         self.input_size.setText(str(self.config.INPUT_SIZE))
         self.input_epochs.setText(str(self.config.EPOCHS))
         self.input_batchsize.setText(str(self.config.BATCH_SIZE))
@@ -712,11 +740,11 @@ class AITrainDialog(QtWidgets.QDialog):
 
     def _set_error(self, tag:QtWidgets.QLabel):
         tag.setStyleSheet(self.error_style)
-        self.error_flags[tag.text()] = 1
+        self.error_flags[tag.text()] = ERROR
 
     def _set_ok(self, tag:QtWidgets.QLabel):
         tag.setStyleSheet(self.default_style)
-        self.error_flags[tag.text()] = 0
+        self.error_flags[tag.text()] = CLEAR
 
     def update_figure(self):
         self.ax.clear()
@@ -831,10 +859,34 @@ class AITrainDialog(QtWidgets.QDialog):
         return l
 
 
+    def _print_errors(self):
+        for tag_text, flag in self.error_flags.items():
+            if flag == ERROR:
+                if tag_text == self.tr("Name"):
+                    self.text_status.setText(self.tr("Change the name."))
+                    return
+                if tag_text == self.tr("Input Size"):
+                    self.text_status.setText(self.tr("Set an appropriate input size."))
+                    return
+                if tag_text == self.tr("Epochs"):
+                    self.text_status.setText(self.tr("Set an appropriate epochs."))
+                    return
+                if tag_text == self.tr("Batch Size"):
+                    self.text_status.setText(self.tr("Set an appropriate batch size."))
+                    return
+                if tag_text == self.tr("Learning Rate"):
+                    self.text_status.setText(self.tr("Set an appropriate learning rate."))
+                    return
+                if tag_text == self.tr("Label Definition"):
+                    self.text_status.setText(self.tr("Set an appropriate label definition."))
+                    return
+
+
     def train(self):
         error = sum(self.error_flags.values())
         if error > 0:
-            self.text_status.setText(self.tr("Please check parameters."))
+            self._print_errors()
+            # self.text_status.setText(self.tr("Please check parameters."))
             return
         
         self.disable_all()
