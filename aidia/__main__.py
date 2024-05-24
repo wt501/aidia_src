@@ -6,24 +6,23 @@ from qtpy import QtWidgets
 from qtpy import QtGui
 from qtpy import QtCore
 
-from aidia import __appname__
-from aidia import __version__
+from aidia import __appname__, __version__
 from aidia import APP_DIR, HOME_DIR, CFONT, CFONT_SIZE
+from aidia.config import get_config
+from aidia.qt import newIcon
+from aidia.app import MainWindow
 
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
 
     # splash
-    icons_dir = os.path.join(APP_DIR, 'icons', )
-    splash_path = os.path.join(':/', icons_dir, 'splash.png')
+    splash_path = os.path.join(APP_DIR, 'icons', 'splash.png')
     pixmap = QtGui.QPixmap(splash_path)
     splash = QtWidgets.QSplashScreen(pixmap)
     splash.show()
 
-    from aidia.config import get_config
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', '-V', action='store_true', help='show version')
     parser.add_argument('--reset-config', action='store_true', help='reset qt config')
     # default_config_file = utils.join(APP_DIR, '../config.yaml')
     default_config_file = os.path.join(HOME_DIR, '.aidiarc')
@@ -34,12 +33,8 @@ def main():
         default=default_config_file
     )
     args = parser.parse_args()
-    if args.version:
-        print('{0} {1}'.format(__appname__, __version__))
-        sys.exit(0)
 
     config_from_args = args.__dict__
-    config_from_args.pop('version')
     reset_config = config_from_args.pop('reset_config')
     config_file = config_from_args.pop('config')
     config = get_config(config_file, config_from_args)
@@ -55,7 +50,6 @@ def main():
     # For high resolution display.
     # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
-    from aidia.qt import newIcon
     app.setApplicationName(__appname__)
     app.setWindowIcon(newIcon('icon'))
     app.installTranslator(translator_base)
@@ -64,7 +58,6 @@ def main():
     font.setPointSize(CFONT_SIZE)
     app.setFont(font)
 
-    from aidia.app import MainWindow
     win = MainWindow(config=config)
 
     if reset_config:

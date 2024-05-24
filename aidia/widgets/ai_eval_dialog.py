@@ -12,8 +12,9 @@ import tensorflow as tf
 
 from aidia import qt
 from aidia import utils
-from aidia import __appname__, aidia_logger
+from aidia import aidia_logger
 from aidia import HOME_DIR, CLS, DET, SEG
+from aidia.ai import ai_utils
 from aidia.ai.config import AIConfig
 from aidia.ai.dataset import Dataset
 from aidia.ai.det import DetectionModel
@@ -357,7 +358,7 @@ class AIEvalDialog(QtWidgets.QDialog):
                 "Metrics": list(value.keys()),
                 "Values": list(value.values()),
             }
-            utils.save_dict_to_excel(save_dict, os.path.join(self.log_dir, "eval.xlsx"))
+            ai_utils.save_dict_to_excel(save_dict, os.path.join(self.log_dir, "eval.xlsx"))
         elif self.task == SEG:
             img = value.pop("img")
             self.image_widget.loadPixmap(img)
@@ -461,7 +462,7 @@ class AIEvalDialog(QtWidgets.QDialog):
             self.text_status.setText(self.tr("Not implemented function."))
             return
         
-        # chek onnx model
+        # check onnx model
         onnx_path = os.path.join(self.log_dir, "model.onnx")
         if not os.path.exists(onnx_path):
             self.text_status.setText(self.tr("The ONNX model was not found."))
@@ -474,7 +475,7 @@ class AIEvalDialog(QtWidgets.QDialog):
 
         target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
             self,
-            self.tr("{} - Open Directory".format(__appname__)),
+            self.tr("Select Test Images Directory"),
             opendir,
             QtWidgets.QFileDialog.DontResolveSymlinks))
         target_path = target_path.replace("/", os.sep)
@@ -498,11 +499,12 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.ai_pred.start()
         self.aiRunning.emit(True)
     
+    
     def export_data(self):
         opendir = HOME_DIR
         target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
             self,
-            self.tr("Select Directory"),
+            self.tr("Select Output Directory"),
             opendir,
             QtWidgets.QFileDialog.ShowDirsOnly |
             QtWidgets.QFileDialog.DontResolveSymlinks))
@@ -515,11 +517,12 @@ class AIEvalDialog(QtWidgets.QDialog):
 
         self.text_status.setText(self.tr("Export data to {}").format(target_path))
     
+
     def export_model(self):
         opendir = HOME_DIR
         target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
             self,
-            self.tr("Select Directory"),
+            self.tr("Select Output Directory"),
             opendir,
             QtWidgets.QFileDialog.ShowDirsOnly |
             QtWidgets.QFileDialog.DontResolveSymlinks))

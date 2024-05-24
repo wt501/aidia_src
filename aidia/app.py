@@ -18,11 +18,11 @@ from glob import glob
 from qtpy import QtCore, QtGui, QtWidgets
 from qtpy.QtCore import Qt
 
-from aidia import __appname__, __version__, pretrained_dir, LABEL_COLORMAP, HOME_DIR
-from aidia import S_EPSILON, S_IS_MULTILABEL, S_IS_SUBMODE, S_LAEBL_DEF
+from aidia import __appname__, __version__, pretrained_dir, LABEL_COLORMAP, HOME_DIR, LITE
+from aidia import S_EPSILON, S_AREA_LIMIT, S_IS_MULTILABEL, S_IS_SUBMODE, S_LAEBL_DEF
 from aidia import qt
 from aidia import utils
-from aidia.image import imread
+from aidia.image import imread, save_canvas_img
 from aidia.config import get_config, save_config
 from aidia.label_file import LabelFile
 from aidia.label_file import LabelFileError
@@ -39,8 +39,9 @@ from aidia.widgets import ToolBar
 from aidia.widgets import ZoomWidget
 from aidia.dicom import DICOM, is_dicom
 
-from aidia.widgets.ai_train_dialog import AITrainDialog
-from aidia.widgets.ai_eval_dialog import AIEvalDialog
+if not LITE:
+    from aidia.widgets.ai_train_dialog import AITrainDialog
+    from aidia.widgets.ai_eval_dialog import AIEvalDialog
 from aidia.widgets.ai_test_widget import AITestWidget
 
 
@@ -79,6 +80,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.label_dialog_pos = None
         self.selected_polygon = None
         self.work_dir = None
+        self.prev_dir = None
         self.dicom_data = None
 
         # get image extensions
@@ -112,6 +114,10 @@ class MainWindow(QtWidgets.QMainWindow):
         if self._config.get(S_EPSILON):
             self.approx_epsilon = self._config[S_EPSILON]
         
+        self.area_limit = 50
+        if self._config.get(S_AREA_LIMIT):
+            self.area_limit = self._config[S_AREA_LIMIT]
+        
         label_def = []
         if self._config.get(S_LAEBL_DEF):
             label_def = self._config[S_LAEBL_DEF]
@@ -129,11 +135,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settingDialog = SettingDialog(parent=self)
         self.dicomDialog = DICOMDialog(parent=self)
     
-        self.ai_train_dialog = AITrainDialog(parent=self)
-        self.ai_eval_dialog = AIEvalDialog(parent=self)
+        if not LITE:
+            self.ai_train_dialog = AITrainDialog(parent=self)
+            self.ai_eval_dialog = AIEvalDialog(parent=self)
 
-        self.ai_train_dialog.aiRunning.connect(self.callback_ai_train_running)
-        self.ai_eval_dialog.aiRunning.connect(self.callback_ai_eval_running)
+            self.ai_train_dialog.aiRunning.connect(self.callback_ai_train_running)
+            self.ai_eval_dialog.aiRunning.connect(self.callback_ai_eval_running)
 
         # initialize AI test widget
         self.ai_test_widget = AITestWidget(self)
@@ -236,9 +243,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ai_select = QtWidgets.QComboBox(self)
         self.ai_select.setStyleSheet("QComboBox{ text-align: center; }")
-        # self.ai_select.setEditable(True)
-        # self.ai_select.lineEdit().setReadOnly(True)
-        # self.ai_select.lineEdit().setAlignment(QtCore.Qt.AlignCenter)
         def _validate(text):
             path = osp.join(pretrained_dir, text)
             if osp.exists(path):
@@ -251,31 +255,32 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ai_import = QtWidgets.QPushButton(self)
         self.ai_import.setText(self.tr("Import"))
         self.ai_import.clicked.connect(self.import_model)
-        
-        self.button_ai_train = QtWidgets.QPushButton(self)
-        self.button_ai_train.setText(self.tr("AI Training"))
-        self.button_ai_train.clicked.connect(self.ai_train_popup)
-        self.button_ai_train.setEnabled(True)
+            
+        if not LITE:
+            self.button_ai_train = QtWidgets.QPushButton(self)
+            self.button_ai_train.setText(self.tr("AI Training"))
+            self.button_ai_train.clicked.connect(self.ai_train_popup)
+            self.button_ai_train.setEnabled(True)
 
-        self.button_ai_eval = QtWidgets.QPushButton(self)
-        self.button_ai_eval.setText(self.tr("AI Evaluation"))
-        self.button_ai_eval.clicked.connect(self.ai_eval_popup)
-        self.button_ai_eval.setEnabled(True)
+            self.button_ai_eval = QtWidgets.QPushButton(self)
+            self.button_ai_eval.setText(self.tr("AI Evaluation"))
+            self.button_ai_eval.clicked.connect(self.ai_eval_popup)
+            self.button_ai_eval.setEnabled(True)
 
-        self.tag_is_submode = QtWidgets.QLabel(self.tr("from Parent Directory"))
-        self.tag_is_submode.setToolTip(self.tr("""Build dataset using all data in sub directories from the parent directory."""))
-        self.input_is_submode = QtWidgets.QCheckBox()
-        self.input_is_submode.setChecked(self.is_submode)
-        def _validate(state):
-            if state == 2:
-                self.is_submode = True
-                self.update_config_atkey(S_IS_SUBMODE, True)
-                self.update_ai_select()
-            else:
-                self.is_submode = False
-                self.update_config_atkey(S_IS_SUBMODE, False)
-                self.update_ai_select()
-        self.input_is_submode.stateChanged.connect(_validate)
+            self.tag_is_submode = QtWidgets.QLabel(self.tr("from Parent Directory"))
+            self.tag_is_submode.setToolTip(self.tr("""Build dataset using all data in sub directories from the parent directory."""))
+            self.input_is_submode = QtWidgets.QCheckBox()
+            self.input_is_submode.setChecked(self.is_submode)
+            def _validate(state):
+                if state == 2:
+                    self.is_submode = True
+                    self.update_config_atkey(S_IS_SUBMODE, True)
+                    self.update_ai_select()
+                else:
+                    self.is_submode = False
+                    self.update_config_atkey(S_IS_SUBMODE, False)
+                    self.update_ai_select()
+            self.input_is_submode.stateChanged.connect(_validate)
 
         self.ai_dock = QtWidgets.QDockWidget(self.tr("AI"), self)
         self.ai_dock.setObjectName("AI")
@@ -285,10 +290,11 @@ class MainWindow(QtWidgets.QMainWindow):
         ai_layout.addWidget(self.button_ai_test, 0, 0, 1, 4)
         ai_layout.addWidget(self.ai_select, 1, 0, 1, 3)
         ai_layout.addWidget(self.ai_import, 1, 3, 1, 1)
-        ai_layout.addWidget(self.button_ai_train, 2, 0, 1, 2)
-        ai_layout.addWidget(self.button_ai_eval, 2, 2, 1, 2)
-        ai_layout.addWidget(self.input_is_submode, 3, 0, 1, 1, QtCore.Qt.AlignRight)
-        ai_layout.addWidget(self.tag_is_submode, 3, 1, 1, 3, QtCore.Qt.AlignLeft)
+        if not LITE:
+            ai_layout.addWidget(self.button_ai_train, 2, 0, 1, 2)
+            ai_layout.addWidget(self.button_ai_eval, 2, 2, 1, 2)
+            ai_layout.addWidget(self.input_is_submode, 3, 0, 1, 1, QtCore.Qt.AlignRight)
+            ai_layout.addWidget(self.tag_is_submode, 3, 1, 1, 3, QtCore.Qt.AlignLeft)
         ai_widget = QtWidgets.QWidget()
         ai_widget.setLayout(ai_layout)
         self.ai_dock.setWidget(ai_widget)
@@ -419,6 +425,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tr("&Quit"), self.close, shortcuts["quit"], "quit",
             self.tr("Quit application.")
         )
+
         open_action = action(
             self.tr("&Open"),
             self.open_file,
@@ -426,13 +433,7 @@ class MainWindow(QtWidgets.QMainWindow):
             "open",
             self.tr("Open image or label file.")
         )
-        # opendir_action = action(
-        #     self.tr("&Open Dir"),
-        #     self.opendir_dialog,
-        #     shortcuts["open_dir"],
-        #     "open",
-        #     self.tr("Open directory.")
-        # )
+   
         open_next_action = action(
             self.tr("&Next Image"),
             self.open_next_img,
@@ -625,19 +626,11 @@ class MainWindow(QtWidgets.QMainWindow):
             enabled=False
         )
 
-        reset_brightness_action = action(
-            text=self.tr("&Reset Brightness"),
-            slot=self.canvas.reset_brightness,
-            icon="brightness",
-            tip=self.tr("Reset brightness."),
-            enabled=False
-        )
-
-        reset_contrast_action = action(
-            text=self.tr("&Reset Contrast"),
-            slot=self.canvas.reset_contrast,
+        reset_brightness_contrast_action = action(
+            text=self.tr("&Reset Brightness and Contrast"),
+            slot=self.canvas.reset_brightness_contrast,
             icon="contrast",
-            tip=self.tr("Reset contrast."),
+            tip=self.tr("Reset brightness and contrast."),
             enabled=False
         )
 
@@ -721,6 +714,14 @@ class MainWindow(QtWidgets.QMainWindow):
             enabled=True
         )
 
+        save_canvas_img_action = action(
+            text=self.tr("&Export PNG"),
+            slot=self.export_canvas_img,
+            icon="save-as",
+            tip=self.tr("Export the canvas image to PNG image."),
+            enabled=True
+        )
+
         # label list right click menu.
         labelMenu = QtWidgets.QMenu()
         qt.addActions(labelMenu, [delete_action])
@@ -752,8 +753,7 @@ class MainWindow(QtWidgets.QMainWindow):
             createLineMode=create_line_mode,
             createPointMode=create_point_mode,
             editMode=edit_mode_action,
-            resetBrightness=reset_brightness_action,
-            resetContrast=reset_contrast_action,
+            resetBrightnessContrast=reset_brightness_contrast_action,
             zoom=zoom, zoomIn=zoom_in_action,
             zoomOut=zoom_out_action,
             zoomOrg=zoom_org_action,
@@ -780,7 +780,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 None,
                 # add_point_action,
             ),
-            # Right click menu.
+            # canvas right click menu.
             menu=(
                 # add_point_action,
                 # remove_point_action,
@@ -790,10 +790,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 undo_action,
                 undo_last_point_action,
                 toggle_polygon_action,
-                show_all_action,
-                hide_all_action,
-                reset_brightness_action,
-                reset_contrast_action,
+                # show_all_action,
+                # hide_all_action,
+                reset_brightness_contrast_action,
+                save_canvas_img_action,
             ),
             onLoadActive=(
                 close_action,
@@ -869,8 +869,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 zoom_org_action,
                 fit_window_action,
                 None,
-                reset_brightness_action,
-                reset_contrast_action,
+                reset_brightness_contrast_action,
             ),
         )
 
@@ -909,7 +908,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.statusBar().show()
 
         # Restore application settings.
-        self.settings = QtCore.QSettings("labelme", "labelme")
+        self.settings = QtCore.QSettings("aidia", "aidia")
         self.recentFiles = self.settings.value("recentFiles", []) or []
         # self.resize(QtCore.QSize(1280, 720))
         size = self.settings.value("window/size", QtCore.QSize(1280, 720))
@@ -971,7 +970,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         if not self.may_continue_unsaved():
             event.ignore()
-        if not self.may_continue_ai_running():
+        if not LITE and not self.may_continue_ai_running():
             event.ignore()
 
         self.settings.setValue("filename", self.img_path if self.img_path else "")
@@ -1247,11 +1246,14 @@ class MainWindow(QtWidgets.QMainWindow):
         
     def popup_setting(self):
         new_setting_dict = self.settingDialog.popUp({
-                S_EPSILON: self.approx_epsilon
+                S_EPSILON: self.approx_epsilon,
+                S_AREA_LIMIT: self.area_limit,
             })
         if new_setting_dict:
             self.approx_epsilon = new_setting_dict[S_EPSILON]
             self.update_config_atkey(S_EPSILON, self.approx_epsilon)
+            self.area_limit = new_setting_dict[S_AREA_LIMIT]
+            self.update_config_atkey(S_AREA_LIMIT, self.area_limit)
 
     
     def labelSearchChanged(self):
@@ -1602,8 +1604,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.canvas.setEnabled(True)
 
         # enable canvas widget
-        self.actions.resetBrightness.setEnabled(True)
-        self.actions.resetContrast.setEnabled(True)
+        self.actions.resetBrightnessContrast.setEnabled(True)
 
         # enable timer
         self.button_start_timer.setEnabled(True)
@@ -2014,29 +2015,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setDirty()
 
 
-    # def opendir_dialog(self, _value=False, dirpath=None):
-    #     if not self.may_continue_unsaved():
-    #         return
-
-    #     opendir = self.work_dir
-    #     if self.work_dir and osp.exists(self.work_dir):
-    #         opendir = osp.dirname(self.work_dir)
-    #     elif self.img_path:
-    #         opendir = osp.dirname(self.img_path)
-
-    #     target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
-    #         self,
-    #         self.tr("{} - Open Directory".format(__appname__)),
-    #         opendir,
-    #         QtWidgets.QFileDialog.ShowDirsOnly |
-    #         QtWidgets.QFileDialog.DontResolveSymlinks))
-    #     if not target_path:
-    #         return
-    #     target_path = target_path.replace('/', os.sep)
-    #     self.labels = {}
-    #     self.import_from_dir(target_path)
-
-
     @property
     def image_list(self):
         count = self.fileListWidget.count()
@@ -2283,9 +2261,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def ai_train_popup(self):
         if self.is_submode:
             parent_dir = utils.get_parent_path(self.work_dir)
-            msg = self.tr("Construct dataset with all subdirectory data in {}").format(parent_dir)
-            if not self.may_continue(msg):
-                return
+            if not self.ai_train_dialog.ai.isRunning():
+                msg = self.tr("Construct dataset with all subdirectory data in {}").format(parent_dir)
+                if not self.may_continue(msg):
+                    return
             if not os.path.exists(os.path.join(parent_dir, "data")):
                 os.mkdir(os.path.join(parent_dir, "data"))
             self.ai_train_dialog.popup(parent_dir, self.is_submode)
@@ -2357,7 +2336,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         try:
             shapes = self.ai_test_widget.generate_shapes(
-                self.canvas.img_array, self.model_dir, self.approx_epsilon)
+                self.canvas.img_array,
+                self.model_dir,
+                self.approx_epsilon,
+                self.area_limit)
         except Exception as e:
             self.reset_cursor()
             self.error_message(e)
@@ -2459,3 +2441,19 @@ class MainWindow(QtWidgets.QMainWindow):
             return None
         target_path = target_path.replace('/', os.sep)
         return target_path
+
+
+    def export_canvas_img(self):
+        opendir = HOME_DIR if self.prev_dir is None else self.prev_dir
+        target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
+            self,
+            self.tr("Select Output Directory"),
+            opendir,
+            QtWidgets.QFileDialog.ShowDirsOnly |
+            QtWidgets.QFileDialog.DontResolveSymlinks))
+        if not target_path:
+            return None
+        self.prev_dir = target_path
+
+        save_path = os.path.join(target_path, utils.get_basename(self.img_path) + ".png")
+        save_canvas_img(self.canvas.img_array, save_path)

@@ -2,7 +2,6 @@ import json
 import os
 import codecs
 
-from aidia import qt
 from aidia import utils
 from aidia import __version__
 

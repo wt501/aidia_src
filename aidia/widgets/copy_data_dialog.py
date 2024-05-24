@@ -14,7 +14,7 @@ class CopyDataDialog(QtWidgets.QDialog):
                             | QtCore.Qt.CustomizeWindowHint
                             | QtCore.Qt.WindowTitleHint
                             )
-        self.setWindowTitle(self.tr("Copying Annotation Files..."))
+        self.setWindowTitle(self.tr("Copying Files..."))
         self.setMinimumSize(QtCore.QSize(500, 100))
 
         layout = QtWidgets.QVBoxLayout()

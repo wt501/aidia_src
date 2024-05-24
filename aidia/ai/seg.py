@@ -1,12 +1,11 @@
 import os
 import tensorflow as tf
 import numpy as np
-import subprocess
 import glob
 import random
 import imgaug
 import tf2onnx
-from sklearn import metrics
+import sklearn
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -19,70 +18,8 @@ from aidia import utils
 from aidia.ai.dataset import Dataset
 from aidia.ai.config import AIConfig
 from aidia.ai.models.unet import UNet
-
-
-def mask_iou(pred, gt):
-    pred_list = image.mask2rect(pred)
-    gt_list = image.mask2rect(gt)
-    
-    ious = []
-    for pred_rect in pred_list:
-        best_iou = 0.0
-        for gt_rect in gt_list:
-           iou = calc_iou(pred_rect, gt_rect)
-           if iou > best_iou:
-               best_iou = iou
-        ious.append(best_iou)
-    return ious
-
-def calc_iou(box1, box2):
-    inter_x1 = max(box1[0], box2[0])
-    inter_y1 = max(box1[1], box2[1])
-    inter_x2 = min(box1[2], box2[2])
-    inter_y2 = min(box1[3], box2[3])
-
-    inter_area = max((inter_x2 - inter_x1), 0) * max((inter_y2 - inter_y1), 0)
-    area_1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
-    area_2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
-    union_area = area_1 + area_2 - inter_area
-
-    iou = inter_area / union_area
-    return iou
-
-def eval_on_iou(y_true, y_pred):
-    tp = 0
-    fp = 0
-    num_gt = 0
-    for i in range(y_true.shape[0]):
-        pred_mask = y_pred[i]
-        gt_mask = y_true[i]
-        iou_list = mask_iou(pred_mask, gt_mask)
-        for iou in iou_list:
-            if iou >= 0.5:
-                tp += 1
-            else:
-                fp += 1
-        num_gt += len(image.mask2rect(gt_mask))
-
-    precision = tp / (tp + fp + 1e-12)
-    recall = tp / (num_gt + 1e-12)
-    f1 = (2 * precision * recall) / (precision + recall + 1e-12)
-    return [precision, recall, f1]
-
-def common_metrics(tp, tn, fp, fn):
-    acc = (tp + tn) / (tp + tn + fp + fn + 1e-12)
-    precision = tp / (tp + fp + 1e-12)
-    recall = tp / (tp + fn + 1e-12)
-    specificity = tn / (tn + fp + 1e-12)
-    f1 = (2 * precision * recall) / (precision + recall + 1e-12)
-    return [acc, precision, recall, specificity, f1]
-
-def mIoU(c_matrix) -> float:
-    intersection = np.diag(c_matrix)
-    union = np.sum(c_matrix, axis=0) + np.sum(c_matrix, axis=1) - intersection
-    iou = intersection / union
-    miou = np.mean(iou)
-    return miou
+from aidia.ai import metrics
+from aidia.ai import ai_utils
 
 
 class SegmentationModel(object):
@@ -126,10 +63,13 @@ class SegmentationModel(object):
 
 
     def train(self, custom_callbacks=None):
-        checkpoint_path = os.path.join(self.config.log_dir, "weights")
-        if not os.path.exists(checkpoint_path):
-            os.makedirs(checkpoint_path)
-        checkpoint_path = os.path.join(checkpoint_path, "{epoch:04d}.h5")
+        checkpoint_dir = os.path.join(self.config.log_dir, "weights")
+        if not os.path.exists(checkpoint_dir):
+            os.makedirs(checkpoint_dir)
+        if self.config.SAVE_BEST:
+            checkpoint_path = os.path.join(checkpoint_dir, "best_model.h5")
+        else:
+            checkpoint_path = os.path.join(checkpoint_dir, "{epoch:04d}.h5")
 
         callbacks = [
             tf.keras.callbacks.ModelCheckpoint(
@@ -137,7 +77,7 @@ class SegmentationModel(object):
                 monitor='val_loss',
                 save_best_only=self.config.SAVE_BEST,
                 save_weights_only=True,
-                period=1 if self.config.SAVE_BEST else 10,
+                period=1 if self.config.SAVE_BEST else 50,
             ),
         ]
         if custom_callbacks:
@@ -166,8 +106,15 @@ class SegmentationModel(object):
             callbacks=callbacks
         )
 
+        # save last model
+        if not self.config.SAVE_BEST:
+            checkpoint_path = os.path.join(checkpoint_dir, "last_model.h5")
+            self.model.save_weights(checkpoint_path)
+
+
     def stop_training(self):
         self.model.stop_training = True
+
 
     def evaluate(self, cb_widget=None):
         res = {}
@@ -263,8 +210,8 @@ class SegmentationModel(object):
                 ax.clear()
 
                 # AUC and AP
-                auc = metrics.roc_auc_score(yt_flat, yp_flat_prob)
-                ap = metrics.average_precision_score(yt_flat, yp_flat_prob)
+                auc = sklearn.metrics.roc_auc_score(yt_flat, yp_flat_prob)
+                ap = sklearn.metrics.average_precision_score(yt_flat, yp_flat_prob)
                 sum_auc += auc
                 sum_ap += ap
 
@@ -272,7 +219,7 @@ class SegmentationModel(object):
                 yp[yp >= THRESH] = 1
                 yp[yp < THRESH] = 0
 
-                pre_det, rec_det, f1_det = eval_on_iou(yt, yp)
+                pre_det, rec_det, f1_det = metrics.eval_on_iou(yt, yp)
                 sum_pre_det += pre_det
                 sum_rec_det += rec_det
                 sum_f1_det += f1_det
@@ -282,7 +229,7 @@ class SegmentationModel(object):
 
                 cm = metrics.confusion_matrix(yt_flat, yp_flat)
                 tn, fp, fn, tp = cm.ravel()
-                acc, pre, rec, spe, f1 = common_metrics(tp, tn, fp, fn)
+                acc, pre, rec, spe, f1 = metrics.common_metrics(tp, tn, fp, fn)
                 sum_acc += acc
                 sum_pre += pre
                 sum_rec += rec
@@ -322,7 +269,7 @@ class SegmentationModel(object):
             cm_norm = cm / np.sum(cm, axis=1)[:, None]
 
             # mIoU
-            miou = mIoU(cm)
+            miou = metrics.mIoU(cm)
 
             # figure of confusion matrix
             cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm_norm,
@@ -336,7 +283,7 @@ class SegmentationModel(object):
             eval_dict["(Macro Mean)"] = [
                 acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det, miou
             ]
-            utils.save_dict_to_excel(eval_dict, os.path.join(self.config.log_dir, "eval.xlsx"))
+            ai_utils.save_dict_to_excel(eval_dict, os.path.join(self.config.log_dir, "eval.xlsx"))
            
            
         else:  # binary classification
@@ -372,7 +319,7 @@ class SegmentationModel(object):
             y_pred[y_pred >= THRESH] = 1
             y_pred[y_pred < THRESH] = 0
 
-            pre_det, rec_det, f1_det = eval_on_iou(y_true, y_pred)
+            pre_det, rec_det, f1_det = metrics.eval_on_iou(y_true, y_pred)
 
             y_true = y_true.ravel()
             y_pred = y_pred.ravel()
@@ -381,7 +328,7 @@ class SegmentationModel(object):
             cm_norm = cm / np.sum(cm, axis=1)[:, None]
 
             # mIoU
-            miou = mIoU(cm)
+            miou = metrics.mIoU(cm)
 
             # confusion matrix
             cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm_norm)
@@ -391,7 +338,7 @@ class SegmentationModel(object):
             img = image.fig2img(fig)
 
             tn, fp, fn, tp = cm.ravel()
-            acc, pre, rec, spe, f1 = common_metrics(tp, tn, fp, fn)
+            acc, pre, rec, spe, f1 = metrics.common_metrics(tp, tn, fp, fn)
 
             eval_dict[class_name] = [
                 acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det, miou

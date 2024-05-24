@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import os
-import matplotlib.pyplot as plt
 
 from aidia import LABEL_COLORMAP
 from aidia import dicom
@@ -250,7 +249,7 @@ class MFF():
         return result_image.astype(np.uint16)
 
 
-def mask2polygon(masks, labels, approx_epsilon=0.003):
+def mask2polygon(masks, labels, approx_epsilon=0.003, area_limit=50):
     """ masks: 0 or 255 pix masks, shape (h, w, c)"""
     shapes = []
     for i in range(masks.shape[2] - 1):
@@ -261,13 +260,10 @@ def mask2polygon(masks, labels, approx_epsilon=0.003):
         if not len(contours):
             continue
         for cnt in contours:
-            # area = cv2.contourArea(cnt)
-            # if len(contours) > 1:
-            #     for _cnt_i, _cnt in enumerate(contours[1:]):
-            #         _area = cv2.contourArea(_cnt)
-            #         if _area > area:
-            #             cnt = contours[_cnt_i + 1]
-            #             area = _area
+            # skip figures have small area.
+            area = cv2.contourArea(cnt)
+            if area < area_limit:
+                continue
             # Detect points of a polygon.
             approx = cv2.approxPolyDP(
                 curve=cnt,
@@ -284,6 +280,7 @@ def mask2polygon(masks, labels, approx_epsilon=0.003):
             shape["shape_type"] = "polygon"
             shapes.append(shape)
     return shapes
+
 
 def mask2merge(src_img, pred, class_names, gt=None, thresh=0.5):
     """Return the RGB image merged AI prediction masks and the original image."""
@@ -353,6 +350,7 @@ def mask2merge(src_img, pred, class_names, gt=None, thresh=0.5):
     concat = cv2.cvtColor(concat, cv2.COLOR_BGR2RGB)
     return concat
 
+
 def det2merge(src_img, pred, gt=None):
     fonttype = cv2.FONT_HERSHEY_DUPLEX
     fontsize = 1
@@ -372,6 +370,7 @@ def det2merge(src_img, pred, gt=None):
 
     merge = cv2.cvtColor(merge, cv2.COLOR_BGR2RGB)
     return merge
+
 
 def mask2rect(mask):
     m = np.copy(mask)
@@ -396,9 +395,19 @@ def mask2rect(mask):
         rect_list.append([x1, y1, x2, y2])
     return rect_list
 
+
 def fig2img(fig):
     fig.canvas.draw()
     data = fig.canvas.tostring_rgb()
     w, h = fig.canvas.get_width_height()
     c = len(data) // (w * h)
     return np.frombuffer(data, dtype=np.uint8).reshape(h, w, c)
+
+
+def save_canvas_img(canvas_img:np.ndarray, path):
+    if canvas_img.dtype == np.uint16:
+        canvas_img = convert_dtype(canvas_img)
+    if canvas_img.ndim == 2:
+        canvas_img = cv2.cvtColor(canvas_img, cv2.COLOR_GRAY2RGB)
+
+    return imwrite(canvas_img, path)

@@ -2,8 +2,11 @@
 import os
 import logging
 
-__appname__ = "Aidia"
-__version__ = "1.3.0"
+
+LITE = True
+
+__appname__ = "Aidia" if not LITE else "Aidia-lite"
+__version__ = "1.3.1"
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 HOME_DIR = os.path.expanduser("~")
@@ -15,7 +18,7 @@ pretrained_dir = os.path.join(app_cfg_dir, "pretrained")
 if not os.path.exists(pretrained_dir):
     os.mkdir(pretrained_dir)
 
-aidia_logger = logging.getLogger("Aidia")
+aidia_logger = logging.getLogger("aidia")
 aidia_logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s:%(filename)s:%(lineno)d - %(message)s')
 file_handler = logging.FileHandler(os.path.join(app_cfg_dir, "errors.log"))
@@ -36,6 +39,7 @@ MNIST = "MNIST Test"
 S_LAEBL_DEF = "label_def"
 S_IS_MULTILABEL = "is_multi_label"
 S_EPSILON = "approx_epsilon"
+S_AREA_LIMIT = "area_limit"
 S_IS_SUBMODE = "is_submode"
 
 # model definition

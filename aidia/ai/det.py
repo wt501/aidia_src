@@ -54,10 +54,13 @@ class DetectionModel(object):
                 self.model.load_weights(weights_path)
 
     def train(self, custom_callbacks=None):
-        checkpoint_path = os.path.join(self.config.log_dir, "weights")
-        if not os.path.exists(checkpoint_path):
-            os.makedirs(checkpoint_path)
-        checkpoint_path = os.path.join(checkpoint_path, "{epoch:04d}.h5")
+        checkpoint_dir = os.path.join(self.config.log_dir, "weights")
+        if not os.path.exists(checkpoint_dir):
+            os.makedirs(checkpoint_dir)
+        if self.config.SAVE_BEST:
+            checkpoint_path = os.path.join(checkpoint_dir, "best_model.h5")
+        else:
+            checkpoint_path = os.path.join(checkpoint_dir, "{epoch:04d}.h5")
 
         callbacks = [
             tf.keras.callbacks.ModelCheckpoint(
@@ -65,7 +68,7 @@ class DetectionModel(object):
                 monitor='val_loss',
                 save_best_only=self.config.SAVE_BEST,
                 save_weights_only=True,
-                period=1 if self.config.SAVE_BEST else 10,
+                period=1 if self.config.SAVE_BEST else 50,
             ),
         ]
         if custom_callbacks:
@@ -85,8 +88,15 @@ class DetectionModel(object):
             callbacks=callbacks
         )
 
+        # save last model
+        if not self.config.SAVE_BEST:
+            checkpoint_path = os.path.join(checkpoint_dir, "last_model.h5")
+            self.model.save_weights(checkpoint_path)
+
+
     def stop_training(self):
         self.model.stop_training = True
+
 
     def evaluate(self, cb_widget=None):
         sum_AP = 0.0

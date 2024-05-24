@@ -3,6 +3,7 @@ work_dir: "."
 
 # original settings
 approx_epsilon: 0.003
+area_limit: 50
 is_submode: false
 label_def: [a, b, c]
 is_multi_label: True

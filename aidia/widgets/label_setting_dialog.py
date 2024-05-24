@@ -3,7 +3,6 @@ from qtpy import QtWidgets
 
 from aidia import qt
 from aidia import utils
-from aidia import __appname__
 
 CLEAR, ERROR = 0, 1
 NUM_MAX_LABELS = 10

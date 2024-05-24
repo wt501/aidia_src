@@ -1,13 +1,13 @@
 
 from setuptools import find_packages
 from setuptools import setup
-from aidia import __version__
+from aidia import __version__, IS_LITE
 
 
 def main():
 
     setup(
-        name="aidia",
+        name="aidia-lite" if IS_LITE else "aidia",
         version=__version__,
         # version=version,
         packages=find_packages(),
@@ -37,7 +37,7 @@ def main():
             "translate/ja_JP.qm"]},
         entry_points={
             "console_scripts": [
-                "aidia=aidia.__main__:main",
+                "aidia-lite=aidia.__main__:main" if IS_LITE else "aidia=aidia.__main__:main",
             ],
         },
     )

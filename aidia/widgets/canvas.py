@@ -927,18 +927,14 @@ class Canvas(QtWidgets.QWidget):
         self.update()
 
 
-    def reset_brightness(self):
+    def reset_brightness_contrast(self):
         self.brightness = 0.0
-        self.wc = self.original_wc
-        self.update_image()
-
-
-    def reset_contrast(self):
         self.contrast = 1.0
+        self.wc = self.original_wc
         self.ww = self.original_ww
         self.update_image()
 
-    
+
     def reset_params(self):
         self.brightness = 0.0
         self.contrast = 1.0

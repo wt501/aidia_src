@@ -15,6 +15,8 @@ from aidia import CLS, DET, SEG, MNIST, DET_MODEL, SEG_MODEL, CLEAR, ERROR
 from aidia import aidia_logger
 from aidia import qt
 from aidia import utils
+from aidia import errors
+from aidia.ai import ai_utils
 from aidia.ai.config import AIConfig
 from aidia.ai.dataset import Dataset
 from aidia.ai.test import TestModel
@@ -423,7 +425,7 @@ Separate the labels with line breaks."""))
         def _validate(text):
             if text.isdigit() and 0 < int(text) < 255:
                 self.config.RANDOM_BRIGHTNESS = int(text)
-                self.unit_brightness.setText(self.tr("({} to {} px)").format(
+                self.unit_brightness.setText(self.tr("({} to {})").format(
                     - int(text), int(text)
                 ))
             else:
@@ -600,7 +602,7 @@ Separate the labels with line breaks."""))
             "loss": self.loss,
             "val_loss": self.val_loss
         }
-        utils.save_dict_to_excel(df_dic, os.path.join(self.config.log_dir, "loss.xlsx"))
+        ai_utils.save_dict_to_excel(df_dic, os.path.join(self.config.log_dir, "loss.xlsx"))
 
         # save figure
         self.fig.savefig(os.path.join(self.config.log_dir, "loss.png"))
@@ -697,6 +699,7 @@ Separate the labels with line breaks."""))
     def showEvent(self, event):
         if self.ai.isRunning():
             self.disable_all()
+            self.button_stop.setEnabled(True)
         else:
             self.reset_state()
             self.switch_enabled_by_task(self.config.TASK)
@@ -958,6 +961,12 @@ class AITrainThread(QtCore.QThread):
         self.notifyMessage.emit(self.tr("Data loading..."))
         try:
             model.build_dataset()
+        except errors.DataLoadingError as e:
+            self.notifyMessage.emit(self.tr("Failed to load data."))
+            aidia_logger.error(e, exc_info=True)
+        except errors.DataFewError as e:
+            self.notifyMessage.emit(self.tr("Failed to split data because of the few data."))
+            aidia_logger.error(e, exc_info=True)
         except Exception as e:
             self.notifyMessage.emit(self.tr("Failed to build dataset."))
             aidia_logger.error(e, exc_info=True)
@@ -1008,7 +1017,7 @@ class AITrainThread(QtCore.QThread):
             self.datasetInfo.emit(_info_dict)
 
         self.notifyMessage.emit(self.tr("Model building..."))
-        if self.config.gpu_num > 1: # apply multiple GPU support
+        if self.config.gpu_num > 1 and self.config.USE_MULTI_GPUS: # apply multiple GPU support
             strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.ReductionToOneDevice())
             with strategy.scope():
                 model.build_model(mode="train")
@@ -1030,7 +1039,7 @@ class AITrainThread(QtCore.QThread):
             self.notifyMessage.emit(self.tr("Memory error. Please reduce the input size or batch size."))
             aidia_logger.error(e, exc_info=True)
             return
-        except ValueError as e:
+        except errors.LossGetNanError as e:
             self.notifyMessage.emit(self.tr("Loss got NaN. Please adjust the learning rate."))
             aidia_logger.error(e, exc_info=True)
             return
@@ -1067,6 +1076,6 @@ class GetProgress(tf.keras.callbacks.Callback):
         if logs is not None:
             if np.isnan(logs.get("loss")) or np.isnan(logs.get("val_loss")):
                 self.widget.model.stop_training()
-                raise ValueError("Loss got NaN.")
+                raise errors.LossGetNanError
             logs["epoch"] = epoch + 1
             self.widget.epochLogList.emit(logs)

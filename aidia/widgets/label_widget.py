@@ -74,7 +74,6 @@ class LabelDialog(QtWidgets.QWidget):
         
         # popup label setting dialog
         self.popup_setting_button = QtWidgets.QPushButton(self.tr("Label Settings"), self)
-        self.popup_setting_button.setMaximumWidth(150)
         self.popup_setting_button.clicked.connect(self._setting_popup)
         self._layout.addWidget(self.popup_setting_button, 1, 2, QtCore.Qt.AlignCenter)
 

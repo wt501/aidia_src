@@ -9,6 +9,7 @@ from aidia import aidia_logger
 from aidia import dicom
 from aidia import image
 from aidia import utils
+from aidia import errors
 from aidia.ai.config import AIConfig
 
 
@@ -81,7 +82,7 @@ class Dataset(object):
 
     def prepare(self):
         if not len(self.image_info):
-            raise ValueError('image infomation is empty')
+            raise errors.DataLoadingError('image infomation is empty')
         self.num_images = len(self.image_info)
         self.num_classes = len(self.class_info)
         self.image_ids = np.arange(self.num_images)
@@ -129,7 +130,7 @@ class Dataset(object):
                     for key, value in dic.items():
                         setattr(self, key, value)
             except:
-                raise ValueError(f"Failed to load dataset.json: {e}")
+                raise errors.DataLoadingError(f"Failed to load dataset.json: {e}")
 
     def save(self, json_path):
         # p = os.path.join(self.config.log_dir, "dataset.json")
@@ -263,7 +264,7 @@ class Dataset(object):
             self.train_ids, self.val_ids = np.split(self.train_ids, [split_pos])
         
         if len(self.val_ids) == 0 or len(self.test_ids) == 0:
-            raise ValueError("Missing data.")
+            raise errors.DataFewError
 
         self.num_train = len(self.train_ids)
         self.num_test = len(self.test_ids)
@@ -271,7 +272,7 @@ class Dataset(object):
         self.train_steps = self.num_train // self.config.total_batchsize
         self.val_steps = self.num_val // self.config.total_batchsize
         if self.train_steps == 0 or self.val_steps == 0:
-            raise ValueError("Please set appropriate batch size.")
+            raise errors.DataFewError
         
         
 
