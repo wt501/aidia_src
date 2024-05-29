@@ -115,6 +115,9 @@ class AIEvalDialog(QtWidgets.QDialog):
         ### add buttons ###
         # evaluate button
         self.button_eval = QtWidgets.QPushButton(self.tr("Evaluate"))
+        self.button_eval.setToolTip(self.tr(
+            """Evaluate and Export the trained model based on weights you selected."""
+        ))
         self.button_eval.setMinimumWidth(200)
         self.button_eval.clicked.connect(self.evaluate)
         row = max(self.left_row, self.right_row)
@@ -123,23 +126,23 @@ class AIEvalDialog(QtWidgets.QDialog):
         # predict button
         self.button_pred = QtWidgets.QPushButton(self.tr("Predict"))
         self.button_pred.setToolTip(self.tr(
-            """Predict images in your directory."""
+            """Predict images in the directory you selected."""
         ))
         self.button_pred.clicked.connect(self.predict_unknown)
         self._layout.addWidget(self.button_pred, row, 2, 1, 1)
 
         # export data button
-        self.button_export_data = QtWidgets.QPushButton(self.tr("Export Data"))
+        self.button_export_data = QtWidgets.QPushButton(self.tr("Save Data"))
         self.button_export_data.setToolTip(self.tr(
-            """Export data."""
+            """Save the evaluation data."""
         ))
         self.button_export_data.clicked.connect(self.export_data)
         self._layout.addWidget(self.button_export_data, row, 3, 1, 1)
 
         # export model button
-        self.button_export_model = QtWidgets.QPushButton(self.tr("Export Model"))
+        self.button_export_model = QtWidgets.QPushButton(self.tr("Save Model"))
         self.button_export_model.setToolTip(self.tr(
-            """Export model data."""
+            """Save the model data."""
         ))
         self.button_export_model.clicked.connect(self.export_model)
         self._layout.addWidget(self.button_export_model, row, 4, 1, 1)

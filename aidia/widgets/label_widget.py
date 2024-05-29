@@ -9,8 +9,6 @@ from aidia.widgets.label_setting_dialog import LabelSettingDialog
 class LabelDialog(QtWidgets.QWidget):
 
     valueChanged = QtCore.Signal()
-    isMultiLabelChanged = QtCore.Signal()
-    labelDefChanged = QtCore.Signal()
 
     def __init__(self, parent=None, label_def=None, is_multi_label=True):
 
@@ -55,11 +53,9 @@ class LabelDialog(QtWidgets.QWidget):
             if state == 2:
                 self.is_multi_label = True
                 self._reset_at_is_multi_label_changed()
-                self.isMultiLabelChanged.emit()
             else:
                 self.is_multi_label = False
                 self._reset_at_is_multi_label_changed()
-                self.isMultiLabelChanged.emit()
         self.is_multi_label_checkbox.stateChanged.connect(_validate)
         if self.is_multi_label:
             self.is_multi_label_checkbox.setChecked(True)
@@ -93,7 +89,6 @@ class LabelDialog(QtWidgets.QWidget):
                 self.enable_buttons()
             else:
                 self.disable_buttons()
-            self.labelDefChanged.emit()
 
 
     def _reset_at_is_multi_label_changed(self):

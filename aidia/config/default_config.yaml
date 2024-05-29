@@ -7,6 +7,7 @@ area_limit: 50
 is_submode: false
 label_def: [a, b, c]
 is_multi_label: True
+ai_select: None
 
 keep_prev_scale: false
 

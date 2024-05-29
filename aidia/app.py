@@ -18,8 +18,8 @@ from glob import glob
 from qtpy import QtCore, QtGui, QtWidgets
 from qtpy.QtCore import Qt
 
-from aidia import __appname__, __version__, pretrained_dir, LABEL_COLORMAP, HOME_DIR, LITE
-from aidia import S_EPSILON, S_AREA_LIMIT, S_IS_MULTILABEL, S_IS_SUBMODE, S_LAEBL_DEF
+from aidia import __appname__, __version__, PRETRAINED_DIR, LABEL_COLORMAP, HOME_DIR, LITE, EXTS
+from aidia import S_EPSILON, S_AREA_LIMIT, S_IS_MULTILABEL, S_IS_SUBMODE, S_LAEBL_DEF, S_AI_SELECT
 from aidia import qt
 from aidia import utils
 from aidia.image import imread, save_canvas_img
@@ -83,12 +83,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.prev_dir = None
         self.dicom_data = None
 
-        # get image extensions
-        self.extensions = [".{}".format(fmt.data().decode("ascii").lower())
-            for fmt in QtGui.QImageReader.supportedImageFormats()]
-        self.extensions.append(".dcm")
-        self.extensions.append(".pano")
-
         # mode of annotation
         self.create_mode = None
 
@@ -130,6 +124,10 @@ class MainWindow(QtWidgets.QMainWindow):
         if self._config.get(S_IS_SUBMODE) is not None:
             self.is_submode = self._config[S_IS_SUBMODE]
 
+        self.text_ai_select = None
+        if self._config.get(S_AI_SELECT) is not None:
+            self.text_ai_select = self._config[S_AI_SELECT]
+
         # Initialize popup dialog.
         self.copyrightDialog = CopyrightDialog(parent=self)
         self.settingDialog = SettingDialog(parent=self)
@@ -148,8 +146,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # initialize label widget
         self.labelDialog = LabelDialog(self, label_def, is_multi_label)
         self.labelDialog.valueChanged.connect(self.label_update)
-        self.labelDialog.isMultiLabelChanged.connect(self.update_config_is_multi_label)
-        self.labelDialog.labelDefChanged.connect(self.update_config_label_def)
 
         # label list dock
         self.labelList = LabelListWidget()
@@ -244,7 +240,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ai_select = QtWidgets.QComboBox(self)
         self.ai_select.setStyleSheet("QComboBox{ text-align: center; }")
         def _validate(text):
-            path = osp.join(pretrained_dir, text)
+            path = osp.join(PRETRAINED_DIR, text)
             if osp.exists(path):
                 self.model_dir = path
             else:
@@ -274,13 +270,15 @@ class MainWindow(QtWidgets.QMainWindow):
             def _validate(state):
                 if state == 2:
                     self.is_submode = True
-                    self.update_config_atkey(S_IS_SUBMODE, True)
-                    self.update_ai_select()
                 else:
                     self.is_submode = False
-                    self.update_config_atkey(S_IS_SUBMODE, False)
-                    self.update_ai_select()
             self.input_is_submode.stateChanged.connect(_validate)
+
+            submode_layout = QtWidgets.QHBoxLayout()
+            submode_layout.addWidget(self.input_is_submode, alignment=QtCore.Qt.AlignRight)
+            submode_layout.addWidget(self.tag_is_submode, alignment=QtCore.Qt.AlignLeft)
+            submode_widget = QtWidgets.QWidget()
+            submode_widget.setLayout(submode_layout)
 
         self.ai_dock = QtWidgets.QDockWidget(self.tr("AI"), self)
         self.ai_dock.setObjectName("AI")
@@ -293,8 +291,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if not LITE:
             ai_layout.addWidget(self.button_ai_train, 2, 0, 1, 2)
             ai_layout.addWidget(self.button_ai_eval, 2, 2, 1, 2)
-            ai_layout.addWidget(self.input_is_submode, 3, 0, 1, 1, QtCore.Qt.AlignRight)
-            ai_layout.addWidget(self.tag_is_submode, 3, 1, 1, 3, QtCore.Qt.AlignLeft)
+            ai_layout.addWidget(submode_widget, 3, 0, 1, 4, alignment=QtCore.Qt.AlignCenter)
+            # ai_layout.addWidget(self.input_is_submode, 3, 0, 1, 1, QtCore.Qt.AlignRight)
+            # ai_layout.addWidget(self.tag_is_submode, 3, 1, 1, 3, QtCore.Qt.AlignLeft)
         ai_widget = QtWidgets.QWidget()
         ai_widget.setLayout(ai_layout)
         self.ai_dock.setWidget(ai_widget)
@@ -722,6 +721,13 @@ class MainWindow(QtWidgets.QMainWindow):
             enabled=True
         )
 
+        delete_pretrained_model_action = action(
+            text=self.tr("&Delete Pretrained Models"),
+            slot=self.delete_pretrained_model,
+            tip=self.tr("Delete pretrained model."),
+            enabled=True
+        )
+
         # label list right click menu.
         labelMenu = QtWidgets.QMenu()
         qt.addActions(labelMenu, [delete_action])
@@ -833,6 +839,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 None,
                 export_anno_action,
                 import_model_action,
+                delete_pretrained_model_action,
                 None,
                 delete_file_action,
                 quit_action,
@@ -978,6 +985,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings.setValue("window/position", self.pos())
         self.settings.setValue("window/state", self.saveState())
         self.settings.setValue("recentFiles", self.recentFiles)
+
+        # save config values
+        self.update_config_atkey('work_dir', self.work_dir)
+        self.update_config_atkey(S_IS_MULTILABEL, self.labelDialog.is_multi_label)
+        self.update_config_atkey(S_LAEBL_DEF, self.labelDialog.label_def)
+        self.update_config_atkey(S_IS_SUBMODE, self.is_submode)
+        self.update_config_atkey(S_AI_SELECT, self.ai_select.currentText())
+        self.update_config_atkey(S_EPSILON, self.approx_epsilon)
+        self.update_config_atkey(S_AREA_LIMIT, self.area_limit)
+
         # ask the use for where to save the labels
         # self.settings.setValue("window/geometry", self.saveGeometry())
 
@@ -1087,6 +1104,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return items[0]
         return None
 
+
     def addRecentFile(self, filename):
         if filename in self.recentFiles:
             self.recentFiles.remove(filename)
@@ -1094,14 +1112,17 @@ class MainWindow(QtWidgets.QMainWindow):
             self.recentFiles.pop()
         self.recentFiles.insert(0, filename)
 
+
     def undoShapeEdit(self):
         self.canvas.restoreShape()
         self.labelList.clear()
         self.loadShapes(self.canvas.shapes)
         self.actions.undo.setEnabled(self.canvas.isShapeRestorable)
 
+
     def tutorial(self):
         webbrowser.open(WEB_URL)
+
 
     def toggleDrawingSensitive(self, drawing=True):
         """Toggle drawing sensitive.
@@ -1162,8 +1183,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 raise ValueError(f"Unsupported createMode: {create_mode}")
         self.actions.editMode.setEnabled(not edit)
 
+
     def setEditMode(self):
         self.toggleDrawMode(True)
+
 
     def updateFileMenu(self):
         current = self.img_path
@@ -1184,17 +1207,9 @@ class MainWindow(QtWidgets.QMainWindow):
             action.triggered.connect(functools.partial(self.load_recent, f))
             menu.addAction(action)
 
+
     def popLabelListMenu(self, point):
         self.menus.labelList.exec_(self.labelList.mapToGlobal(point))
-
-
-    # LabelDialog call back functions
-    def update_config_is_multi_label(self):
-        self.update_config_atkey(S_IS_MULTILABEL, self.labelDialog.is_multi_label)
-    
-
-    def update_config_label_def(self):
-        self.update_config_atkey(S_LAEBL_DEF, self.labelDialog.label_def)
 
 
     def label_update(self):
@@ -1251,9 +1266,7 @@ class MainWindow(QtWidgets.QMainWindow):
             })
         if new_setting_dict:
             self.approx_epsilon = new_setting_dict[S_EPSILON]
-            self.update_config_atkey(S_EPSILON, self.approx_epsilon)
             self.area_limit = new_setting_dict[S_AREA_LIMIT]
-            self.update_config_atkey(S_AREA_LIMIT, self.area_limit)
 
     
     def labelSearchChanged(self):
@@ -1691,7 +1704,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.error_message(self.tr("<p>Cannot open image file.</p>"))
                 self.setClean()
                 return False
-        elif utils.extract_ext(img_path) in self.extensions:
+        elif utils.extract_ext(img_path) in EXTS:
             img = imread(img_path)
             if img is None:
                 self.reset_cursor()
@@ -1794,7 +1807,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ext = os.path.splitext(filename)[1].lower()
         if len(filename) == 0:
             return
-        elif len(ext) and ext not in self.extensions:     # exclude not supported file
+        elif len(ext) and ext not in EXTS:     # exclude not supported file
             self.error_message(self.tr("This file format is not supported."))
             return
         elif not len(ext) and not is_dicom(filename):   # exclude not dicom file has no ext
@@ -2150,9 +2163,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.reset_cursor()
 
-        # update previous directory
-        self.update_config_atkey('work_dir', dirpath)
-
 
     def import_from_workdir(self):
         self.import_from_dir(self.work_dir)
@@ -2163,7 +2173,7 @@ class MainWindow(QtWidgets.QMainWindow):
         img_paths = []
         target_dir = dirpath if dirpath is not None  else self.imgdir
         for fp in glob(osp.join(target_dir, '*')):
-            if is_dicom(fp) or utils.extract_ext(fp) in self.extensions:
+            if is_dicom(fp) or utils.extract_ext(fp) in EXTS:
                 img_paths.append(fp)
                 key = re.sub(r"\D", "", osp.basename(fp))
                 if key == "":
@@ -2270,7 +2280,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ai_train_dialog.popup(parent_dir, self.is_submode)
         else:
             self.ai_train_dialog.popup(self.work_dir, self.is_submode)
-        self.update_ai_select()
 
     
     def ai_eval_popup(self):
@@ -2279,31 +2288,25 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ai_eval_dialog.popup(parent_dir)
         else:
             self.ai_eval_dialog.popup(self.work_dir)
-        self.update_ai_select()
 
 
     def update_ai_select(self):
-        bkup_select = None
-        if self.ai_select.count() > 1:
-            bkup_select = self.ai_select.currentText()
         self.ai_select.clear()
-        if not os.path.exists(pretrained_dir):
+        if not os.path.exists(PRETRAINED_DIR):
             self.button_ai_test.setEnabled(False)
             self.ai_select.setEnabled(False)
             return
         
         # get directory names in data directory
-        targets = [name for name in os.listdir(pretrained_dir) if os.path.isdir(os.path.join(pretrained_dir, name))]
+        targets = [name for name in os.listdir(PRETRAINED_DIR) if os.path.isdir(os.path.join(PRETRAINED_DIR, name))]
 
-        _t = []
         for t in targets:
-            logdir = os.path.join(pretrained_dir, t)
+            logdir = os.path.join(PRETRAINED_DIR, t)
             config_path = os.path.join(logdir, "config.json")
             onnx_path = os.path.join(logdir, "model.onnx")
             if (os.path.exists(config_path) and
                 os.path.exists(onnx_path)):
                 self.ai_select.addItem(t)
-                _t.append(t)
         
         if self.ai_select.count() < 1:
             self.button_ai_test.setEnabled(False)
@@ -2311,9 +2314,11 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.button_ai_test.setEnabled(True)
             self.ai_select.setEnabled(True)
-            if (bkup_select is not None and
-                bkup_select in _t):
-                self.ai_select.setCurrentText(bkup_select)
+            if self.text_ai_select is not None:
+                idx = self.ai_select.findText(self.text_ai_select)
+                if idx > -1:
+                    self.ai_select.setCurrentIndex(idx)
+
 
     def ai_test(self):
         """Generate annotations with AI prediction results."""
@@ -2414,7 +2419,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         
         self.wait_cursor()
-        dir_path = os.path.join(pretrained_dir, os.path.basename(target_dir))
+        dir_path = os.path.join(PRETRAINED_DIR, os.path.basename(target_dir))
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
         shutil.copy(config_path, dir_path)
@@ -2457,3 +2462,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         save_path = os.path.join(target_path, utils.get_basename(self.img_path) + ".png")
         save_canvas_img(self.canvas.img_array, save_path)
+
+
+    def delete_pretrained_model(self):
+        r = self.may_continue(self.tr(
+            """Are you sure you want to delete it?"""
+        ))
+        if not r:
+            return
+
+        for target_path in glob(os.path.join(PRETRAINED_DIR, "*")):
+            shutil.rmtree(target_path)
+        self.update_ai_select()

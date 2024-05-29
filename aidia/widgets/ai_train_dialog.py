@@ -3,6 +3,7 @@ import os
 import shutil
 import time
 import logging
+import glob
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -76,6 +77,13 @@ class AITrainDialog(QtWidgets.QDialog):
         self.left_row = 0
         self.right_row = 0
         self.augment_row = 0
+
+        # directory information
+        self.tag_directory = QtWidgets.QLabel()
+        self.tag_directory.setMaximumHeight(100)
+        self._layout.addWidget(self.tag_directory, 0, 1, 1, 4)
+        self.left_row += 1
+        self.right_row += 1
 
         # task selection
         self.tag_task = QtWidgets.QLabel(self.tr("Task"))
@@ -451,7 +459,6 @@ Separate the labels with line breaks."""))
         self.input_contrast.textChanged.connect(_validate)
         self._add_augment_params(self.tag_contrast, self.input_contrast, self.unit_contrast)
 
-
         ### add buttons ###
         # train button
         self.button_train = QtWidgets.QPushButton(self.tr("Train"))
@@ -474,20 +481,17 @@ Separate the labels with line breaks."""))
 
         # status
         self.text_status = QtWidgets.QLabel()
-        # self.text_status.setMaximumHeight(200)
         self._layout.addWidget(self.text_status, row, 1, 1, 3)
         # row += 1
 
         # stop button
         self.button_stop = QtWidgets.QPushButton(self.tr("Terminate"))
-        # self.button_stop.setMaximumHeight(100)
         def _stop_training():
             self.ai.quit()
             self.button_stop.setEnabled(False)
         self.button_stop.clicked.connect(_stop_training)
         self._layout.addWidget(self.button_stop, row, 4, 1, 1, QtCore.Qt.AlignRight)
         # row += 1
-
 
         ### add dataset information ###
         # title
@@ -500,7 +504,6 @@ Separate the labels with line breaks."""))
         self.text_dataset = QtWidgets.QLabel()
         self.text_dataset.setAlignment(QtCore.Qt.AlignLeading)
         self._dataset_layout.addWidget(self.text_dataset)
-
 
         ### set layouts ###
         self._augment_widget.setLayout(self._augment_layout)
@@ -521,10 +524,16 @@ Separate the labels with line breaks."""))
 
         self.text_status.setText(self.tr("Ready"))
 
+
     def popup(self, dataset_dir, is_submode=False):
         """Popup train window and set config parameters to input fields."""
         self.dataset_dir = dataset_dir
         self.setWindowTitle(self.tr("AI Training - {}").format(dataset_dir))
+        if is_submode and len(os.listdir(dataset_dir)) > 1:
+            dir_list = glob.glob(os.path.join(dataset_dir, "*/"))
+            self.tag_directory.setText(self.tr("Target Directory:\n{},\n{},\n...").format(dir_list[0], dir_list[1]))
+        else:
+            self.tag_directory.setText(self.tr("Target Directory:\n{}").format(dataset_dir))
 
         # load config parameters
         self.config = AIConfig(dataset_dir)
@@ -964,9 +973,11 @@ class AITrainThread(QtCore.QThread):
         except errors.DataLoadingError as e:
             self.notifyMessage.emit(self.tr("Failed to load data."))
             aidia_logger.error(e, exc_info=True)
+            return
         except errors.DataFewError as e:
             self.notifyMessage.emit(self.tr("Failed to split data because of the few data."))
             aidia_logger.error(e, exc_info=True)
+            return
         except Exception as e:
             self.notifyMessage.emit(self.tr("Failed to build dataset."))
             aidia_logger.error(e, exc_info=True)
@@ -1030,7 +1041,7 @@ class AITrainThread(QtCore.QThread):
         self.cb_getprocess = cb_getprocess
 
         if self.config.EARLY_STOPPING:
-            cb = [cb_getprocess, tf.keras.callbacks.EarlyStopping(patience=10)]
+            cb = [cb_getprocess, tf.keras.callbacks.EarlyStopping(patience=10)] # TODO
         else:
             cb = [cb_getprocess]
         try:

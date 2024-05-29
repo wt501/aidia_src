@@ -4,7 +4,7 @@ import numpy as np
 import glob
 import cv2
 
-from aidia import CLS, DET, SEG
+from aidia import CLS, DET, SEG, EXTS
 from aidia import aidia_logger
 from aidia import dicom
 from aidia import image
@@ -197,8 +197,8 @@ class Dataset(object):
             if os.path.exists(name) and dicom.is_dicom(name):
                 img_path = name
             else:
-                for ext in ['dcm', "DCM", 'jpg', 'jpeg', "JPG", "JPEG", 'png', "PNG"]:
-                    p = name + '.' + ext
+                for ext in EXTS:
+                    p = name + ext
                     if os.path.exists(p):
                         img_path = p
                         break

@@ -40,6 +40,8 @@ def main():
     config = get_config(config_file, config_from_args)
 
     # set language translation
+    translator_base = None
+    translator = None
     if QtCore.QLocale.system().name() == "ja_JP":
         translator_base = QtCore.QTranslator()
         translator = QtCore.QTranslator()
@@ -52,8 +54,9 @@ def main():
 
     app.setApplicationName(__appname__)
     app.setWindowIcon(newIcon('icon'))
-    app.installTranslator(translator_base)
-    app.installTranslator(translator)
+    if translator_base is not None and translator is not None:
+        app.installTranslator(translator_base)
+        app.installTranslator(translator)
     font = QtGui.QFont(CFONT)
     font.setPointSize(CFONT_SIZE)
     app.setFont(font)
