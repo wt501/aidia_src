@@ -10,7 +10,6 @@ from aidia import __appname__, __version__
 from aidia import APP_DIR, HOME_DIR, CFONT, CFONT_SIZE
 from aidia.config import get_config
 from aidia.qt import newIcon
-from aidia.app import MainWindow
 
 
 def main():
@@ -61,6 +60,7 @@ def main():
     font.setPointSize(CFONT_SIZE)
     app.setFont(font)
 
+    from aidia.app import MainWindow
     win = MainWindow(config=config)
 
     if reset_config:

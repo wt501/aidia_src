@@ -13,7 +13,7 @@ def update_dict(target_dict, new_dict, validate_item=None):
         if validate_item:
             validate_item(key, value)
         if key not in target_dict:
-            print(f'Skipping unexpected key in config: {key}')
+            # print(f'Skipping unexpected key in config: {key}')
             continue
         if isinstance(target_dict[key], dict) and \
                 isinstance(value, dict):

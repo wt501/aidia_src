@@ -12,6 +12,10 @@ class ToolBar(QtWidgets.QToolBar):
         layout.setContentsMargins(*m)
         self.setContentsMargins(*m)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.FramelessWindowHint)
+        
+        self._actions = []
+        self.flags = []
+
 
     def addAction(self, action):
         if isinstance(action, QtWidgets.QWidgetAction):
@@ -23,7 +27,16 @@ class ToolBar(QtWidgets.QToolBar):
         btn.setMaximumWidth(200)
         # btn.setMinimumHeight(80)
         # btn.setMaximumHeight(80)
-        self.addWidget(btn)
+        a = self.addWidget(btn)
+        self._actions.append(a)
+        self.flags.append(True)
+
+
+    def updateShowButtons(self):
+        self.clear()
+        for a, flag in zip(self._actions, self.flags):
+            if flag:
+                self.addAction(a)
 
 
 class ToolButton(QtWidgets.QToolButton):

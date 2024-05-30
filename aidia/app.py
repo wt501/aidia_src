@@ -19,11 +19,11 @@ from qtpy import QtCore, QtGui, QtWidgets
 from qtpy.QtCore import Qt
 
 from aidia import __appname__, __version__, PRETRAINED_DIR, LABEL_COLORMAP, HOME_DIR, LITE, EXTS
-from aidia import S_EPSILON, S_AREA_LIMIT, S_IS_MULTILABEL, S_IS_SUBMODE, S_LAEBL_DEF, S_AI_SELECT
+from aidia import S_EPSILON, S_AREA_LIMIT
 from aidia import qt
 from aidia import utils
 from aidia.image import imread, save_canvas_img
-from aidia.config import get_config, save_config
+from aidia.config import get_config
 from aidia.label_file import LabelFile
 from aidia.label_file import LabelFileError
 from aidia.shape import Shape
@@ -103,35 +103,28 @@ class MainWindow(QtWidgets.QMainWindow):
         # ONNX path for AI test
         self.model_dir = None
 
-        # global setting values
-        self.approx_epsilon = 0.003
-        if self._config.get(S_EPSILON):
-            self.approx_epsilon = self._config[S_EPSILON]
-        
-        self.area_limit = 50
-        if self._config.get(S_AREA_LIMIT):
-            self.area_limit = self._config[S_AREA_LIMIT]
-        
-        label_def = []
-        if self._config.get(S_LAEBL_DEF):
-            label_def = self._config[S_LAEBL_DEF]
+        # load application settings
+        self.settings = QtCore.QSettings("aidia", "aidia")
+        self.work_dir = self.settings.value("work_dir", True, str)
+        self.approx_epsilon = self.settings.value("approx_epsilon", 0.03, float)
+        self.area_limit = self.settings.value("area_limit", 50, int)
+        self.is_polygon = self.settings.value("is_polygon", True, bool)
+        self.is_rectangle = self.settings.value("is_rectangle", True, bool)
+        self.is_linestrip = self.settings.value("is_linestrip", True, bool)
+        self.is_line = self.settings.value("is_line", True, bool)
+        self.is_point = self.settings.value("is_point", True, bool)
+        self.is_submode = self.settings.value("is_submode", False, bool)
+        self.text_ai_select = self.settings.value("ai_select", None, str)
+        label_def = self.settings.value("label_def", ["label"], list)
+        is_multi_label = self.settings.value("is_multi_label", False, bool)
 
-        is_multi_label = True
-        if self._config.get(S_IS_MULTILABEL) is not None:
-            is_multi_label = self._config[S_IS_MULTILABEL]
-        
-        self.is_submode = False
-        if self._config.get(S_IS_SUBMODE) is not None:
-            self.is_submode = self._config[S_IS_SUBMODE]
+        # initialize toolbar
+        self.tools = self.toolbar("Tools")
 
-        self.text_ai_select = None
-        if self._config.get(S_AI_SELECT) is not None:
-            self.text_ai_select = self._config[S_AI_SELECT]
-
-        # Initialize popup dialog.
+        # initialize popup dialog
         self.copyrightDialog = CopyrightDialog(parent=self)
         self.settingDialog = SettingDialog(parent=self)
-        self.dicomDialog = DICOMDialog(parent=self)
+        self.dicomDialog = DICOMDialog(parent=self) # TODO
     
         if not LITE:
             self.ai_train_dialog = AITrainDialog(parent=self)
@@ -728,6 +721,67 @@ class MainWindow(QtWidgets.QMainWindow):
             enabled=True
         )
 
+        # toggle view toolbar buttons
+        def _func(value):
+            self.tools.flags[4] = value
+            self.tools.updateShowButtons()
+            self.is_polygon = value
+        show_polygon_mode_action = action(
+            text=self.tr("&Show Polygon Mode"),
+            slot=_func,
+            checkable=True,
+            enabled=True,
+            checked=self.is_polygon,
+        )
+
+        def _func(value):
+            self.tools.flags[5] = value
+            self.tools.updateShowButtons()
+            self.is_rectangle = value
+        show_rectangle_mode_action = action(
+            text=self.tr("&Show Rectangle Mode"),
+            slot=_func,
+            checkable=True,
+            enabled=True,
+            checked=self.is_rectangle,
+        )
+
+        def _func(value):
+            self.tools.flags[6] = value
+            self.tools.updateShowButtons()
+            self.is_linestrip = value
+        show_linestrip_mode_action = action(
+            text=self.tr("&Show Linestrip Mode"),
+            slot=_func,
+            checkable=True,
+            enabled=True,
+            checked=self.is_linestrip,
+        )
+
+        def _func(value):
+            self.tools.flags[7] = value
+            self.tools.updateShowButtons()
+            self.is_line = value
+        show_line_mode_action = action(
+            text=self.tr("&Show Line Mode"),
+            slot=_func,
+            checkable=True,
+            enabled=True,
+            checked=self.is_line,
+        )
+
+        def _func(value):
+            self.tools.flags[8] = value
+            self.tools.updateShowButtons()
+            self.is_point = value
+        show_point_mode_action = action(
+            text=self.tr("&Show Point Mode"),
+            slot=_func,
+            checkable=True,
+            enabled=True,
+            checked=self.is_point,
+        )
+
         # label list right click menu.
         labelMenu = QtWidgets.QMenu()
         qt.addActions(labelMenu, [delete_action])
@@ -758,6 +812,11 @@ class MainWindow(QtWidgets.QMainWindow):
             createLineStripMode=create_linestrip_mode,
             createLineMode=create_line_mode,
             createPointMode=create_point_mode,
+            showPolygonMode=show_polygon_mode_action,
+            showRectangleMode=show_rectangle_mode_action,
+            showLinestripMode=show_linestrip_mode_action,
+            showLineMode=show_line_mode_action,
+            showPointMode=show_point_mode_action,
             editMode=edit_mode_action,
             resetBrightnessContrast=reset_brightness_contrast_action,
             zoom=zoom, zoomIn=zoom_in_action,
@@ -787,7 +846,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 # add_point_action,
             ),
             # canvas right click menu.
-            menu=(
+            canvas_menu=(
                 # add_point_action,
                 # remove_point_action,
                 # edit_action,
@@ -857,6 +916,12 @@ class MainWindow(QtWidgets.QMainWindow):
         qt.addActions(
             self.menus.view,
             (
+                show_polygon_mode_action,
+                show_rectangle_mode_action,
+                show_linestrip_mode_action,
+                show_line_mode_action,
+                show_point_mode_action,
+                None,
                 self.file_dock.toggleViewAction(),
                 self.shape_dock.toggleViewAction(),
                 self.ld_dock.toggleViewAction(),
@@ -883,10 +948,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.menus.file.aboutToShow.connect(self.updateFileMenu)
 
         # Custom context menu for the canvas widget:
-        qt.addActions(self.canvas.menus, self.actions.menu)
+        qt.addActions(self.canvas.menus, self.actions.canvas_menu)
 
         # tool bar
-        self.tools = self.toolbar("Tools")
         self.actions.tool = (
             open_action,
             # opendir_action,
@@ -894,7 +958,6 @@ class MainWindow(QtWidgets.QMainWindow):
             open_next_action,
             save_action,
             # delete_file_action,
-            None,
             create_mode_action,
             create_rectangle_mode,
             create_linestrip_mode,
@@ -904,18 +967,21 @@ class MainWindow(QtWidgets.QMainWindow):
             # copy_action,
             # delete_action,
             undo_action,
-            None,
             # zoom_in_action,
             # zoom,
             # zoom_out_action,
             fit_window_action,
         )
 
+        # custom toolbar context menu
+        self.tools.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.tools.customContextMenuRequested.connect(self.toolbar_menu)
+
+        # initialize process
         self.statusBar().showMessage(self.tr("{} started.").format(__appname__))
         self.statusBar().show()
 
         # Restore application settings.
-        self.settings = QtCore.QSettings("aidia", "aidia")
         self.recentFiles = self.settings.value("recentFiles", []) or []
         # self.resize(QtCore.QSize(1280, 720))
         size = self.settings.value("window/size", QtCore.QSize(1280, 720))
@@ -927,9 +993,18 @@ class MainWindow(QtWidgets.QMainWindow):
         # Populate the File menu dynamically.
         self.updateFileMenu()
 
-        # Callbacks:
         self.zoom_widget.valueChanged.connect(self.paint_canvas)
+
+        # build toolbar and canvas menu
         self.populateModeActions()
+
+        # restore toolbar status
+        self.tools.flags[4] = self.is_polygon
+        self.tools.flags[5] = self.is_rectangle
+        self.tools.flags[6] = self.is_linestrip
+        self.tools.flags[7] = self.is_line
+        self.tools.flags[8] = self.is_point
+        self.tools.updateShowButtons()
 
         # set disable canvas by default
         self.canvas.setEnabled(False)
@@ -942,13 +1017,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def init_dir(self):
-        self.work_dir = None
-        if self._config.get("work_dir"):
-            _dir = self._config["work_dir"]
-            if osp.exists(_dir):
-                self.work_dir = _dir
-
-        if self.work_dir is not None and osp.exists(self.work_dir):
+        if self.work_dir is not None and os.path.exists(self.work_dir):
             self.import_from_dir(self.work_dir)
         else:
             self.work_dir = HOME_DIR
@@ -960,6 +1029,18 @@ class MainWindow(QtWidgets.QMainWindow):
             qt.addActions(menu, actions)
         return menu
     
+    
+    def toolbar_menu(self):
+        m = QtWidgets.QMenu()
+        m.addActions([
+            self.actions.showPolygonMode,
+            self.actions.showRectangleMode,
+            self.actions.showLinestripMode,
+            self.actions.showLineMode,
+            self.actions.showPointMode,
+        ])
+        m.exec_(QtGui.QCursor.pos())
+
 
     def toolbar(self, title, actions=None):
         toolbar = ToolBar(title)
@@ -985,15 +1066,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings.setValue("window/position", self.pos())
         self.settings.setValue("window/state", self.saveState())
         self.settings.setValue("recentFiles", self.recentFiles)
-
-        # save config values
-        self.update_config_atkey('work_dir', self.work_dir)
-        self.update_config_atkey(S_IS_MULTILABEL, self.labelDialog.is_multi_label)
-        self.update_config_atkey(S_LAEBL_DEF, self.labelDialog.label_def)
-        self.update_config_atkey(S_IS_SUBMODE, self.is_submode)
-        self.update_config_atkey(S_AI_SELECT, self.ai_select.currentText())
-        self.update_config_atkey(S_EPSILON, self.approx_epsilon)
-        self.update_config_atkey(S_AREA_LIMIT, self.area_limit)
+        self.settings.setValue("work_dir", self.work_dir)
+        self.settings.setValue("is_polygon", self.is_polygon)
+        self.settings.setValue("is_rectangle", self.is_rectangle)
+        self.settings.setValue("is_linestrip", self.is_linestrip)
+        self.settings.setValue("is_line", self.is_line)
+        self.settings.setValue("is_point", self.is_point)
+        self.settings.setValue("is_multi_label", self.labelDialog.is_multi_label)
+        self.settings.setValue("label_def", self.labelDialog.label_def)
+        self.settings.setValue("approx_epsilon", self.approx_epsilon)
+        self.settings.setValue("area_limit", self.area_limit)
+        self.settings.setValue("is_submode", self.is_submode)
+        self.settings.setValue("ai_select", self.ai_select.currentText())
 
         # ask the use for where to save the labels
         # self.settings.setValue("window/geometry", self.saveGeometry())
@@ -1004,7 +1088,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def populateModeActions(self):
-        tool, menu = self.actions.tool, self.actions.menu
+        tool, menu = self.actions.tool, self.actions.canvas_menu
         self.tools.clear()
         qt.addActions(self.tools, tool)
         self.canvas.menus.clear()
@@ -2237,11 +2321,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.label_dicom_values.setText(t2)
 
 
-    def update_config_atkey(self, key, value):
-        self._config[key] = value
-        save_config(self._config)
-
-
     def timer_start(self):
         self.timer.restart()   
         self.interrupt_timer.start()
@@ -2422,14 +2501,23 @@ class MainWindow(QtWidgets.QMainWindow):
         dir_path = os.path.join(PRETRAINED_DIR, os.path.basename(target_dir))
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
-        shutil.copy(config_path, dir_path)
-        shutil.copy(onnx_path, dir_path)
+        try:
+            shutil.copy(config_path, dir_path)
+            shutil.copy(onnx_path, dir_path)
+        except shutil.SameFileError: # if src and dist are same.
+            self.reset_cursor()
+            self.error_message(self.tr(
+                """The same model has already exists."""
+            ))
+            return
+
         self.reset_cursor()
         
         self.info_message(self.tr("Imported {}").format(target_dir))
         self.update_ai_select()
         return
     
+
     def select_dir_dialog(self, default_dir=None, custom_text=None):
         opendir = HOME_DIR
         if default_dir is not None:
@@ -2450,14 +2538,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def export_canvas_img(self):
         opendir = HOME_DIR if self.prev_dir is None else self.prev_dir
-        target_path = str(QtWidgets.QFileDialog.getExistingDirectory(
-            self,
-            self.tr("Select Output Directory"),
-            opendir,
-            QtWidgets.QFileDialog.ShowDirsOnly |
-            QtWidgets.QFileDialog.DontResolveSymlinks))
-        if not target_path:
-            return None
+        target_path = self.select_dir_dialog(opendir, self.tr("Select Output Directory"))
+        if target_path is None:
+            return
         self.prev_dir = target_path
 
         save_path = os.path.join(target_path, utils.get_basename(self.img_path) + ".png")

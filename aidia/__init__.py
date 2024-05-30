@@ -3,7 +3,7 @@ import os
 import logging
 
 
-LITE = False
+LITE = True
 
 __appname__ = "Aidia" if not LITE else "Aidia-lite"
 __version__ = "1.3.2"
@@ -43,12 +43,8 @@ SEG = "Segmentation"
 MNIST = "MNIST Test"
 
 # setting tag definition
-S_LAEBL_DEF = "label_def"
-S_IS_MULTILABEL = "is_multi_label"
 S_EPSILON = "approx_epsilon"
 S_AREA_LIMIT = "area_limit"
-S_IS_SUBMODE = "is_submode"
-S_AI_SELECT = "ai_select"
 
 # model definition
 CLS_MODEL = ["EfficientNetv2-s"]
