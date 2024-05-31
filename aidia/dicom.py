@@ -85,7 +85,7 @@ class DICOM():
             if hasattr(self.data, "PixelSpacing"):
                 self.pixel_spacing = self.data.PixelSpacing
 
-            self.rescale_slope = 0
+            self.rescale_slope = 1
             if hasattr(self.data, "RescaleSlope"):
                 self.rescale_slope = self.data.RescaleSlope
 
