@@ -174,6 +174,8 @@ class LabelDialog(QtWidgets.QWidget):
             self.enable_buttons()
             if len(label) == 0:
                 self.label_list = []
+                self.validate()
+                return
             else:
                 self.label_list = label.split("_")
 
