@@ -10,7 +10,6 @@ import functools
 import re
 import os
 import shutil
-import os.path as osp
 import webbrowser
 import collections
 from glob import glob
@@ -233,8 +232,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ai_select = QtWidgets.QComboBox(self)
         self.ai_select.setStyleSheet("QComboBox{ text-align: center; }")
         def _validate(text):
-            path = osp.join(PRETRAINED_DIR, text)
-            if osp.exists(path):
+            path = os.path.join(PRETRAINED_DIR, text)
+            if os.path.exists(path):
                 self.model_dir = path
             else:
                 self.model_dir = None
@@ -723,7 +722,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # toggle view toolbar buttons
         def _func(value):
-            self.tools.flags[4] = value
+            self.tools.flags[2] = value
             self.tools.updateShowButtons()
             self.is_polygon = value
         show_polygon_mode_action = action(
@@ -735,7 +734,7 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
         def _func(value):
-            self.tools.flags[5] = value
+            self.tools.flags[3] = value
             self.tools.updateShowButtons()
             self.is_rectangle = value
         show_rectangle_mode_action = action(
@@ -747,7 +746,7 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
         def _func(value):
-            self.tools.flags[6] = value
+            self.tools.flags[4] = value
             self.tools.updateShowButtons()
             self.is_linestrip = value
         show_linestrip_mode_action = action(
@@ -759,7 +758,7 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
         def _func(value):
-            self.tools.flags[7] = value
+            self.tools.flags[5] = value
             self.tools.updateShowButtons()
             self.is_line = value
         show_line_mode_action = action(
@@ -771,7 +770,7 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
         def _func(value):
-            self.tools.flags[8] = value
+            self.tools.flags[6] = value
             self.tools.updateShowButtons()
             self.is_point = value
         show_point_mode_action = action(
@@ -954,8 +953,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actions.tool = (
             open_action,
             # opendir_action,
-            open_prev_action,
-            open_next_action,
+            # open_prev_action,
+            # open_next_action,
             save_action,
             # delete_file_action,
             create_mode_action,
@@ -999,11 +998,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.populateModeActions()
 
         # restore toolbar status
-        self.tools.flags[4] = self.is_polygon
-        self.tools.flags[5] = self.is_rectangle
-        self.tools.flags[6] = self.is_linestrip
-        self.tools.flags[7] = self.is_line
-        self.tools.flags[8] = self.is_point
+        self.tools.flags[2] = self.is_polygon
+        self.tools.flags[3] = self.is_rectangle
+        self.tools.flags[4] = self.is_linestrip
+        self.tools.flags[5] = self.is_line
+        self.tools.flags[6] = self.is_point
         self.tools.updateShowButtons()
 
         # set disable canvas by default
@@ -1132,7 +1131,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_title(self, set_dirty=False):
         title = __appname__ + " " + __version__
         title += " - {}".format(self.img_path)
-        if self.lf_path is not None and osp.exists(self.lf_path):
+        if self.lf_path is not None and os.path.exists(self.lf_path):
             title += " - {}".format(self.lf_path)
         if set_dirty:
             title += '*'
@@ -1276,7 +1275,7 @@ class MainWindow(QtWidgets.QMainWindow):
         current = self.img_path
 
         def exists(filename):
-            return osp.exists(str(filename))
+            return os.path.exists(str(filename))
 
         menu = self.menus.recentFiles
         menu.clear()
@@ -1390,7 +1389,7 @@ class MainWindow(QtWidgets.QMainWindow):
         item = self.fileListWidget.item(currentRow)
         if not item:
             return
-        img_path = osp.join(self.imgdir, item.text())
+        img_path = os.path.join(self.work_dir, item.text())
         currIndex = self.image_list.index(img_path)
         if currIndex < len(self.image_list):
             filename = self.image_list[currIndex]
@@ -1507,7 +1506,7 @@ class MainWindow(QtWidgets.QMainWindow):
         shapes = [format_shape(item.shape()) for item in self.labelList]
 
         try:
-            filename = osp.basename(self.img_path)
+            filename = os.path.basename(self.img_path)
             br = 0.0 if self.canvas.brightness is None else self.canvas.brightness
             co = 1.0 if self.canvas.contrast is None else self.canvas.contrast
             lf.save(
@@ -1566,7 +1565,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     
     def add_label_data(self):
-        item_name = osp.basename(self.img_path)
+        item_name = os.path.basename(self.img_path)
         self.labels[item_name] = self.get_all_labels(self.labelFile)
 
     # Callback functions:
@@ -1685,7 +1684,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.wait_cursor()
 
         # assumes same name, but json extension
-        self.status(self.tr("Loading {}...").format(osp.basename(str(img_path))))
+        self.status(self.tr("Loading {}...").format(os.path.basename(str(img_path))))
 
         # Load label file.
         self._load_labelfile(img_path)
@@ -1731,7 +1730,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def _load_labelfile(self, img_path):
         self.lf_path = self.make_lfpath(img_path)
         try:
-            if osp.exists(self.lf_path):
+            if os.path.exists(self.lf_path):
                 self.labelFile = LabelFile()
                 self.labelFile.load(self.lf_path)
             else:
@@ -1882,21 +1881,40 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_file(self, _value=False):
         if not self.may_continue_unsaved():
             return
-        path = osp.dirname(str(self.img_path)) if self.img_path else "."
-        filename = QtWidgets.QFileDialog.getOpenFileName(
-            self,
-            self.tr("Choose image file"),
-            path)
-        filename = str(filename[0]).replace("/", os.sep)
-        ext = os.path.splitext(filename)[1].lower()
-        if len(filename) == 0:
-            return
-        elif len(ext) and ext not in EXTS:     # exclude not supported file
-            self.error_message(self.tr("This file format is not supported."))
-            return
-        elif not len(ext) and not is_dicom(filename):   # exclude not dicom file has no ext
-            self.error_message(self.tr("This file is not a dicom file."))
-            return
+        path = os.path.dirname(str(self.img_path)) if self.img_path else "."
+
+        # get extension filter
+        _exts = [f"*{e}" for e in EXTS]
+        _exts = " ".join(_exts)
+        filter = self.tr("All files (*);;Image files ({})").format(_exts)
+
+        # get file name
+        while True:
+            filename = QtWidgets.QFileDialog.getOpenFileName(
+                self,
+                self.tr("Choose image file"),
+                path,
+                filter=filter,)
+            filename = str(filename[0]).replace("/", os.sep)
+            ext = os.path.splitext(filename)[1].lower()
+            if len(filename) == 0:
+                return
+            elif len(ext) and ext == LabelFile.SUFFIX:  # if json files are selected
+                for ext in EXTS:
+                    _img_path = os.path.splitext(filename)[0] + ext
+                    if os.path.exists(_img_path):
+                        filename = _img_path
+                        break
+                else:
+                    self.error_message(self.tr("The image file was not found."))
+                    continue
+                break
+            elif len(ext) and ext not in EXTS:     # exclude not supported file
+                self.error_message(self.tr("This file format is not supported."))
+            elif not len(ext) and not is_dicom(filename):   # exclude not dicom file has no ext
+                self.error_message(self.tr("This file is not a dicom file."))
+            else:
+                break
         
         # open directory
         target_path = utils.get_parent_path(filename)
@@ -1938,8 +1956,8 @@ class MainWindow(QtWidgets.QMainWindow):
         dlg.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
         dlg.setOption(QtWidgets.QFileDialog.DontConfirmOverwrite, False)
         dlg.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, False)
-        basename = osp.basename(osp.splitext(self.img_path)[0])
-        default_labelfile_name = osp.join(
+        basename = os.path.basename(os.path.splitext(self.img_path)[0])
+        default_labelfile_name = os.path.join(
             self.current_path(), basename + LabelFile.SUFFIX
         )
         filename = dlg.getSaveFileName(
@@ -1975,13 +1993,13 @@ class MainWindow(QtWidgets.QMainWindow):
         answer = mb.warning(self, self.tr("Attention"), msg, mb.Yes | mb.No)
         if answer != mb.Yes:
             return
-        if osp.exists(self.lf_path):
+        if os.path.exists(self.lf_path):
             os.remove(self.lf_path)
             item = self.fileListWidget.currentItem()
             if item:
                 item.setCheckState(Qt.Unchecked)
             self.resetState()
-            img_path = osp.join(self.imgdir, item.text())
+            img_path = os.path.join(self.work_dir, item.text())
             self.load_file(img_path)
         self.update_sum()
 
@@ -1999,7 +2017,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def has_label_file(self):
         if self.img_path is None:
             return False
-        return osp.exists(self.lf_path)
+        return os.path.exists(self.lf_path)
     
 
     def may_continue_unsaved(self):
@@ -2007,7 +2025,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return True
         mb = QtWidgets.QMessageBox
         msg = self.tr("Save annotations to '{}' before closing?").format(
-            osp.basename(self.img_path))
+            os.path.basename(self.img_path))
         answer = mb.question(self,
                              self.tr("Save annotations?"),
                              msg,
@@ -2067,7 +2085,7 @@ class MainWindow(QtWidgets.QMainWindow):
             "<p>{}</p>".format(message))
 
     def current_path(self):
-        return osp.dirname(str(self.img_path)) if self.img_path else "."
+        return os.path.dirname(str(self.img_path)) if self.img_path else "."
 
     def toggle_keep_prev_mode(self):
         self._config["keep_prev"] = not self._config["keep_prev"]
@@ -2115,7 +2133,7 @@ class MainWindow(QtWidgets.QMainWindow):
     @property
     def image_list(self):
         count = self.fileListWidget.count()
-        lst = [osp.join(self.imgdir, self.fileListWidget.item(i).text())
+        lst = [os.path.join(self.work_dir, self.fileListWidget.item(i).text())
             for i in range(count)]
         return lst
 
@@ -2132,20 +2150,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def reset_cursor(self):
         QtWidgets.QApplication.restoreOverrideCursor()
 
-    def make_imgdir(self, dirpath):
-        img_dir = osp.join(dirpath, 'image')
-        if not osp.exists(img_dir):
-            img_dir = dirpath
-        return img_dir
 
     def make_lfpath(self, img_path):
-        if utils.get_basedir(img_path) == 'image':
-            parent_dir = osp.dirname(img_path)
-            lf_dir = osp.join(osp.dirname(parent_dir), 'annotation')
-            img_name = utils.get_basename(img_path)
-            return osp.join(lf_dir, img_name) + LabelFile.SUFFIX
-        else:
-            return osp.splitext(img_path)[0] + LabelFile.SUFFIX
+        # if utils.get_basedir(img_path) == 'image':
+        #     parent_dir = os.path.dirname(img_path)
+        #     lf_dir = os.path.join(os.path.dirname(parent_dir), 'annotation')
+        #     img_name = utils.get_basename(img_path)
+        #     return os.path.join(lf_dir, img_name) + LabelFile.SUFFIX
+        # else:
+        return os.path.splitext(img_path)[0] + LabelFile.SUFFIX
 
 
     def get_all_labels(self, lf: LabelFile):
@@ -2169,7 +2182,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
 
     def import_from_dir(self, dirpath):
-        if not osp.exists(dirpath):
+        if not os.path.exists(dirpath):
             self.error_message(self.tr("{} does not exists.").format(dirpath))
             return
         self.actions.openNextImg.setEnabled(True)
@@ -2179,15 +2192,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.wait_cursor()
 
         # check whether can get image list
-        target_dir = self.make_imgdir(dirpath)
-        img_list = self.scan_all_imgs(target_dir)
+        img_list = self.scan_all_imgs(dirpath)
         if img_list is None or len(img_list) == 0:
             self.reset_cursor()
             self.error_message(self.tr("No images in the directory."))
             return
         
         # create data directory
-        data_dirpath = osp.join(dirpath, "data")
+        data_dirpath = os.path.join(dirpath, "data")
         if not os.path.exists(data_dirpath):
             os.mkdir(data_dirpath)
         self.canvas.reset_params()
@@ -2196,7 +2208,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(self.labels) == 0:
             is_get_all_labels = True
 
-        self.imgdir = target_dir
         self.img_path = None
         self.fileListWidget.clear()
         self.count_images = 0
@@ -2204,7 +2215,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         for img_path in img_list:
             self.count_images += 1
-            item_name = osp.basename(img_path)
+            item_name = os.path.basename(img_path)
 
             if self.target_name and self.target_name not in item_name:
                 continue
@@ -2212,10 +2223,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 continue
             if self.target_label and self.labels.get(item_name) \
                 and not self.label_search(item_name):
-                # skip data when target label in annotation
+                # skip data when the target label is not in the annotation
                 continue
                 
-            item = QtWidgets.QListWidgetItem(osp.basename(img_path))
+            item = QtWidgets.QListWidgetItem(os.path.basename(img_path))
             item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             lf_path = self.make_lfpath(img_path)
             lf = None
@@ -2255,22 +2266,22 @@ class MainWindow(QtWidgets.QMainWindow):
     def scan_all_imgs(self, dirpath=None):
         number_sort = True
         img_paths = []
-        target_dir = dirpath if dirpath is not None  else self.imgdir
-        for fp in glob(osp.join(target_dir, '*')):
+        target_dir = dirpath if dirpath is not None else self.work_dir
+        for fp in glob(os.path.join(target_dir, '*')):
             if is_dicom(fp) or utils.extract_ext(fp) in EXTS:
                 img_paths.append(fp)
-                key = re.sub(r"\D", "", osp.basename(fp))
+                key = re.sub(r"\D", "", os.path.basename(fp))
                 if key == "":
                     number_sort = False
             # if fname.lower().endswith(tuple(extensions)):
             #     img_paths.append(fp)
-                # key = re.search(r'\d+', osp.basename(fp))
+                # key = re.search(r'\d+', os.path.basename(fp))
                 # if key is None:
                     # number_sort = False
         img_paths.sort(key=lambda x: x.lower())
         if number_sort:
-            # img_paths.sort(key=lambda s: int(re.search(r'\d+', osp.basename(s)).group()))
-            img_paths.sort(key=lambda s: int(re.sub(r"\D", "", osp.basename(s))))
+            # img_paths.sort(key=lambda s: int(re.search(r'\d+', os.path.basename(s)).group()))
+            img_paths.sort(key=lambda s: int(re.sub(r"\D", "", os.path.basename(s))))
         return img_paths
 
 
@@ -2404,7 +2415,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.img_path:
             return
         
-        if not self.model_dir or not osp.exists(self.model_dir):
+        if not self.model_dir or not os.path.exists(self.model_dir):
             self.error_message(self.tr("AI Model was not found."))
             return
 

@@ -132,6 +132,8 @@ class LabelDialog(QtWidgets.QWidget):
                 widget = item.widget()
                 if widget is not None:
                     widget.setParent(None)
+        self.prev_button = None
+        self.prev_button2 = None
 
         # add buttons
         self.b_dict = {}
@@ -140,9 +142,10 @@ class LabelDialog(QtWidgets.QWidget):
         bb.clicked.connect(self.toggle_button)
         bb2 = QtWidgets.QDialogButtonBox(QtCore.Qt.Horizontal)
         bb2.clicked.connect(self.toggle_button2)
-        
-        for l in self.label_def:
-            b = self.create_button(l, self.button_size)
+
+        for i, l in enumerate(self.label_def):
+            shortcut_key = "{}".format((i + 1) % 10)
+            b = self.create_button(l, self.button_size, shortcut_key=shortcut_key)
             b.clicked.connect(functools.partial(self.set_label, l))
             self.b_dict[l] = b
             bb.addButton(b, QtWidgets.QDialogButtonBox.ActionRole)
@@ -243,8 +246,10 @@ class LabelDialog(QtWidgets.QWidget):
                 self.prev_button2 = button
 
 
-    def create_button(self, button_label, size, color=None):
+    def create_button(self, button_label, size, color=None, shortcut_key=None):
         button = QtWidgets.QPushButton('&{}'.format(button_label))
+        if shortcut_key:
+            button.setShortcut(shortcut_key)
         button.setCheckable(True)
         button.setAutoDefault(False)
         # button.setMaximumWidth(size)
