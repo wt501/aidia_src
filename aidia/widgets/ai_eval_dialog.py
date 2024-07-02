@@ -132,7 +132,7 @@ class AIEvalDialog(QtWidgets.QDialog):
         self._layout.addWidget(self.button_pred, row, 2, 1, 1)
 
         # export data button
-        self.button_export_data = QtWidgets.QPushButton(self.tr("Save Data"))
+        self.button_export_data = QtWidgets.QPushButton(self.tr("Save Results"))
         self.button_export_data.setToolTip(self.tr(
             """Save the evaluation data."""
         ))

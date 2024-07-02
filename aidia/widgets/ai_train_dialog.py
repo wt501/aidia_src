@@ -525,7 +525,7 @@ Separate the labels with line breaks."""))
         self.text_status.setText(self.tr("Ready"))
 
 
-    def popup(self, dataset_dir, is_submode=False):
+    def popup(self, dataset_dir, is_submode=False, data_labels=None):
         """Popup train window and set config parameters to input fields."""
         self.dataset_dir = dataset_dir
         self.setWindowTitle(self.tr("AI Training - {}").format(dataset_dir))
@@ -556,7 +556,10 @@ Separate the labels with line breaks."""))
         self.input_batchsize.setText(str(self.config.BATCH_SIZE))
         self.input_lr.setText(str(self.config.LEARNING_RATE))
 
-        self.input_labels.setText("\n".join(self.config.LABELS))
+        if data_labels:
+            self.input_labels.setText("\n".join(data_labels))
+        else:
+            self.input_labels.setText("\n".join(self.config.LABELS))
         if self.config.gpu_num < 2:
             self.input_is_multi.setEnabled(False)
         self.input_is_multi.setChecked(self.config.USE_MULTI_GPUS)

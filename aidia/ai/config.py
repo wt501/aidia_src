@@ -51,7 +51,7 @@ class AIConfig(object):
         self.EPOCHS = 100
         self.LEARNING_RATE = 0.001
         self.SAVE_BEST = False
-        self.LABELS = ["0"]
+        self.LABELS = []
         self.N_SPLITS = 5
 
         self.MODEL = "YOLOv4"

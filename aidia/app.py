@@ -87,6 +87,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # label search
         self.labels = {}
+        self.data_labels = []
         self.target_label = None
         self.target_name = None
 
@@ -540,7 +541,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tr("Edit Polygons"),
             self.setEditMode,
             # shortcuts["edit_polygon"],
-            "E",
+            ["E", "ESC"],
             "edit",
             self.tr("Move and edit the selected polygons."),
             enabled=False
@@ -808,14 +809,14 @@ class MainWindow(QtWidgets.QMainWindow):
             removePoint=remove_point_action,
             createMode=create_mode_action,
             createRectangleMode=create_rectangle_mode,
-            createLineStripMode=create_linestrip_mode,
-            createLineMode=create_line_mode,
-            createPointMode=create_point_mode,
+            # createLineStripMode=create_linestrip_mode,
+            # createLineMode=create_line_mode,
+            # createPointMode=create_point_mode,
             showPolygonMode=show_polygon_mode_action,
             showRectangleMode=show_rectangle_mode_action,
-            showLinestripMode=show_linestrip_mode_action,
-            showLineMode=show_line_mode_action,
-            showPointMode=show_point_mode_action,
+            # showLinestripMode=show_linestrip_mode_action,
+            # showLineMode=show_line_mode_action,
+            # showPointMode=show_point_mode_action,
             editMode=edit_mode_action,
             resetBrightnessContrast=reset_brightness_contrast_action,
             zoom=zoom, zoomIn=zoom_in_action,
@@ -917,9 +918,9 @@ class MainWindow(QtWidgets.QMainWindow):
             (
                 show_polygon_mode_action,
                 show_rectangle_mode_action,
-                show_linestrip_mode_action,
-                show_line_mode_action,
-                show_point_mode_action,
+                # show_linestrip_mode_action,
+                # show_line_mode_action,
+                # show_point_mode_action,
                 None,
                 self.file_dock.toggleViewAction(),
                 self.shape_dock.toggleViewAction(),
@@ -1034,9 +1035,9 @@ class MainWindow(QtWidgets.QMainWindow):
         m.addActions([
             self.actions.showPolygonMode,
             self.actions.showRectangleMode,
-            self.actions.showLinestripMode,
-            self.actions.showLineMode,
-            self.actions.showPointMode,
+            # self.actions.showLinestripMode,
+            # self.actions.showLineMode,
+            # self.actions.showPointMode,
         ])
         m.exec_(QtGui.QCursor.pos())
 
@@ -1096,9 +1097,9 @@ class MainWindow(QtWidgets.QMainWindow):
         actions = (
             self.actions.createMode,
             self.actions.createRectangleMode,
-            self.actions.createLineStripMode,
-            self.actions.createLineMode,
-            self.actions.createPointMode,
+            # self.actions.createLineStripMode,
+            # self.actions.createLineMode,
+            # self.actions.createPointMode,
             self.actions.editMode,
         )
         qt.addActions(self.menus.edit, actions + self.actions.editMenu)
@@ -1227,41 +1228,41 @@ class MainWindow(QtWidgets.QMainWindow):
             self.create_mode = None
             self.actions.createMode.setEnabled(True)
             self.actions.createRectangleMode.setEnabled(True)
-            self.actions.createLineStripMode.setEnabled(True)
-            self.actions.createLineMode.setEnabled(True)
-            self.actions.createPointMode.setEnabled(True)
+            # self.actions.createLineStripMode.setEnabled(True)
+            # self.actions.createLineMode.setEnabled(True)
+            # self.actions.createPointMode.setEnabled(True)
         else:
             self.create_mode = create_mode
             if create_mode == "polygon":
                 self.actions.createMode.setEnabled(False)
                 self.actions.createRectangleMode.setEnabled(True)
-                self.actions.createLineStripMode.setEnabled(True)
-                self.actions.createLineMode.setEnabled(True)
-                self.actions.createPointMode.setEnabled(True)
+                # self.actions.createLineStripMode.setEnabled(True)
+                # self.actions.createLineMode.setEnabled(True)
+                # self.actions.createPointMode.setEnabled(True)
             elif create_mode == "rectangle":
                 self.actions.createMode.setEnabled(True)
                 self.actions.createRectangleMode.setEnabled(False)
-                self.actions.createLineStripMode.setEnabled(True)
-                self.actions.createLineMode.setEnabled(True)
-                self.actions.createPointMode.setEnabled(True)
-            elif create_mode == "linestrip":
-                self.actions.createMode.setEnabled(True)
-                self.actions.createRectangleMode.setEnabled(True)
-                self.actions.createLineStripMode.setEnabled(False)
-                self.actions.createLineMode.setEnabled(True)
-                self.actions.createPointMode.setEnabled(True)
-            elif create_mode == "line":
-                self.actions.createMode.setEnabled(True)
-                self.actions.createRectangleMode.setEnabled(True)
-                self.actions.createLineStripMode.setEnabled(True)
-                self.actions.createLineMode.setEnabled(False)
-                self.actions.createPointMode.setEnabled(True)
-            elif create_mode == "point":
-                self.actions.createMode.setEnabled(True)
-                self.actions.createRectangleMode.setEnabled(True)
-                self.actions.createLineStripMode.setEnabled(True)
-                self.actions.createLineMode.setEnabled(True)
-                self.actions.createPointMode.setEnabled(False)
+                # self.actions.createLineStripMode.setEnabled(True)
+                # self.actions.createLineMode.setEnabled(True)
+                # self.actions.createPointMode.setEnabled(True)
+            # elif create_mode == "linestrip":
+            #     self.actions.createMode.setEnabled(True)
+            #     self.actions.createRectangleMode.setEnabled(True)
+            #     self.actions.createLineStripMode.setEnabled(False)
+            #     self.actions.createLineMode.setEnabled(True)
+            #     self.actions.createPointMode.setEnabled(True)
+            # elif create_mode == "line":
+            #     self.actions.createMode.setEnabled(True)
+            #     self.actions.createRectangleMode.setEnabled(True)
+            #     self.actions.createLineStripMode.setEnabled(True)
+            #     self.actions.createLineMode.setEnabled(False)
+            #     self.actions.createPointMode.setEnabled(True)
+            # elif create_mode == "point":
+            #     self.actions.createMode.setEnabled(True)
+            #     self.actions.createRectangleMode.setEnabled(True)
+            #     self.actions.createLineStripMode.setEnabled(True)
+            #     self.actions.createLineMode.setEnabled(True)
+            #     self.actions.createPointMode.setEnabled(False)
             else:
                 raise ValueError(f"Unsupported createMode: {create_mode}")
         self.actions.editMode.setEnabled(not edit)
@@ -2359,17 +2360,50 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def ai_train_popup(self):
-        if self.is_submode:
+        labels = []
+        if self.is_submode:    
             parent_dir = utils.get_parent_path(self.work_dir)
             if not self.ai_train_dialog.ai.isRunning():
                 msg = self.tr("Construct dataset with all subdirectory data in {}").format(parent_dir)
                 if not self.may_continue(msg):
                     return
+                
+            # create data directory
             if not os.path.exists(os.path.join(parent_dir, "data")):
                 os.mkdir(os.path.join(parent_dir, "data"))
-            self.ai_train_dialog.popup(parent_dir, self.is_submode)
+
+            # get all labels
+            dir_list = glob(os.path.join(parent_dir, "**"))
+            
+            for subdir_path in dir_list:
+                if utils.get_basename(subdir_path) == "data":
+                    continue
+                subdir_jsons = glob(os.path.join(subdir_path, "*.json"))
+                for p in subdir_jsons:
+                    lf = LabelFile()
+                    lf.load(p)
+                    _labels = self.get_all_labels(lf)
+                    _labels = sum(_labels, [])
+                    labels.extend(_labels)
+            labels = sorted(list(set(labels)))
+
+            self.ai_train_dialog.popup(parent_dir, self.is_submode, labels)
+
         else:
-            self.ai_train_dialog.popup(self.work_dir, self.is_submode)
+            # create data directory
+            if not os.path.exists(os.path.join(self.work_dir, "data")):
+                os.mkdir(os.path.join(self.work_dir, "data"))
+
+            # get all labels
+            for p in glob(os.path.join(self.work_dir, "*.json")):
+                lf = LabelFile()
+                lf.load(p)
+                _labels = self.get_all_labels(lf)
+                _labels = sum(_labels, [])
+                labels.extend(_labels)
+            labels = sorted(list(set(labels)))
+
+            self.ai_train_dialog.popup(self.work_dir, self.is_submode, labels)
 
     
     def ai_eval_popup(self):
