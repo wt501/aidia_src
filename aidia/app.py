@@ -746,41 +746,41 @@ class MainWindow(QtWidgets.QMainWindow):
             checked=self.is_rectangle,
         )
 
-        def _func(value):
-            self.tools.flags[4] = value
-            self.tools.updateShowButtons()
-            self.is_linestrip = value
-        show_linestrip_mode_action = action(
-            text=self.tr("&Show Linestrip Mode"),
-            slot=_func,
-            checkable=True,
-            enabled=True,
-            checked=self.is_linestrip,
-        )
+        # def _func(value):
+        #     self.tools.flags[4] = value
+        #     self.tools.updateShowButtons()
+        #     self.is_linestrip = value
+        # show_linestrip_mode_action = action(
+        #     text=self.tr("&Show Linestrip Mode"),
+        #     slot=_func,
+        #     checkable=True,
+        #     enabled=True,
+        #     checked=self.is_linestrip,
+        # )
 
-        def _func(value):
-            self.tools.flags[5] = value
-            self.tools.updateShowButtons()
-            self.is_line = value
-        show_line_mode_action = action(
-            text=self.tr("&Show Line Mode"),
-            slot=_func,
-            checkable=True,
-            enabled=True,
-            checked=self.is_line,
-        )
+        # def _func(value):
+        #     self.tools.flags[5] = value
+        #     self.tools.updateShowButtons()
+        #     self.is_line = value
+        # show_line_mode_action = action(
+        #     text=self.tr("&Show Line Mode"),
+        #     slot=_func,
+        #     checkable=True,
+        #     enabled=True,
+        #     checked=self.is_line,
+        # )
 
-        def _func(value):
-            self.tools.flags[6] = value
-            self.tools.updateShowButtons()
-            self.is_point = value
-        show_point_mode_action = action(
-            text=self.tr("&Show Point Mode"),
-            slot=_func,
-            checkable=True,
-            enabled=True,
-            checked=self.is_point,
-        )
+        # def _func(value):
+        #     self.tools.flags[6] = value
+        #     self.tools.updateShowButtons()
+        #     self.is_point = value
+        # show_point_mode_action = action(
+        #     text=self.tr("&Show Point Mode"),
+        #     slot=_func,
+        #     checkable=True,
+        #     enabled=True,
+        #     checked=self.is_point,
+        # )
 
         # label list right click menu.
         labelMenu = QtWidgets.QMenu()
@@ -960,9 +960,9 @@ class MainWindow(QtWidgets.QMainWindow):
             # delete_file_action,
             create_mode_action,
             create_rectangle_mode,
-            create_linestrip_mode,
-            create_line_mode,
-            create_point_mode,
+            # create_linestrip_mode,
+            # create_line_mode,
+            # create_point_mode,
             edit_mode_action,
             # copy_action,
             # delete_action,
@@ -1001,9 +1001,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # restore toolbar status
         self.tools.flags[2] = self.is_polygon
         self.tools.flags[3] = self.is_rectangle
-        self.tools.flags[4] = self.is_linestrip
-        self.tools.flags[5] = self.is_line
-        self.tools.flags[6] = self.is_point
+        # self.tools.flags[4] = self.is_linestrip
+        # self.tools.flags[5] = self.is_line
+        # self.tools.flags[6] = self.is_point
         self.tools.updateShowButtons()
 
         # set disable canvas by default
@@ -2163,7 +2163,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def get_all_labels(self, lf: LabelFile):
-        _labels = [shape['label'].split('_') for shape in lf.shapes]
+        _labels = []
+        for shape in lf.shapes:
+            l = shape['label'].split('_')
+            if l == ['']: # skip shapes have no labels
+                continue
+            else:
+                _labels.append(l)
         return _labels
     
 
@@ -2382,6 +2388,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 for p in subdir_jsons:
                     lf = LabelFile()
                     lf.load(p)
+                    if lf.shapes is None:
+                        continue
                     _labels = self.get_all_labels(lf)
                     _labels = sum(_labels, [])
                     labels.extend(_labels)
@@ -2398,6 +2406,8 @@ class MainWindow(QtWidgets.QMainWindow):
             for p in glob(os.path.join(self.work_dir, "*.json")):
                 lf = LabelFile()
                 lf.load(p)
+                if lf.shapes is None:
+                    continue
                 _labels = self.get_all_labels(lf)
                 _labels = sum(_labels, [])
                 labels.extend(_labels)

@@ -26,7 +26,10 @@ class LabelFile(object):
 
     def load(self, lf_path):
         with codecs.open(lf_path, 'r', "utf-8", "ignore") as f:
-            data = json.load(f)
+            try:
+                data = json.load(f)
+            except Exception as e:
+                return
         try:
             version = __version__
             if data.get('version') is not None:
