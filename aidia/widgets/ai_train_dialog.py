@@ -580,7 +580,7 @@ Separate the labels with line breaks."""))
         self.input_noise.setText(str(self.config.RANDOM_NOISE))
         self.input_brightness.setText(str(self.config.RANDOM_BRIGHTNESS))
         self.input_contrast.setText(str(self.config.RANDOM_CONTRAST))
-        
+
         self.exec_()
         if os.path.exists(os.path.join(dataset_dir, "data")):
             self.config.save(config_path)

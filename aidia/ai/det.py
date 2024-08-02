@@ -242,23 +242,14 @@ class DetectionModel(object):
     def predict_by_id(self, image_id, thresh=0.5):
         # load image and annotation
         org_img = self.dataset.load_image(image_id, is_resize=False)
-        anno_gt = self.dataset.get_yolo_bboxes(image_id)
-        if len(anno_gt) == 0:
-            bboxes_gt = []
-            classes_gt = []
-        else:
-            bboxes_gt, classes_gt = anno_gt[:, :4], anno_gt[:, 4]
 
-        # ground truths
-        # bbox_dict_gt = []
-        # for i in range(len(bboxes_gt)):
-        #     class_id = classes_gt[i]
-        #     class_name = self.dataset.class_names[class_id]
-        #     bbox = list(map(float, bboxes_gt[i]))
-        #     bbox_dict_gt.append({"class_name": class_name,
-        #                             "bbox": bbox,
-        #                             "used": False})
-        #     gt_count_per_class[class_id] += 1
+        # TODO: ground truth visualization
+        # anno_gt = self.dataset.get_yolo_bboxes(image_id)
+        # if len(anno_gt) == 0:
+        #     bboxes_gt = []
+        #     classes_gt = []
+        # else:
+        #     bboxes_gt, classes_gt = anno_gt[:, :4], anno_gt[:, 4]
 
         # prediction
         pred_bboxes = self.model.predict(org_img)
@@ -333,3 +324,4 @@ class DetectionModel(object):
         for i in i_list:
             ap += ((mrec[i]-mrec[i-1])*mpre[i])
         return ap, mrec, mpre
+    

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="ja_JP" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="ja_JP">
 <context>
     <name></name>
     <message>
@@ -492,12 +493,12 @@
 <context>
     <name>AIEvalDialog</name>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="42"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="45"/>
         <source>AI Evaluation</source>
         <translation>AI評価</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="74"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="77"/>
         <source>Name</source>
         <translation>名前</translation>
     </message>
@@ -507,22 +508,22 @@
         <translation type="obsolete">クラスを選択</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="106"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="109"/>
         <source>Results</source>
         <translation>結果</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="116"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="119"/>
         <source>Evaluate</source>
         <translation>評価</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="169"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="172"/>
         <source>Dataset Information</source>
         <translation>データセット情報</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="218"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="221"/>
         <source>Ready</source>
         <translation>準備完了</translation>
     </message>
@@ -557,64 +558,64 @@
         <translation type="obsolete">適合率</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="320"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="314"/>
         <source>Number of Data: {}</source>
         <translation>データ数: {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="321"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="315"/>
         <source>Number of Train: {}</source>
         <translation>学習データ数: {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="322"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="316"/>
         <source>Number of Validation: {}</source>
         <translation>検証データ数: {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="323"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="317"/>
         <source>Number of Test: {}</source>
         <translation>テストデータ数: {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="328"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="322"/>
         <source>Train Steps: {}</source>
         <translation>学習ステップ数: {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="329"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="323"/>
         <source>Validation Steps: {}</source>
         <translation>検証ステップ数: {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="330"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="324"/>
         <source>Number of Shapes: {}</source>
         <translation>図形の数: {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="331"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="325"/>
         <source>Class Information:
 {}</source>
         <translation>クラス情報:
 {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="451"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="445"/>
         <source>Please check parameters.</source>
         <translation>パラメータを確認してください。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="457"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="451"/>
         <source>Config file was not found.</source>
         <translation>設定ファイルが見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="431"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="425"/>
         <source>Dataset file was not found.</source>
         <translation>データセットファイルが見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="126"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="129"/>
         <source>Predict</source>
         <translation>予測</translation>
     </message>
@@ -624,12 +625,12 @@
         <translation type="obsolete">フォルダ内の画像に対して予測を行う。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="222"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="225"/>
         <source>AI Evaluation - {}</source>
         <translation>AI評価 - {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="470"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="464"/>
         <source>The ONNX model was not found.</source>
         <translation>ONNXモデルが見つかりませんでした。</translation>
     </message>
@@ -639,42 +640,42 @@
         <translation type="obsolete">{} - フォルダを開く</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="488"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="482"/>
         <source>The Directory is empty.</source>
         <translation>フォルダは空です。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="492"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="486"/>
         <source>Processing...</source>
         <translation>処理中...</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="319"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="313"/>
         <source>Dataset Number: {}</source>
         <translation>データセット番号: {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="464"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="458"/>
         <source>Not implemented function.</source>
         <translation>実装されていない機能です。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="308"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="302"/>
         <source>[*] labels (all|train|val|test)</source>
         <translation>[*] ラベル (すべて|学習|検証|テスト)</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="325"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="319"/>
         <source>Number of Train Directories: {}</source>
         <translation>学習用フォルダ数: {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="326"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="320"/>
         <source>Number of Validation Directories: {}</source>
         <translation>検証用フォルダ数: {}</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="327"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="321"/>
         <source>Number of Test Directories: {}</source>
         <translation>テスト用フォルダ数: {}</translation>
     </message>
@@ -704,32 +705,32 @@
         <translation type="obsolete">フォルダの選択</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="538"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="532"/>
         <source>Export data to {}</source>
         <translation>データを{}にエクスポートしました</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="96"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="99"/>
         <source>Select Weights</source>
         <translation>重みの選択</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="525"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="519"/>
         <source>Select Output Directory</source>
         <translation>保存先のフォルダを選択してください</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="478"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="472"/>
         <source>Select Test Images Directory</source>
         <translation>テスト画像フォルダを選択してください</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="117"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="120"/>
         <source>Evaluate and Export the trained model based on weights you selected.</source>
         <translation>選択した重みに基づく学習済みモデルの評価とエクスポートを行います。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="127"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="130"/>
         <source>Predict images in the directory you selected.</source>
         <translation>選択したフォルダ内の画像に対して予測を行います。</translation>
     </message>
@@ -749,22 +750,22 @@
         <translation type="obsolete">データの保存</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="135"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="138"/>
         <source>Save the evaluation data.</source>
         <translation>評価データを保存します。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="142"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="145"/>
         <source>Save Model</source>
         <translation>モデルの保存</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="143"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="146"/>
         <source>Save the model data.</source>
         <translation>モデルデータを保存します。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="134"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="137"/>
         <source>Save Results</source>
         <translation>評価結果の保存</translation>
     </message>
@@ -772,57 +773,57 @@
 <context>
     <name>AIEvalThread</name>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="589"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="583"/>
         <source>Model error. Terminated.</source>
         <translation>モデルエラー。強制終了。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="592"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="586"/>
         <source>Data loading...</source>
         <translation>データ読み込み中...</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="625"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="619"/>
         <source>Model building...</source>
         <translation>モデルを構築中...</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="633"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="627"/>
         <source>Generate test result images...</source>
         <translation>テスト結果の画像を生成中...</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="677"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="671"/>
         <source>Convert model to ONNX...</source>
         <translation>モデルをONNXに変換中...</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="680"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="674"/>
         <source>Evaluating...</source>
         <translation>評価中...</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="690"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="684"/>
         <source>Done.</source>
         <translation>完了。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="596"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="590"/>
         <source>Failed to load dataset.</source>
         <translation>データセットの読み込みに失敗しました。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="684"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="678"/>
         <source>Failed to evaluate.</source>
         <translation>評価に失敗しました。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="661"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="655"/>
         <source>Error: {} was not found.</source>
         <translation>エラー: {}が見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="629"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="623"/>
         <source>Failed to build the model.</source>
         <translation>モデルの構築に失敗しました。</translation>
     </message>
@@ -830,7 +831,7 @@
 <context>
     <name>AIPredThread</name>
     <message>
-        <location filename="../widgets/ai_eval_dialog.py" line="751"/>
+        <location filename="../widgets/ai_eval_dialog.py" line="758"/>
         <source>Saved result images to {}</source>
         <translation>結果画像を {} に保存しました</translation>
     </message>
@@ -2748,7 +2749,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">ディレクトリのインポートエラー</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2542"/>
+        <location filename="../app.py" line="2552"/>
         <source>{} does not exists.</source>
         <translation>{}は存在しません。</translation>
     </message>
@@ -3208,7 +3209,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">AI診断をテストしますか？これには少し時間がかかります。</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2463"/>
+        <location filename="../app.py" line="2473"/>
         <source>AI Testing ...</source>
         <translation>AIテスト実行中…</translation>
     </message>
@@ -3623,12 +3624,12 @@ Show/Hide Selected Polygon</source>
         <translation>AI処理が実行中です！</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2320"/>
+        <location filename="../app.py" line="2326"/>
         <source>[Images Total] {}</source>
         <translation>[画像枚数] {}</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2322"/>
+        <location filename="../app.py" line="2328"/>
         <source>[Annotations Total] {}</source>
         <translation>[アノテーション数] {}</translation>
     </message>
@@ -3643,17 +3644,17 @@ Show/Hide Selected Polygon</source>
         <translation>AI学習</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2453"/>
+        <location filename="../app.py" line="2463"/>
         <source>AI Model was not found.</source>
         <translation>AIモデルが見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2457"/>
+        <location filename="../app.py" line="2467"/>
         <source>Are you sure you want to overwrite annotations?</source>
         <translation>アノテーションを上書きしてもよろしいですか？</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2488"/>
+        <location filename="../app.py" line="2498"/>
         <source>No detections.</source>
         <translation>検出なし。</translation>
     </message>
@@ -3670,7 +3671,7 @@ Show/Hide Selected Polygon</source>
     <message>
         <location filename="../app.py" line="2367"/>
         <source>Construct dataset with all subdirectory data in {}</source>
-        <translation>{} 内のすべてのサブフォルダのデータを対象にデータセットを構築します</translation>
+        <translation type="obsolete">{} 内のすべてのサブフォルダのデータを対象にデータセットを構築します</translation>
     </message>
     <message>
         <location filename="../app.py" line="469"/>
@@ -3683,7 +3684,7 @@ Show/Hide Selected Polygon</source>
         <translation>JSON形式のアノテーションファイルを書き出します。</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2521"/>
+        <location filename="../app.py" line="2531"/>
         <source>Exported annotation files to {}</source>
         <translation>アノテーションファイルを{}に書き出しました</translation>
     </message>
@@ -3703,7 +3704,7 @@ Show/Hide Selected Polygon</source>
         <translation type="obsolete">{}を{}にインポートしました</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2572"/>
+        <location filename="../app.py" line="2582"/>
         <source>Select Directory</source>
         <translation>フォルダの選択</translation>
     </message>
@@ -3720,12 +3721,12 @@ Show/Hide Selected Polygon</source>
     <message>
         <location filename="../app.py" line="259"/>
         <source>from Parent Directory</source>
-        <translation>親フォルダからデータセットを構築</translation>
+        <translation>親フォルダからデータを参照する</translation>
     </message>
     <message>
         <location filename="../app.py" line="260"/>
         <source>Build dataset using all data in sub directories from the parent directory.</source>
-        <translation>親フォルダからすべてのサブフォルダのデータを対象にデータセットを構築します。</translation>
+        <translation type="obsolete">親フォルダからすべてのサブフォルダのデータを対象にデータセットを構築します。</translation>
     </message>
     <message>
         <location filename="../app.py" line="479"/>
@@ -3733,17 +3734,17 @@ Show/Hide Selected Polygon</source>
         <translation>学習済みモデルをインポートします。</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2530"/>
+        <location filename="../app.py" line="2540"/>
         <source>Select Pretrained Model Directory</source>
         <translation>学習済みモデル（フォルダ）を選択してください</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2561"/>
+        <location filename="../app.py" line="2571"/>
         <source>Imported {}</source>
         <translation>{}をインポートしました</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2199"/>
+        <location filename="../app.py" line="2205"/>
         <source>No images in the directory.</source>
         <translation>フォルダに画像がありません。</translation>
     </message>
@@ -3773,7 +3774,7 @@ Show/Hide Selected Polygon</source>
         <translation>表示されている画像をPNG画像に変換して保存します。</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2586"/>
+        <location filename="../app.py" line="2596"/>
         <source>Select Output Directory</source>
         <translation>保存先のフォルダを選択してください</translation>
     </message>
@@ -3798,7 +3799,7 @@ Show/Hide Selected Polygon</source>
         <translation>学習済みモデルを削除します。</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2596"/>
+        <location filename="../app.py" line="2606"/>
         <source>Are you sure you want to delete it?</source>
         <translation>本当に削除しますか？</translation>
     </message>
@@ -3815,20 +3816,20 @@ Show/Hide Selected Polygon</source>
     <message>
         <location filename="../app.py" line="753"/>
         <source>&amp;Show Linestrip Mode</source>
-        <translation>&amp;折れ線モードの表示</translation>
+        <translation type="obsolete">&amp;折れ線モードの表示</translation>
     </message>
     <message>
         <location filename="../app.py" line="765"/>
         <source>&amp;Show Line Mode</source>
-        <translation>&amp;線モードの表示</translation>
+        <translation type="obsolete">&amp;線モードの表示</translation>
     </message>
     <message>
         <location filename="../app.py" line="777"/>
         <source>&amp;Show Point Mode</source>
-        <translation>&amp;点モードの表示</translation>
+        <translation type="obsolete">&amp;点モードの表示</translation>
     </message>
     <message>
-        <location filename="../app.py" line="2554"/>
+        <location filename="../app.py" line="2564"/>
         <source>The same model has already exists.</source>
         <translation>同じモデルがすでに存在します。</translation>
     </message>
@@ -3841,6 +3842,16 @@ Show/Hide Selected Polygon</source>
         <location filename="../app.py" line="1910"/>
         <source>The image file was not found.</source>
         <translation>画像ファイルが見つかりませんでした。</translation>
+    </message>
+    <message>
+        <location filename="../app.py" line="260"/>
+        <source>Find data from the parent directory.</source>
+        <translation>親フォルダからデータを参照します。</translation>
+    </message>
+    <message>
+        <location filename="../app.py" line="2373"/>
+        <source>Find data from the parent directory: {}</source>
+        <translation>親フォルダからデータを参照します: {}</translation>
     </message>
 </context>
 <context>

@@ -5,7 +5,9 @@ import glob
 import random
 import imgaug
 import tf2onnx
-import sklearn
+from sklearn.metrics import precision_recall_curve, average_precision_score
+from sklearn.metrics import roc_curve, roc_auc_score
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -168,15 +170,16 @@ class SegmentationModel(object):
             if cb_widget is not None:
                 cb_widget.progressValue.emit(0)
             for class_id in range(self.config.num_classes):
-                if cb_widget is not None:
-                    cb_widget.notifyMessage.emit(f"{class_id + 1} / {self.config.num_classes}")
-                    cb_widget.progressValue.emit(int((class_id + 1) / self.config.num_classes * 100))
-
                 # prepare class result directories
                 class_name = self.config.LABELS[class_id]
                 class_dir = os.path.join(self.config.log_dir, class_name)
                 if not os.path.exists(class_dir):
                     os.mkdir(class_dir)
+
+                # update progress messages
+                if cb_widget is not None:
+                    cb_widget.notifyMessage.emit(f"Evaluating '{class_name}' -- {class_id + 1} / {self.config.num_classes}")
+                    cb_widget.progressValue.emit(int((class_id + 1) / self.config.num_classes * 99))
 
                 # get result by class
                 yt = y_true[..., class_id]
@@ -191,7 +194,7 @@ class SegmentationModel(object):
                 yt_flat = yt.ravel()
                 yp_flat_prob = yp.ravel()
 
-                fpr, tpr, thresholds = metrics.roc_curve(yt_flat, yp_flat_prob)
+                fpr, tpr, thresholds = roc_curve(yt_flat, yp_flat_prob)
                 ax.plot(fpr, tpr)
                 ax.set_title(f"ROC Curve ({class_name})")
                 ax.set_xlabel('FPR')
@@ -200,7 +203,7 @@ class SegmentationModel(object):
                 fig.savefig(os.path.join(class_dir, "roc.png"))
                 ax.clear()
 
-                pres, recs, thresholds = metrics.precision_recall_curve(yt_flat, yp_flat_prob)
+                pres, recs, thresholds = precision_recall_curve(yt_flat, yp_flat_prob)
                 ax.plot(pres, recs)
                 ax.set_title(f"PR Curve ({class_name})")
                 ax.set_xlabel('Recall')
@@ -210,8 +213,8 @@ class SegmentationModel(object):
                 ax.clear()
 
                 # AUC and AP
-                auc = sklearn.metrics.roc_auc_score(yt_flat, yp_flat_prob)
-                ap = sklearn.metrics.average_precision_score(yt_flat, yp_flat_prob)
+                auc = roc_auc_score(yt_flat, yp_flat_prob)
+                ap = average_precision_score(yt_flat, yp_flat_prob)
                 sum_auc += auc
                 sum_ap += ap
 
@@ -227,7 +230,7 @@ class SegmentationModel(object):
                 yt_flat = yt.ravel()
                 yp_flat = yp.ravel()
 
-                cm = metrics.confusion_matrix(yt_flat, yp_flat)
+                cm = confusion_matrix(yt_flat, yp_flat)
                 tn, fp, fn, tp = cm.ravel()
                 acc, pre, rec, spe, f1 = metrics.common_metrics(tp, tn, fp, fn)
                 sum_acc += acc
@@ -265,14 +268,14 @@ class SegmentationModel(object):
             yp = np.argmax(y_pred, axis=-1)
             yt = yt.ravel()
             yp = yp.ravel()
-            cm = metrics.confusion_matrix(yt, yp)
+            cm = confusion_matrix(yt, yp)
             cm_norm = cm / np.sum(cm, axis=1)[:, None]
 
             # mIoU
             miou = metrics.mIoU(cm)
 
             # figure of confusion matrix
-            cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm_norm,
+            cm_disp = ConfusionMatrixDisplay(confusion_matrix=cm_norm,
                                                     display_labels=labels)
             cm_disp.plot(ax=ax)
             filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
@@ -295,7 +298,7 @@ class SegmentationModel(object):
             yt = y_true.ravel()
             yp = y_pred.ravel()
 
-            fpr, tpr, thresholds = metrics.roc_curve(yt, yp)
+            fpr, tpr, thresholds = roc_curve(yt, yp)
             ax.plot(fpr, tpr)
             ax.set_title(f"ROC Curve ({class_name})")
             ax.set_xlabel('FPR')
@@ -304,7 +307,7 @@ class SegmentationModel(object):
             fig.savefig(os.path.join(self.config.log_dir, "roc.png"))
             ax.clear()
 
-            pres, recs, thresholds = metrics.precision_recall_curve(yt, yp)
+            pres, recs, thresholds = precision_recall_curve(yt, yp)
             ax.plot(pres, recs)
             ax.set_title(f"PR Curve ({class_name})")
             ax.set_xlabel('Recall')
@@ -313,8 +316,8 @@ class SegmentationModel(object):
             fig.savefig(os.path.join(self.config.log_dir, "pr.png"))
             ax.clear()
         
-            auc = metrics.roc_auc_score(yt, yp)
-            ap = metrics.average_precision_score(yt, yp)
+            auc = roc_auc_score(yt, yp)
+            ap = average_precision_score(yt, yp)
 
             y_pred[y_pred >= THRESH] = 1
             y_pred[y_pred < THRESH] = 0
@@ -324,14 +327,14 @@ class SegmentationModel(object):
             y_true = y_true.ravel()
             y_pred = y_pred.ravel()
 
-            cm = metrics.confusion_matrix(y_true, y_pred)
+            cm = confusion_matrix(y_true, y_pred)
             cm_norm = cm / np.sum(cm, axis=1)[:, None]
 
             # mIoU
             miou = metrics.mIoU(cm)
 
             # confusion matrix
-            cm_disp = metrics.ConfusionMatrixDisplay(confusion_matrix=cm_norm)
+            cm_disp = ConfusionMatrixDisplay(confusion_matrix=cm_norm)
             cm_disp.plot(ax=ax)
             filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
             fig.savefig(filename)
@@ -363,8 +366,7 @@ class SegmentationModel(object):
     def predict_by_id(self, image_id, thresh=0.5):
         src_img = self.dataset.load_image(image_id)
         gt_mask_data = self.dataset.load_masks(image_id)
-        img = np.array(src_img, dtype=np.float32) / 255.0
-        img = np.expand_dims(img, axis=0)
+        img = image.preprocessing(src_img)
         pred = self.model.predict(img, batch_size=1, verbose=0)[0]
         concat = image.mask2merge(src_img, pred, self.dataset.class_names, gt_mask_data, thresh)
         return concat

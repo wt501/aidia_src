@@ -1,8 +1,10 @@
 
 import os
 import logging
+from PyQt5.QtGui import QDragEnterEvent
 import cv2
 import glob
+import numpy as np
 import matplotlib.pyplot as plt
 from onnxruntime import InferenceSession
 from qtpy import QtCore, QtWidgets
@@ -18,6 +20,8 @@ from aidia.ai import ai_utils
 from aidia.ai.config import AIConfig
 from aidia.ai.dataset import Dataset
 from aidia.ai.det import DetectionModel
+from aidia.ai.models.yolov4.yolov4_utils import postprocess_boxes, nms
+from aidia.ai.models.yolov4.yolov4_config import YOLO_Config
 from aidia.ai.seg import SegmentationModel
 from aidia.widgets import ImageWidget
 from aidia.widgets import CopyDataDialog
@@ -222,8 +226,8 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.dataset_dir = dirpath
         self.setWindowTitle(self.tr("AI Evaluation - {}").format(dirpath))
 
-        if not self.ai.isRunning():
-            self.reset_state()
+        # if not self.ai.isRunning():
+        #     self.reset_state()
 
         # pickup log directories
         data_dir = os.path.join(dirpath, "data")
@@ -246,17 +250,8 @@ class AIEvalDialog(QtWidgets.QDialog):
     def ai_finished(self):
         """Call back function when AI thread finished."""
         self.enable_all()
-
-        # save all figures
-        # for i in range(len(self.class_names)):
-        #     self.update_figure(i)
-
-        # self.input_class.addItems(self.class_names)
-        # self.input_class.setCurrentIndex(0)
-        # self.input_class.setEnabled(True)
-
         self.aiRunning.emit(False)
-    
+
     def ai_pred_finished(self):
         self.enable_all()
         self.aiRunning.emit(False)
@@ -282,7 +277,7 @@ class AIEvalDialog(QtWidgets.QDialog):
     def showEvent(self, event):
         if self.ai.isRunning():
             self.disable_all()
-
+    
     def update_images(self, images):
         self.iw1.loadPixmap(images[0])
         self.iw2.loadPixmap(images[1])
@@ -461,7 +456,7 @@ class AIEvalDialog(QtWidgets.QDialog):
         config = AIConfig(self.dataset_dir)
         config.load(config_path)
 
-        if config.TASK not in [SEG]:
+        if config.TASK not in [SEG, DET]:
             self.text_status.setText(self.tr("Not implemented function."))
             return
         
@@ -699,7 +694,7 @@ class AIPredThread(QtCore.QThread):
     def __init__(self, parent):
         super().__init__(parent)
 
-    def set_params(self, config, target_path, onnx_path):
+    def set_params(self, config:AIConfig, target_path, onnx_path):
         self.config = config
         self.target_path = target_path
         self.onnx_path = onnx_path
@@ -712,23 +707,14 @@ class AIPredThread(QtCore.QThread):
         n = len(os.listdir(self.target_path))
         model = InferenceSession(self.onnx_path)
 
-        # extensions = [".{}".format(fmt.data().decode("ascii").lower())
-        #     for fmt in QtGui.QImageReader.supportedImageFormats()]
         for i, file_path in enumerate(glob.glob(os.path.join(self.target_path, "*"))):
-            img = image.read_image(file_path)
-            # if is_dicom(file_path) or utils.extract_ext(file_path) == ".dcm":
-            #     dicom_data = DICOM(file_path)
-            #     img = dicom_data.load_image()
-            #     img = image.dicom_transform(
-            #         img,
-            #         dicom_data.wc,
-            #         dicom_data.ww,
-            #         dicom_data.bits
-            #     )
-            #     img = image.convert_dtype(img)
-            #     img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-            # elif utils.extract_ext(file_path) in extensions:
-            #     img = image.imread(file_path)
+            if utils.extract_ext(file_path) == ".json":
+                continue
+            try:
+                img = image.read_image(file_path)
+            except Exception as e:
+                continue
+
             if img is None:
                 continue
             
@@ -737,12 +723,40 @@ class AIPredThread(QtCore.QThread):
             
             if self.config.TASK == SEG:
                 img = cv2.resize(img, self.config.image_size)
-                inputs = image.preprocessing(img)
+                inputs = image.preprocessing(img, is_tensor=True)
                 input_name = model.get_inputs()[0].name
                 result = model.run([], {input_name: inputs})[0][0]
                 result_img = image.mask2merge(img, result, self.config.LABELS)
                 save_path = os.path.join(savedir, f"{name}.png")
                 image.imwrite(result_img, save_path)
+
+            elif self.config.TASK == DET:
+                inputs = cv2.resize(img, self.config.image_size)
+                inputs = image.preprocessing(inputs, is_tensor=True)
+                input_name = model.get_inputs()[0].name
+                result = model.run([], {input_name: inputs})
+
+                # post processing
+                if self.config.MODEL.find("YOLO") > -1:
+                    bboxes = self.yolo_postprocessing(img, result)
+                    bbox_dict_pred = []
+                    for bbox_pred in bboxes:
+                        bbox = list(map(float, bbox_pred[:4]))
+                        score = bbox_pred[4]
+                        class_id = int(bbox_pred[5])
+                        class_name = self.config.LABELS[class_id]
+                        score = '%.4f' % score
+                        bbox_dict_pred.append({"class_id": class_id,
+                                                "class_name": class_name,
+                                                "confidence": score,
+                                                "bbox": bbox})
+                    bbox_dict_pred.sort(key=lambda x:float(x['confidence']), reverse=True)
+
+                    result_img = image.det2merge(img, bbox_dict_pred)
+                    save_path = os.path.join(savedir, f"{name}.png")
+                    image.imwrite(result_img, save_path)
+                else:
+                    raise NotImplementedError
             else:
                 raise NotImplementedError
             
@@ -750,3 +764,17 @@ class AIPredThread(QtCore.QThread):
 
         self.progressValue.emit(0)
         self.notifyMessage.emit(self.tr("Saved result images to {}").format(savedir))
+    
+    def yolo_postprocessing(self, img, result):
+        is_tiny = True if self.config.MODEL.split("-")[-1] == "tiny" else False
+        if is_tiny:
+            _, pred_mbbox, _, pred_lbbox = result
+        else:
+            _, pred_sbbox, _, pred_mbbox, _, pred_lbbox = result
+    
+        pred_bbox = np.concatenate([np.reshape(pred_sbbox, (-1, 5 + 3)),
+                                    np.reshape(pred_mbbox, (-1, 5 + 3)),
+                                    np.reshape(pred_lbbox, (-1, 5 + 3))], axis=0)
+        bboxes = postprocess_boxes(pred_bbox, img.shape[:2], self.config.INPUT_SIZE, YOLO_Config().SCORE_THRESHOLD)
+        bboxes = nms(bboxes, YOLO_Config().IOU_THRESHOLD)
+        return bboxes

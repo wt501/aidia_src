@@ -20,7 +20,6 @@ def imread(filename, flags=cv2.IMREAD_COLOR, dtype=np.uint8):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         return img
     except Exception as e:
-        print(e)
         return None
     
 def imwrite(img, filename):
@@ -49,7 +48,7 @@ def read_image(img_path):
         )
         img = convert_dtype(img)
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-    elif EXTS:
+    elif utils.extract_ext(img_path) in EXTS:
         img = imread(img_path)
     else:
         img = None
