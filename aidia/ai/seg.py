@@ -366,7 +366,7 @@ class SegmentationModel(object):
     def predict_by_id(self, image_id, thresh=0.5):
         src_img = self.dataset.load_image(image_id)
         gt_mask_data = self.dataset.load_masks(image_id)
-        img = image.preprocessing(src_img)
+        img = image.preprocessing(src_img, is_tensor=True)
         pred = self.model.predict(img, batch_size=1, verbose=0)[0]
         concat = image.mask2merge(src_img, pred, self.dataset.class_names, gt_mask_data, thresh)
         return concat
