@@ -2366,64 +2366,51 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def ai_train_popup(self):
-        labels = []
         if self.is_submode:    
-            parent_dir = utils.get_parent_path(self.work_dir)
-            # if not self.ai_train_dialog.ai.isRunning():
-            #     msg = self.tr("Find data from the parent directory: {}").format(parent_dir)
-            #     if not self.may_continue(msg):
-            #         return
-                
-            # create data directory
-            if not os.path.exists(os.path.join(parent_dir, "data")):
-                os.mkdir(os.path.join(parent_dir, "data"))
-
-            # get all labels
-            # self.wait_cursor()
-            # dir_list = glob(os.path.join(parent_dir, "**"))
-            
-            # for subdir_path in dir_list:
-            #     if utils.get_basename(subdir_path) == "data":
-            #         continue
-            #     subdir_jsons = glob(os.path.join(subdir_path, "*.json"))
-            #     for p in subdir_jsons:
-            #         lf = LabelFile()
-            #         lf.load(p)
-            #         if lf.shapes is None:
-            #             continue
-            #         _labels = self.get_all_labels(lf)
-            #         _labels = sum(_labels, [])
-            #         labels.extend(_labels)
-            # labels = sorted(list(set(labels)))
-            # self.reset_cursor()
-
-            self.ai_train_dialog.popup(parent_dir,
-                                       self.is_submode,
-                                       self.labelDialog.label_def)
-
+            target_dir = utils.get_parent_path(self.work_dir)
         else:
-            # create data directory
-            if not os.path.exists(os.path.join(self.work_dir, "data")):
-                os.mkdir(os.path.join(self.work_dir, "data"))
+            target_dir = self.work_dir
 
-            # get all labels
-            # self.wait_cursor()
-            # for p in glob(os.path.join(self.work_dir, "*.json")):
-            #     lf = LabelFile()
-            #     lf.load(p)
-            #     if lf.shapes is None:
-            #         continue
-            #     _labels = self.get_all_labels(lf)
-            #     _labels = sum(_labels, [])
-            #     labels.extend(_labels)
-            # labels = sorted(list(set(labels)))
-            # self.reset_cursor()
-
-            self.ai_train_dialog.popup(self.work_dir,
+        try:
+            self.ai_train_dialog.popup(target_dir,
                                        self.is_submode,
                                        self.labelDialog.label_def)
+        except Exception as e:
+            self.error_message(e)
+            return
+            
+        # get all labels
+        # self.wait_cursor()
+        # dir_list = glob(os.path.join(parent_dir, "**"))
+        
+        # for subdir_path in dir_list:
+        #     if utils.get_basename(subdir_path) == "data":
+        #         continue
+        #     subdir_jsons = glob(os.path.join(subdir_path, "*.json"))
+        #     for p in subdir_jsons:
+        #         lf = LabelFile()
+        #         lf.load(p)
+        #         if lf.shapes is None:
+        #             continue
+        #         _labels = self.get_all_labels(lf)
+        #         _labels = sum(_labels, [])
+        #         labels.extend(_labels)
+        # labels = sorted(list(set(labels)))
+        # self.reset_cursor()
 
-    
+        # get all labels
+        # self.wait_cursor()
+        # for p in glob(os.path.join(self.work_dir, "*.json")):
+        #     lf = LabelFile()
+        #     lf.load(p)
+        #     if lf.shapes is None:
+        #         continue
+        #     _labels = self.get_all_labels(lf)
+        #     _labels = sum(_labels, [])
+        #     labels.extend(_labels)
+        # labels = sorted(list(set(labels)))
+        # self.reset_cursor()
+
     def ai_eval_popup(self):
         if self.is_submode:
             parent_dir = utils.get_parent_path(self.work_dir)

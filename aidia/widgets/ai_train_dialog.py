@@ -535,6 +535,10 @@ Separate the labels with line breaks."""))
         else:
             self.tag_directory.setText(self.tr("Target Directory:\n{}").format(dataset_dir))
 
+        # create data directory
+        if not os.path.exists(os.path.join(dataset_dir, "data")):
+            os.mkdir(os.path.join(dataset_dir, "data"))
+
         # load config parameters
         self.config = AIConfig(dataset_dir)
         config_path = os.path.join(dataset_dir, "data", "config.json")
