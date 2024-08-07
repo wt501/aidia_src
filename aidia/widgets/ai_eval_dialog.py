@@ -682,8 +682,7 @@ class AIEvalThread(QtCore.QThread):
             return
         self.resultsList.emit(results)
 
-        self.progressValue.emit(0)
-        self.notifyMessage.emit(self.tr("Done."))
+        self.notifyMessage.emit(self.tr("Done"))
 
 
 class AIPredThread(QtCore.QThread):

@@ -118,82 +118,92 @@ class SegmentationModel(object):
         self.model.stop_training = True
 
 
-    def evaluate(self, cb_widget=None):
+    def evaluate(self, cb_widget):
         res = {}
-        y_true = []
-        y_pred = []
         fig, ax = plt.subplots(1, 1, figsize=(10, 8))
 
-        # predict all test data
-        for i, image_id in enumerate(self.dataset.test_ids):
-            if cb_widget is not None:
-                cb_widget.notifyMessage.emit(f"Predicting... {i+1} / {self.dataset.num_test}")
-                cb_widget.progressValue.emit(int((i+1) / self.dataset.num_test * 100))
-            img = self.dataset.load_image(image_id)
-            mask = self.dataset.load_masks(image_id)
-            inputs = image.preprocessing(img, is_tensor=True)
-            p = self.model.predict_on_batch(inputs)[0]
-            mask = mask[..., 1:] # exclude background
-            p = p[..., 1:]
-            y_true.append(mask)
-            y_pred.append(p)
-            # if i == 20:  # TODO
-            #     break
-
-        y_true = np.array(y_true)
-        y_pred = np.array(y_pred)
-
-        if cb_widget is not None:
-            cb_widget.notifyMessage.emit("Calculating...")
-
-        # evaluation
         THRESH = 0.5
         eval_dict = {}
         eval_dict["Metrics"] = [
             "Accuracy", "Precision", "Recall", "Specificity",
             "F1", "ROC Curve AUC", "Average Precision",
-            "Precision (Detection)", "Recall (Detection)", "F1 (Detection)"
+            # "Precision (Detection)", "Recall (Detection)", "F1 (Detection)",
+            # "mIoU",
         ]
-        delete_class_id = []
-        if self.config.num_classes > 1:
-            num_results = self.config.num_classes
-            sum_acc = 0.0
-            sum_pre = 0.0
-            sum_rec = 0.0
-            sum_spe = 0.0
-            sum_f1 = 0.0
-            sum_auc = 0.0
-            sum_ap = 0.0
-            sum_pre_det = 0.0
-            sum_rec_det = 0.0
-            sum_f1_det = 0.0
-            if cb_widget is not None:
-                cb_widget.progressValue.emit(0)
+
+        count_per_class = np.zeros((self.config.num_classes, 4), int)
+        eval_per_class = np.zeros((self.config.num_classes, len(eval_dict["Metrics"])), float)
+        cls_true = np.zeros((self.dataset.num_test, self.config.num_classes), int)
+        cls_pred = np.zeros((self.dataset.num_test, self.config.num_classes), float)
+
+        # predict all test data
+        for i, image_id in enumerate(self.dataset.test_ids):
+            cb_widget.notifyMessage.emit(f"Evaluating... {i+1} / {self.dataset.num_test}")
+            cb_widget.progressValue.emit(int((i+1) / self.dataset.num_test * 99))
+
+            # if i == 50:
+            #     break
+
+            # predict
+            img = self.dataset.load_image(image_id)
+            mask = self.dataset.load_masks(image_id)
+            inputs = image.preprocessing(img, is_tensor=True)
+            p = self.model.predict_on_batch(inputs)[0]
+            y_true = mask[..., 1:] # exclude background
+            y_pred = p[..., 1:]
+            y_true = np.array(y_true)
+            y_pred = np.array(y_pred)
+
+            # count TP, TN, FP, FN and get classification results per class
+            yt_encoded = np.zeros((self.config.num_classes), int)
+            yp_max_prob = np.zeros((self.config.num_classes), float)
+
             for class_id in range(self.config.num_classes):
-                # prepare class result directories
-                class_name = self.config.LABELS[class_id]
-                class_dir = os.path.join(self.config.log_dir, class_name)
-                if not os.path.exists(class_dir):
-                    os.mkdir(class_dir)
-
-                # update progress messages
-                if cb_widget is not None:
-                    cb_widget.notifyMessage.emit(f"Evaluating '{class_name}' -- {class_id + 1} / {self.config.num_classes}")
-                    cb_widget.progressValue.emit(int((class_id + 1) / self.config.num_classes * 99))
-
                 # get result by class
-                yt = y_true[..., class_id]
-                yp = y_pred[..., class_id]
+                yt_class = y_true[..., class_id]
+                yp_class = y_pred[..., class_id]
 
-                if np.max(yt) == 0 or np.max(yp) == 0:  # no ground truth data
-                    num_results -= 1
-                    delete_class_id.append(class_id)
-                    continue
+                # generate one-hot
+                if np.max(yt_class) > 0:
+                    yt_encoded[class_id] = 1
+                yp_max_prob[class_id] = np.max(yp_class)
 
-                # ROC curve and PR curve
-                yt_flat = yt.ravel()
-                yp_flat_prob = yp.ravel()
+                # thresholding
+                yp_class[yp_class >= THRESH] = 1
+                yp_class[yp_class < THRESH] = 0
+                yp_class = yp_class.astype(np.uint8)
 
+                # pre_det, rec_det, f1_det = metrics.eval_on_iou(y_true, y_pred)
+                # sum_pre_det += pre_det
+                # sum_rec_det += rec_det
+                # sum_f1_det += f1_det
+                if np.max(yt_class) == 0 and np.max(yp_class) == 0:
+                    tn, fp, fn, tp = self.config.INPUT_SIZE**2, 0, 0, 0
+                else:
+                    cm = confusion_matrix(yt_class.ravel(), yp_class.ravel())
+                    tn, fp, fn, tp = cm.ravel()
+                _cm = np.array([tp, tn, fp, fn])
+                count_per_class[class_id] += _cm
+     
+            cls_true[i] = yt_encoded
+            cls_pred[i] = yp_max_prob
+        
+        # ROC curve and PR curve per class
+        delete_class_id = []
+        for class_id in range(self.config.num_classes):
+            # prepare class result directories
+            class_name = self.config.LABELS[class_id]
+            class_dir = os.path.join(self.config.log_dir, class_name)
+            if not os.path.exists(class_dir):
+                os.mkdir(class_dir)
+
+            yt_flat = cls_true[..., class_id].ravel()
+            yp_flat_prob = cls_pred[..., class_id].ravel()
+
+            if np.max(yt_flat) == 0:  # skip no ground truth
+                auc = ap = 0
+                delete_class_id.append(class_id)
+            else:
                 fpr, tpr, thresholds = roc_curve(yt_flat, yp_flat_prob)
                 ax.plot(fpr, tpr)
                 ax.set_title(f"ROC Curve ({class_name})")
@@ -212,141 +222,70 @@ class SegmentationModel(object):
                 fig.savefig(os.path.join(class_dir, "pr.png"))
                 ax.clear()
 
-                # AUC and AP
                 auc = roc_auc_score(yt_flat, yp_flat_prob)
                 ap = average_precision_score(yt_flat, yp_flat_prob)
-                sum_auc += auc
-                sum_ap += ap
-
-                # common metrics
-                yp[yp >= THRESH] = 1
-                yp[yp < THRESH] = 0
-
-                pre_det, rec_det, f1_det = metrics.eval_on_iou(yt, yp)
-                sum_pre_det += pre_det
-                sum_rec_det += rec_det
-                sum_f1_det += f1_det
-
-                yt_flat = yt.ravel()
-                yp_flat = yp.ravel()
-
-                cm = confusion_matrix(yt_flat, yp_flat)
-                tn, fp, fn, tp = cm.ravel()
-                acc, pre, rec, spe, f1 = metrics.common_metrics(tp, tn, fp, fn)
-                sum_acc += acc
-                sum_pre += pre
-                sum_rec += rec
-                sum_spe += spe
-                sum_f1 += f1
-
-                # add result by class
-                eval_dict[class_name] = [
-                    acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det, 0
-                ]
-            
-            # macro mean
-            acc = sum_acc / num_results
-            pre = sum_pre / num_results
-            rec = sum_rec / num_results
-            spe = sum_spe / num_results
-            f1 = sum_f1 / num_results
-            auc = sum_auc / num_results
-            ap = sum_ap / num_results
-            pre_det = sum_pre_det / num_results
-            rec_det = sum_rec_det / num_results
-            f1_det = sum_f1_det / num_results
-
-            # delete data has no ground truth
-            y_true = np.delete(y_true, delete_class_id, axis=-1)
-            y_pred = np.delete(y_pred, delete_class_id, axis=-1)
-            labels = self.config.LABELS[:]
-            for i in sorted(delete_class_id, reverse=True):
-                labels.pop(i)
-
-            # confusion matrix
-            yt = np.argmax(y_true, axis=-1)
-            yp = np.argmax(y_pred, axis=-1)
-            yt = yt.ravel()
-            yp = yp.ravel()
-            cm = confusion_matrix(yt, yp)
-            cm_norm = cm / np.sum(cm, axis=1)[:, None]
-
-            # mIoU
-            miou = metrics.mIoU(cm)
-
-            # figure of confusion matrix
-            cm_disp = ConfusionMatrixDisplay(confusion_matrix=cm_norm,
-                                                    display_labels=labels)
-            cm_disp.plot(ax=ax)
-            filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
-            fig.savefig(filename)
-            img = image.fig2img(fig)
-
-            # save eval dict
-            eval_dict["(Macro Mean)"] = [
-                acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det, miou
-            ]
-            ai_utils.save_dict_to_excel(eval_dict, os.path.join(self.config.log_dir, "eval.xlsx"))
-           
-           
-        else:  # binary classification
-            y_true = y_true[..., 0]
-            y_pred = y_pred[..., 0]
-            class_name = self.config.LABELS[0]
-
-            # AUC and AP
-            yt = y_true.ravel()
-            yp = y_pred.ravel()
-
-            fpr, tpr, thresholds = roc_curve(yt, yp)
-            ax.plot(fpr, tpr)
-            ax.set_title(f"ROC Curve ({class_name})")
-            ax.set_xlabel('FPR')
-            ax.set_ylabel('TPR')
-            ax.grid()
-            fig.savefig(os.path.join(self.config.log_dir, "roc.png"))
-            ax.clear()
-
-            pres, recs, thresholds = precision_recall_curve(yt, yp)
-            ax.plot(pres, recs)
-            ax.set_title(f"PR Curve ({class_name})")
-            ax.set_xlabel('Recall')
-            ax.set_ylabel('Precision')
-            ax.grid()
-            fig.savefig(os.path.join(self.config.log_dir, "pr.png"))
-            ax.clear()
         
-            auc = roc_auc_score(yt, yp)
-            ap = average_precision_score(yt, yp)
-
-            y_pred[y_pred >= THRESH] = 1
-            y_pred[y_pred < THRESH] = 0
-
-            pre_det, rec_det, f1_det = metrics.eval_on_iou(y_true, y_pred)
-
-            y_true = y_true.ravel()
-            y_pred = y_pred.ravel()
-
-            cm = confusion_matrix(y_true, y_pred)
-            cm_norm = cm / np.sum(cm, axis=1)[:, None]
-
-            # mIoU
-            miou = metrics.mIoU(cm)
-
-            # confusion matrix
-            cm_disp = ConfusionMatrixDisplay(confusion_matrix=cm_norm)
-            cm_disp.plot(ax=ax)
-            filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
-            fig.savefig(filename)
-            img = image.fig2img(fig)
-
-            tn, fp, fn, tp = cm.ravel()
+            tp, tn, fp, fn = count_per_class[class_id]
             acc, pre, rec, spe, f1 = metrics.common_metrics(tp, tn, fp, fn)
 
-            eval_dict[class_name] = [
-                acc, pre, rec, spe, f1, auc, ap, pre_det, rec_det, f1_det, miou
-            ]
+            # add result by class
+            eval_dict[class_name] = [acc, pre, rec, spe, f1, auc, ap]
+            eval_per_class[class_id] = [acc, pre, rec, spe, f1, auc, ap]
+        
+        # macro mean
+        acc = np.mean(eval_per_class[..., 0])
+        pre = np.mean(eval_per_class[..., 1])
+        rec = np.mean(eval_per_class[..., 2])
+        spe = np.mean(eval_per_class[..., 3])
+        f1 = np.mean(eval_per_class[..., 4])
+        auc = np.mean(eval_per_class[..., 5])
+        ap = np.mean(eval_per_class[..., 6])
 
+        # delete data has no ground truth
+        cls_true = np.delete(cls_true, delete_class_id, axis=-1)
+        cls_pred = np.delete(cls_pred, delete_class_id, axis=-1)
+        labels = self.config.LABELS[:]
+        for i in sorted(delete_class_id, reverse=True):
+            labels.pop(i)
+        
+        # add npl
+        labels += ["no label"]
+        n_labels = len(labels)
+
+        # confusion matrix
+        # cls_true = np.argmax(cls_true, axis=-1)
+        # cls_pred = np.argmax(cls_pred, axis=-1)
+        # cm = confusion_matrix(cls_true.ravel(), cls_pred.ravel())
+
+        # multi-label confusion matrix (https://ieeexplore.ieee.org/document/9711932)
+        cm = np.zeros((n_labels, n_labels), int)
+        for label_true, label_pred in zip(cls_true, cls_pred):
+            label_pred[label_pred >= THRESH] = 1
+            label_pred[label_pred < THRESH] = 0
+            label_pred = label_pred.astype(np.uint8)
+            for i, t in enumerate(label_true):
+                if np.sum(label_pred) == 0:
+                    cm[i, -1] += 1
+                    continue
+                for j, p in enumerate(label_pred):
+                    if p == 1 and t == 1:
+                        cm[i, j] += 1
+                        continue
+
+        cm = cm / (np.sum(cm, axis=1) + 1e-12)[:, None]
+
+        # figure of confusion matrix
+        cm_disp = ConfusionMatrixDisplay(confusion_matrix=cm,
+                                         display_labels=labels)
+        cm_disp.plot(ax=ax)
+        filename = os.path.join(self.config.log_dir, "confusion_matrix.png")
+        fig.savefig(filename)
+        img = image.fig2img(fig)
+
+        # save eval dict
+        eval_dict["(Macro Mean)"] = [acc, pre, rec, spe, f1, auc, ap]
+        ai_utils.save_dict_to_excel(eval_dict, os.path.join(self.config.log_dir, "eval.xlsx"))
+           
         res = {
             "Accuracy": acc,
             "Precision": pre,
@@ -355,12 +294,16 @@ class SegmentationModel(object):
             "F1": f1,
             "ROC Curve AUC": auc,
             "Average Precision": ap,
-            "Precision (Detection)": pre_det,
-            "Recall (Detection)": rec_det,
-            "F1 (Detection)": f1_det,
-            "mIoU": miou,
+            # "Precision (Detection)": pre_det,
+            # "Recall (Detection)": rec_det,
+            # "F1 (Detection)": f1_det,
+            # "mIoU": miou,
             "img": img,
         }
+
+        cb_widget.notifyMessage.emit("Done")
+        cb_widget.progressValue.emit(100)
+
         return res
 
     def predict_by_id(self, image_id, thresh=0.5):
