@@ -628,7 +628,7 @@ The labels are separated with line breaks."""))
         h = int(etime // 3600)
         m = int(etime // 60 % 60)
         s = int(etime % 60)
-        self.text_status.setText(self.tr("Done. Elapsed time: {}h {}m {}s").format(h, m, s))
+        self.text_status.setText(self.tr("Done -- Elapsed time: {}h {}m {}s").format(h, m, s))
 
         # save metrics
         df_dic = {
