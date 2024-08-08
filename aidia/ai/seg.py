@@ -200,9 +200,12 @@ class SegmentationModel(object):
             yt_flat = cls_true[..., class_id].ravel()
             yp_flat_prob = cls_pred[..., class_id].ravel()
 
+            auc = ap = 0
             if np.max(yt_flat) == 0:  # skip no ground truth
-                auc = ap = 0
                 delete_class_id.append(class_id)
+                continue
+            elif np.sum(yt_flat) == len(yt_flat):  # skip only one class
+                pass
             else:
                 fpr, tpr, thresholds = roc_curve(yt_flat, yp_flat_prob)
                 ax.plot(fpr, tpr)
@@ -232,6 +235,14 @@ class SegmentationModel(object):
             eval_dict[class_name] = [acc, pre, rec, spe, f1, auc, ap]
             eval_per_class[class_id] = [acc, pre, rec, spe, f1, auc, ap]
         
+        # delete data has no ground truth
+        cls_true = np.delete(cls_true, delete_class_id, axis=-1)
+        cls_pred = np.delete(cls_pred, delete_class_id, axis=-1)
+        eval_per_class = np.delete(eval_per_class, delete_class_id)
+        labels = self.config.LABELS[:]
+        for i in sorted(delete_class_id, reverse=True):
+            labels.pop(i)
+
         # macro mean
         acc = np.mean(eval_per_class[..., 0])
         pre = np.mean(eval_per_class[..., 1])
@@ -240,13 +251,6 @@ class SegmentationModel(object):
         f1 = np.mean(eval_per_class[..., 4])
         auc = np.mean(eval_per_class[..., 5])
         ap = np.mean(eval_per_class[..., 6])
-
-        # delete data has no ground truth
-        cls_true = np.delete(cls_true, delete_class_id, axis=-1)
-        cls_pred = np.delete(cls_pred, delete_class_id, axis=-1)
-        labels = self.config.LABELS[:]
-        for i in sorted(delete_class_id, reverse=True):
-            labels.pop(i)
         
         # add npl
         labels += ["no label"]
