@@ -238,7 +238,7 @@ class SegmentationModel(object):
         # delete data has no ground truth
         cls_true = np.delete(cls_true, delete_class_id, axis=-1)
         cls_pred = np.delete(cls_pred, delete_class_id, axis=-1)
-        eval_per_class = np.delete(eval_per_class, delete_class_id)
+        eval_per_class = np.delete(eval_per_class, delete_class_id, axis=0)
         labels = self.config.LABELS[:]
         for i in sorted(delete_class_id, reverse=True):
             labels.pop(i)

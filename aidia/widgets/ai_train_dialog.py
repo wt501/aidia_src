@@ -717,7 +717,7 @@ Separate the labels with line breaks."""))
             self.disable_all()
             self.button_stop.setEnabled(True)
         else:
-            self.reset_state()
+            # self.reset_state()
             self.switch_enabled_by_task(self.config.TASK)
 
     def _add_basic_params(self, tag:QtWidgets.QLabel, widget, right=False, reverse=False, custom_size=None):
