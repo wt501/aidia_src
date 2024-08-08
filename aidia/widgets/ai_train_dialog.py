@@ -63,6 +63,21 @@ class AITrainDialog(QtWidgets.QDialog):
         self.val_steps = 0
 
         self.fig, self.ax = plt.subplots(figsize=(12, 6))
+        self.ax.text(0.5, 0.5, 'Learning Curve Area',
+                     horizontalalignment='center',
+                     verticalalignment='center',
+                     transform=self.ax.transAxes,
+                     fontsize=20)
+        self.ax.axis("off")
+        
+        self.fig2, self.ax2 = plt.subplots(figsize=(6, 6))
+        self.ax2.text(0.5, 0.5, 'Label Distribution Area',
+                     horizontalalignment='center',
+                     verticalalignment='center',
+                     transform=self.ax2.transAxes,
+                     fontsize=20)
+        self.ax2.axis("off")
+
         plt.rcParams["font.size"] = 15
 
         self.default_style = "QLabel{ color: black; }"
@@ -219,7 +234,7 @@ Other parameters of Adam uses the default values of TensorFlow."""
         self.input_labels = QtWidgets.QTextEdit()
         self.input_labels.setToolTip(self.tr(
             """Set target labels.
-Separate the labels with line breaks."""))
+The labels are separated with line breaks."""))
         # self.input_labels.setMinimumHeight(100)
         def _validate():
             text = self.input_labels.toPlainText()
@@ -504,6 +519,9 @@ Separate the labels with line breaks."""))
         self.text_dataset = QtWidgets.QLabel()
         self.text_dataset.setAlignment(QtCore.Qt.AlignLeading)
         self._dataset_layout.addWidget(self.text_dataset)
+
+        self.image_widget2 = ImageWidget(self, self._plt2img2())
+        self._dataset_layout.addWidget(self.image_widget2)
 
         ### set layouts ###
         self._augment_widget.setLayout(self._augment_layout)
@@ -792,6 +810,13 @@ Separate the labels with line breaks."""))
         c = len(data) // (w * h)
         return np.frombuffer(data, dtype=np.uint8).reshape(h, w, c)
 
+    def _plt2img2(self):
+        self.fig2.canvas.draw()
+        data = self.fig2.canvas.tostring_rgb()
+        w, h = self.fig2.canvas.get_width_height()
+        c = len(data) // (w * h)
+        return np.frombuffer(data, dtype=np.uint8).reshape(h, w, c)
+
     def update_dataset(self, value):
         dataset_num = value["dataset_num"]
         num_images = value["num_images"]
@@ -834,6 +859,14 @@ Separate the labels with line breaks."""))
         text.append(self.tr("Class Information:\n{}").format(labels_info))
         text = "\n".join(text)
         self.text_dataset.setText(text)
+
+        # update label distribution
+        self.ax2.clear()
+        self.ax2.pie(num_per_class,
+                     labels=class_names,
+                     autopct="%1.1f%%",
+                     wedgeprops={'linewidth': 1, 'edgecolor':"white"})
+        self.image_widget2.loadPixmap(self._plt2img2())
 
     def update_status(self, value):
         self.text_status.setText(str(value))
@@ -927,7 +960,7 @@ Separate the labels with line breaks."""))
         self.progress.setValue(0)
         self.text_dataset.clear()
         self.image_widget.clear()
-
+        self.image_widget2.clear()
 
 
 class AITrainThread(QtCore.QThread):

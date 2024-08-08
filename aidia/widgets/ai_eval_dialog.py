@@ -66,8 +66,25 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.task = None
 
         # self.fig, self.axes = plt.subplots(1, 2, figsize=(20, 8))
-        self.fig, self.ax = plt.subplots(1, 1, figsize=(10, 8))
+        # self.fig, self.ax = plt.subplots(1, 1, figsize=(10, 8))
         # plt.subplots_adjust(wspace=0.5)
+
+        self.fig, self.ax = plt.subplots(figsize=(10, 8))
+        self.ax.text(0.5, 0.5, 'Confusion Matrix Area',
+                     horizontalalignment='center',
+                     verticalalignment='center',
+                     transform=self.ax.transAxes,
+                     fontsize=20)
+        self.ax.axis("off")
+        
+        self.fig2, self.ax2 = plt.subplots(figsize=(6, 6))
+        self.ax2.text(0.5, 0.5, 'Label Distribution Area',
+                     horizontalalignment='center',
+                     verticalalignment='center',
+                     transform=self.ax2.transAxes,
+                     fontsize=20)
+        self.ax2.axis("off")
+
         plt.rcParams["font.size"] = 15
 
         self.error_flags = {}
@@ -181,6 +198,9 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.text_dataset.setAlignment(QtCore.Qt.AlignLeading)
         self._dataset_layout.addWidget(self.text_dataset)
 
+        self.image_widget2 = ImageWidget(self, self._plt2img2())
+        self._dataset_layout.addWidget(self.image_widget2)
+
         ### add preditcs images ###
         self.iw1 = ImageWidget(self)
         self.iw2 = ImageWidget(self)
@@ -277,6 +297,13 @@ class AIEvalDialog(QtWidgets.QDialog):
     def showEvent(self, event):
         if self.ai.isRunning():
             self.disable_all()
+
+    def _plt2img2(self):
+        self.fig2.canvas.draw()
+        data = self.fig2.canvas.tostring_rgb()
+        w, h = self.fig2.canvas.get_width_height()
+        c = len(data) // (w * h)
+        return np.frombuffer(data, dtype=np.uint8).reshape(h, w, c)
     
     def update_images(self, images):
         self.iw1.loadPixmap(images[0])
@@ -327,6 +354,14 @@ class AIEvalDialog(QtWidgets.QDialog):
         text.append(self.tr("Class Information:\n{}").format(labels_info))
         text = "\n".join(text)
         self.text_dataset.setText(text)
+
+        # update label distribution
+        self.ax2.clear()
+        self.ax2.pie(num_per_class,
+                     labels=class_names,
+                     autopct="%1.1f%%",
+                     wedgeprops={'linewidth': 1, 'edgecolor':"white"})
+        self.image_widget2.loadPixmap(self._plt2img2())
 
         # write dataset information
         with open(os.path.join(self.log_dir, "dataset_info.txt"), mode="w", encoding="utf-8") as f:
@@ -402,6 +437,7 @@ class AIEvalDialog(QtWidgets.QDialog):
         self.text_dataset.clear()
         self.text_results.clear()
         self.image_widget.clear()
+        self.image_widget2.clear()
         self.iw1.clear()
         self.iw2.clear()
         self.iw3.clear()
@@ -649,6 +685,16 @@ class AIEvalThread(QtCore.QThread):
             # continue if output already exists
             if os.path.exists(save_path):
                 self.progressValue.emit(int(i / n * 100))
+                # update latest 5 images to the widget
+                if len(predicts) <= 5:
+                    w = self.config.image_size[1]
+                    result_img = image.imread(save_path)
+                    if self.config.TASK in [SEG]:
+                        result_img = result_img[:, w:w*2]
+                    predicts.append(result_img)
+                else:
+                    self.predictList.emit(predicts)
+                    predicts = []
                 continue
 
             try:
