@@ -267,16 +267,27 @@ class SegmentationModel(object):
             label_pred[label_pred >= THRESH] = 1
             label_pred[label_pred < THRESH] = 0
             label_pred = label_pred.astype(np.uint8)
-            for i, t in enumerate(label_true):
-                if np.sum(label_pred) == 0:
+            skip_label_id = []
+            if np.sum(label_pred) == 0:  # NPL
+                for i, t in enumerate(label_true):
                     cm[i, -1] += 1
+                continue
+
+            x = 0
+            for t, p in zip(label_true, label_pred):  # TP
+                if t == 1 and p == 1:
+                    cm[x, x] += 1
+                    skip_label_id.append(x)
+                x += 1
+
+            for i, t in enumerate(label_true):  # FN
+                if i in skip_label_id:
                     continue
                 for j, p in enumerate(label_pred):
                     if p == 1 and t == 1:
                         cm[i, j] += 1
-                        continue
 
-        cm = cm / (np.sum(cm, axis=1) + 1e-12)[:, None]
+        # cm = cm / (np.sum(cm, axis=1) + 1e-12)[:, None]
 
         # figure of confusion matrix
         cm_disp = ConfusionMatrixDisplay(confusion_matrix=cm,
